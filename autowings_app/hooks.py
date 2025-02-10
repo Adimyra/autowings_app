@@ -10,6 +10,12 @@ app_license = "mit"
 
 # required_apps = []
 
+doc_events = {
+    "Item": {
+        "after_insert": "autowings_app.custom_scripts.item_price.create_buying_price"
+    }
+}
+
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
 # 	{
