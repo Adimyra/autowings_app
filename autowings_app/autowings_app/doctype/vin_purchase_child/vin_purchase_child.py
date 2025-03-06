@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class SerialNoChild(Document):
+class VINPurchasechild(Document):
 	pass

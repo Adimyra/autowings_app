@@ -1,7 +1,7 @@
 {
  "custom_fields": [],
  "custom_perms": [],
- "doctype": "Purchase Receipt Item",
+ "doctype": "Packed Item",
  "links": [],
  "property_setters": [
   {
@@ -9,23 +9,23 @@
    "_comments": null,
    "_liked_by": null,
    "_user_tags": null,
-   "creation": "2025-02-05 12:43:02.578821",
+   "creation": "2025-02-05 12:42:58.424046",
    "default_value": null,
-   "doc_type": "Purchase Receipt Item",
+   "doc_type": "Packed Item",
    "docstatus": 0,
    "doctype_or_field": "DocField",
-   "field_name": "barcode",
+   "field_name": "rate",
    "idx": 0,
-   "is_system_generated": 1,
-   "modified": "2025-03-06 23:43:40.274289",
+   "is_system_generated": 0,
+   "modified": "2025-02-05 12:42:58.424046",
    "modified_by": "Administrator",
    "module": null,
-   "name": "Purchase Receipt Item-barcode-hidden",
+   "name": "Packed Item-rate-read_only",
    "owner": "Administrator",
-   "property": "hidden",
+   "property": "read_only",
    "property_type": "Check",
    "row_name": null,
-   "value": "0"
+   "value": "1"
   }
  ],
  "sync_on_migrate": 1
