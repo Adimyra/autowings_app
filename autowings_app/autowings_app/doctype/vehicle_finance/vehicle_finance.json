@@ -1,12 +1,18 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-02-24 13:46:19.606937",
+ "autoname": "format:{customer}-{###}",
+ "creation": "2025-03-06 17:07:55.287417",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "customer",
+  "vehicle_sale",
+  "finance_company",
   "loan_amount",
+  "down_payment",
+  "emi_amount",
+  "loan_tenure_months",
   "loan_type",
   "interest_rate",
   "loan_status"
@@ -18,9 +24,36 @@
    "label": "Customer"
   },
   {
+   "fieldname": "vehicle_sale",
+   "fieldtype": "Link",
+   "label": "Vehicle Sale",
+   "options": "Vehicle Sale"
+  },
+  {
+   "fieldname": "finance_company",
+   "fieldtype": "Link",
+   "label": "Finance Company",
+   "options": "Finance Provider"
+  },
+  {
    "fieldname": "loan_amount",
    "fieldtype": "Currency",
    "label": "Loan Amount"
+  },
+  {
+   "fieldname": "down_payment",
+   "fieldtype": "Currency",
+   "label": "Down Payment"
+  },
+  {
+   "fieldname": "emi_amount",
+   "fieldtype": "Currency",
+   "label": "EMI Amount"
+  },
+  {
+   "fieldname": "loan_tenure_months",
+   "fieldtype": "Int",
+   "label": "Loan Tenure Months"
   },
   {
    "fieldname": "loan_type",
@@ -42,10 +75,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-24 13:50:57.929092",
+ "modified": "2025-03-06 17:09:29.226575",
  "modified_by": "Administrator",
  "module": "Autowings App",
- "name": "Finance Application",
+ "name": "Vehicle Finance",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

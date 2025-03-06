@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{customer}-{###}",
+ "creation": "2025-03-06 17:10:18.301533",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "vehicle_sale",
+  "service_number",
+  "service_due_kms",
+  "service_due_days",
+  "is_free",
+  "service_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "vehicle_sale",
+   "fieldtype": "Link",
+   "label": "Vehicle Sale",
+   "options": "Vehicle Sale"
+  },
+  {
+   "fieldname": "service_number",
+   "fieldtype": "Int",
+   "label": "Service Number"
+  },
+  {
+   "fieldname": "service_due_kms",
+   "fieldtype": "Int",
+   "label": "Service Due Kms"
+  },
+  {
+   "fieldname": "service_due_days",
+   "fieldtype": "Int",
+   "label": "Service Due Days"
+  },
+  {
+   "fieldname": "is_free",
+   "fieldtype": "Select",
+   "label": "Is Free",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "service_status",
+   "fieldtype": "Select",
+   "label": "Service Status",
+   "options": "\nUpcoming\nCompleted"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-06 17:14:15.704024",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Vehicle Service Schedule",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestFinanceApplication(FrappeTestCase):
+class TestVehicleServiceSchedule(FrappeTestCase):
 	pass

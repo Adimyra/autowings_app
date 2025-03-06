@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-03-06 23:32:50.409941",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "chassis_number",
+  "engine_number",
+  "vehicle_color",
+  "manufacturing_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "chassis_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Chassis Number"
+  },
+  {
+   "fieldname": "engine_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Engine Number"
+  },
+  {
+   "fieldname": "vehicle_color",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vehicle Color",
+   "options": "Vehicle Color"
+  },
+  {
+   "fieldname": "manufacturing_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Manufacturing Date"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-03-06 23:34:43.131419",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Serial No Child",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

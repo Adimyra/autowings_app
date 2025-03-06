@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:insurance_policy_number",
+ "creation": "2025-03-06 16:45:28.896540",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "vehicle_sale",
+  "insurance_provider",
+  "insurance_policy_number",
+  "insurance_amount",
+  "insurance_start_date",
+  "insurance_end_date",
+  "insurance_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "vehicle_sale",
+   "fieldtype": "Link",
+   "label": "Vehicle Sale",
+   "options": "Vehicle Sale"
+  },
+  {
+   "fieldname": "insurance_provider",
+   "fieldtype": "Link",
+   "label": "Insurance Provider",
+   "options": "Insurance Provider"
+  },
+  {
+   "fieldname": "insurance_policy_number",
+   "fieldtype": "Data",
+   "label": "Insurance Policy Number",
+   "unique": 1
+  },
+  {
+   "fieldname": "insurance_amount",
+   "fieldtype": "Currency",
+   "label": "Insurance Amount"
+  },
+  {
+   "fieldname": "insurance_start_date",
+   "fieldtype": "Date",
+   "label": "Insurance Start Date"
+  },
+  {
+   "fieldname": "insurance_end_date",
+   "fieldtype": "Date",
+   "label": "Insurance End Date"
+  },
+  {
+   "fieldname": "insurance_status",
+   "fieldtype": "Select",
+   "label": "Insurance Status",
+   "options": "\nPending\nActive\nExpired"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-06 16:56:24.148541",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Vehicle Insurance",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

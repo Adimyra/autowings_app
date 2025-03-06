@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:rto_name",
+ "creation": "2025-03-06 17:01:56.221443",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "rto_name",
+  "rto_code",
+  "location"
+ ],
+ "fields": [
+  {
+   "fieldname": "rto_name",
+   "fieldtype": "Data",
+   "label": "RTO Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "rto_code",
+   "fieldtype": "Data",
+   "label": "RTO Code"
+  },
+  {
+   "description": "Address of RTO",
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-06 17:02:46.921031",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "RTO Office",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

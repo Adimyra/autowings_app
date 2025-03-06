@@ -1,0 +1,121 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:chassis_number",
+ "creation": "2025-03-06 16:34:37.097746",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "sales_invoice",
+  "item",
+  "chassis_number",
+  "engine_number",
+  "vehicle_color",
+  "expected_delivery_date",
+  "column_break_jbci",
+  "registration_status",
+  "insurance_status",
+  "finance_status",
+  "delivery_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Vehicle Model / Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "chassis_number",
+   "fieldtype": "Link",
+   "label": "Chassis Number",
+   "options": "Serial No",
+   "unique": 1
+  },
+  {
+   "fieldname": "engine_number",
+   "fieldtype": "Link",
+   "label": "Engine Number",
+   "options": "Serial No"
+  },
+  {
+   "fieldname": "vehicle_color",
+   "fieldtype": "Link",
+   "label": "Vehicle Color",
+   "options": "Vehicle Color"
+  },
+  {
+   "fieldname": "registration_status",
+   "fieldtype": "Select",
+   "label": "Registration Status",
+   "options": "\nPending\nIn Progress\nRegistered"
+  },
+  {
+   "fieldname": "insurance_status",
+   "fieldtype": "Select",
+   "label": "Insurance Status",
+   "options": "\nPending\nApproved\nRejected"
+  },
+  {
+   "fieldname": "finance_status",
+   "fieldtype": "Select",
+   "label": "Finance Status",
+   "options": "\nNot Required\nPending\nApproved\nRejected"
+  },
+  {
+   "fieldname": "expected_delivery_date",
+   "fieldtype": "Date",
+   "label": "Expected Delivery Date"
+  },
+  {
+   "fieldname": "delivery_status",
+   "fieldtype": "Select",
+   "label": "Delivery Status",
+   "options": "\nNot Delivered\nDelivered"
+  },
+  {
+   "fieldname": "column_break_jbci",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-06 16:58:07.850212",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Vehicle Sale",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer"
+}
