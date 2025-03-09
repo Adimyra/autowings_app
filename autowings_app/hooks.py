@@ -17,7 +17,26 @@ doc_events = {
 }
 
 doctype_js = {
-    "Opportunity": "public/js/opportunity.js"
+    "Opportunity": "public/js/opportunity.js",
+    "Sales Order": "public/js/sales_order.js",
+    "Sales Invoice": "public/js/sales_invoice.js",
+    "Purchase Receipt": "public/js/purchase_receipt.js",
+    "Delivery Note": "public/js/delivery_note.js"
+}
+
+doc_events = {
+    "Purchase Receipt": {
+        "before_save": "autowings_app.custom_scripts.purchase_receipt.before_save",
+        "before_submit": "autowings_app.custom_scripts.purchase_receipt.before_submit",
+        "on_submit": "autowings_app.custom_scripts.purchase_receipt.on_submit"
+    },
+    "Delivery Note": {
+        "before_save": "autowings_app.custom_scripts.delivery_note.before_save",
+        "before_submit": "autowings_app.custom_scripts.delivery_note.before_submit"
+    },
+    "Sales Invoice": {
+        "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit"
+    }
 }
 
 # Each item in the list will be shown as an app in the apps page
