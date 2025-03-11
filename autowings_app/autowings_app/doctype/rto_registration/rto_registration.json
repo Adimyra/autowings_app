@@ -1,18 +1,20 @@
 {
+ "_liked_by": "[\"Administrator\"]",
  "actions": [],
  "allow_rename": 1,
  "creation": "2025-03-08 14:22:32.759060",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "vsm_id",
   "customer",
   "sales_invoice",
-  "vehicle_sale",
   "registration_number",
   "rto_office",
-  "registration_fee",
+  "registration_charge",
   "registration_status",
-  "registration_date"
+  "registration_date",
+  "chassis_number"
  ],
  "fields": [
   {
@@ -28,12 +30,6 @@
    "options": "Sales Invoice"
   },
   {
-   "fieldname": "vehicle_sale",
-   "fieldtype": "Link",
-   "label": "Vehicle Sale",
-   "options": "Vehicle Sale"
-  },
-  {
    "fieldname": "registration_number",
    "fieldtype": "Data",
    "label": "Registration Number"
@@ -45,11 +41,6 @@
    "options": "RTO Office"
   },
   {
-   "fieldname": "registration_fee",
-   "fieldtype": "Currency",
-   "label": "Registration Fee"
-  },
-  {
    "fieldname": "registration_status",
    "fieldtype": "Select",
    "label": "Registration Status",
@@ -59,11 +50,29 @@
    "fieldname": "registration_date",
    "fieldtype": "Date",
    "label": "Registration Date"
+  },
+  {
+   "fieldname": "registration_charge",
+   "fieldtype": "Currency",
+   "label": "Registration Charge",
+   "precision": "2"
+  },
+  {
+   "fieldname": "chassis_number",
+   "fieldtype": "Link",
+   "label": "Chassis Number",
+   "options": "Serial No"
+  },
+  {
+   "fieldname": "vsm_id",
+   "fieldtype": "Link",
+   "label": "Vehicle Sales Master ID",
+   "options": "Vehicle Sales Master"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-08 14:25:57.831988",
+ "modified": "2025-03-11 18:17:48.759800",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

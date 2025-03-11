@@ -1,14 +1,162 @@
 import frappe
 
 def before_submit(doc, method):
-    """ Ensure all chassis_number values in custom_vehicle_details are correctly mapped to items before submit """
+    """
+    Before Submit:
+    - Validate chassis numbers for serialized items
+    - Create VSM and RTO Registration
+    - Ensure only one vehicle item (excluding service items) for RTO Registration
+    """
+
     if doc.update_stock:
         for item in doc.get("items"):
-            # Get all chassis numbers for the item from custom_vehicle_details
-            chassis_list = [vin.chassis_number for vin in doc.get("custom_vehicle_details") if vin.item == item.item_code]
+            has_serial_no = frappe.db.get_value("Item", item.item_code, "has_serial_no")
 
-            if not chassis_list or "" in chassis_list:
-                frappe.throw(f"Please enter chassis numbers for all VIN entries of item {item.item_code}")
+            if has_serial_no:
+                chassis_list = [
+                    vin.chassis_number for vin in doc.get("custom_vehicle_details") 
+                    if vin.item == item.item_code and vin.chassis_number
+                ]
 
-            # Store multiple chassis numbers as serial_no in items table
-            item.serial_no = "\n".join(chassis_list)  # Line-separated serial numbers
+                if len(chassis_list) < int(item.qty):
+                    frappe.throw(f"Not enough chassis numbers for item {item.item_code}.")
+
+                item.serial_no = "\n".join(chassis_list)
+
+        doc.custom_vehicle_details = [
+            vin for vin in doc.get("custom_vehicle_details") 
+            if frappe.db.get_value("Item", vin.item, "has_serial_no")
+        ]
+
+    # **🔹 Ignore service items like RTO Charges when checking vehicle count**
+    vehicle_items = [item for item in doc.items if item.custom_is_vehicle and item.item_group != "Services"]
+
+    if doc.custom_rto_registration:
+        if len(vehicle_items) != 1 or vehicle_items[0].qty != 1:
+            vehicle_item_names = ", ".join([f"{item.item_code} ({item.item_name})" for item in vehicle_items])
+            frappe.throw(
+                f"This invoice contains multiple vehicle items:\n"
+                f"{vehicle_item_names}.\n"
+                "Please ensure that only one vehicle is selected and it has 'Is Vehicle' checked.\n"
+                "Remove extra vehicles or create a separate invoice for RTO Registration."
+            )
+
+
+        rto_doc_name = create_rto_registration(doc, vehicle_items[0])
+
+    if doc.custom_is_finance:
+        add_service_item(doc, "Finance")
+    if doc.custom_insurance:
+        add_service_item(doc, "Insurance")
+
+    vsm_doc_names = create_vehicle_sales_master(doc)
+
+    for vsm_doc_name in vsm_doc_names:
+        vsm_doc = frappe.get_doc("Vehicle Sales Master", vsm_doc_name)
+        vsm_doc.rto_registration_id = rto_doc_name
+        vsm_doc.save()
+
+    if rto_doc_name:
+        rto_doc = frappe.get_doc("RTO Registration", rto_doc_name)
+        rto_doc.vsm_id = ", ".join(vsm_doc_names)
+        rto_doc.save()
+
+
+@frappe.whitelist()
+def create_rto_registration(doc, vehicle_item):
+    """Creates RTO Registration and returns the document name."""
+
+    existing_rto = frappe.get_all("RTO Registration", filters={"sales_invoice": doc.name}, fields=["name"])
+    if existing_rto:
+        return existing_rto[0]["name"]
+
+    rto_office = doc.custom_rto_office or ""
+    registration_charge = next((i.rate for i in doc.items if i.item_group == "Services"), 0)
+
+    rto_doc = frappe.get_doc({
+        "doctype": "RTO Registration",
+        "customer": doc.customer,
+        "sales_invoice": doc.name,
+        "rto_office": rto_office,
+        "registration_charge": registration_charge,
+        "registration_status": "Pending"
+    })
+    rto_doc.insert()
+    frappe.db.commit()
+    return rto_doc.name
+
+@frappe.whitelist()
+def add_service_item(doc, service_type):
+    """Adds Finance or Insurance service items to Sales Invoice."""
+
+    service_item_code = f"SERVICE-{service_type}"
+    existing_item = next((i for i in doc.items if i.item_code == service_item_code), None)
+
+    if not existing_item:
+        item_details = frappe.get_value("Item", {"item_code": service_item_code}, ["item_name", "standard_rate", "income_account"], as_dict=True)
+        if not item_details:
+            frappe.throw(f"Service Item '{service_type}' not found in the system.")
+
+        doc.append("items", {
+            "item_code": service_item_code,
+            "item_name": item_details["item_name"],
+            "rate": item_details["standard_rate"],
+            "amount": item_details["standard_rate"],
+            "qty": 1,
+            "uom": "Nos",
+            "income_account": item_details.get("income_account", "Sales - AD"),
+            "cost_center": doc.cost_center
+        })
+
+@frappe.whitelist()
+def create_vehicle_sales_master(doc):
+    """Creates Vehicle Sales Master (VSM) for eligible vehicle items."""
+
+    vsm_doc_names = []
+    existing_vsm_items = frappe.get_all(
+        "Vehicle Sales Master",
+        filters={"sales_invoice": doc.name},
+        fields=["item"]
+    )
+
+    existing_items = {vsm["item"] for vsm in existing_vsm_items}
+
+    for item in doc.items:
+        if not item.custom_is_vehicle:
+            continue  
+
+        if item.item_code in existing_items:
+            continue  
+
+        vehicle_details = [
+            vin for vin in doc.custom_vehicle_details 
+            if vin.item == item.item_code and vin.chassis_number
+        ]
+
+        if doc.update_stock and len(vehicle_details) < int(item.qty):
+            frappe.throw(f"Not enough chassis numbers in Sales Invoice for item {item.item_code}.")
+
+        for index in range(int(item.qty)):
+            vsm_doc = frappe.get_doc({
+                "doctype": "Vehicle Sales Master",
+                "customer": doc.customer,
+                "item": item.item_code,
+                "sales_invoice": doc.name,
+                "rto_registration": doc.custom_rto_registration,
+                "is_finance": doc.custom_is_finance,
+                "is_insurance": doc.custom_insurance,
+                "is_delivered": 1 if doc.update_stock else 0
+            })
+
+            if doc.update_stock and index < len(vehicle_details):
+                vin_data = vehicle_details[index]
+                vsm_doc.chassis_number = vin_data.chassis_number
+                vsm_doc.engine_number = vin_data.engine_number
+                vsm_doc.vehicle_color = vin_data.vehicle_color
+                vsm_doc.manufacturing_date = vin_data.manufacturing_date
+
+            vsm_doc.insert()
+            frappe.db.commit()
+            vsm_doc_names.append(vsm_doc.name)
+
+    return vsm_doc_names

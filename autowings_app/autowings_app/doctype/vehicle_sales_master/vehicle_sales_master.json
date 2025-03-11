@@ -1,0 +1,277 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:VSM-{YYYY}-{MM}-{#####}",
+ "creation": "2025-03-11 11:39:54.553789",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_details_section",
+  "customer",
+  "item",
+  "column_break_gnfz",
+  "sales_invoice",
+  "is_delivered",
+  "delivery_note",
+  "rto_registration",
+  "is_finance",
+  "is_insurance",
+  "vehicle_info_section",
+  "chassis_number",
+  "engine_number",
+  "column_break_hdlu",
+  "vehicle_color",
+  "manufacturing_date",
+  "rto_details_section",
+  "rto_registration_id",
+  "registration_number",
+  "rto_office",
+  "registration_fee",
+  "column_break_vktw",
+  "registration_status",
+  "registration_date",
+  "remarks",
+  "insurance_details_section",
+  "insurance_provider",
+  "insurance_policy",
+  "column_break_coab",
+  "policy_number",
+  "insurance_status",
+  "finance_details_section",
+  "finance_provider",
+  "loan_ammount",
+  "column_break_ilgx",
+  "down_payment",
+  "loan_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer_details_section",
+   "fieldtype": "Section Break",
+   "label": "Customer Details"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item / Model",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_gnfz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_delivered",
+   "fieldtype": "Check",
+   "label": "Is Delivered"
+  },
+  {
+   "fieldname": "delivery_note",
+   "fieldtype": "Link",
+   "label": "Delivery Note",
+   "options": "Delivery Note"
+  },
+  {
+   "default": "0",
+   "fieldname": "rto_registration",
+   "fieldtype": "Check",
+   "label": "RTO Registration"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_finance",
+   "fieldtype": "Check",
+   "label": "Is Finance"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_insurance",
+   "fieldtype": "Check",
+   "label": "Is Insurance"
+  },
+  {
+   "fieldname": "rto_details_section",
+   "fieldtype": "Section Break",
+   "label": "RTO Details"
+  },
+  {
+   "fieldname": "registration_number",
+   "fieldtype": "Data",
+   "label": "Registration Number"
+  },
+  {
+   "fieldname": "rto_office",
+   "fieldtype": "Link",
+   "label": "RTO Office",
+   "options": "RTO Office"
+  },
+  {
+   "fieldname": "registration_fee",
+   "fieldtype": "Currency",
+   "label": "Registration Fee"
+  },
+  {
+   "fieldname": "column_break_vktw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "registration_status",
+   "fieldtype": "Select",
+   "label": "Registration Status",
+   "options": "\nApplied\nPending\nIn Progress\nCompleted\nRejected"
+  },
+  {
+   "fieldname": "registration_date",
+   "fieldtype": "Date",
+   "label": "Registration Date"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Data",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "insurance_details_section",
+   "fieldtype": "Section Break",
+   "label": "Insurance Details"
+  },
+  {
+   "fieldname": "insurance_provider",
+   "fieldtype": "Link",
+   "label": "Insurance Provider",
+   "options": "Insurance Provider"
+  },
+  {
+   "fieldname": "insurance_policy",
+   "fieldtype": "Link",
+   "label": "Insurance Policy",
+   "options": "Insurance Policy"
+  },
+  {
+   "fieldname": "column_break_coab",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "policy_number",
+   "fieldtype": "Data",
+   "label": "Policy Number"
+  },
+  {
+   "fieldname": "insurance_status",
+   "fieldtype": "Select",
+   "label": "Insurance Status",
+   "options": "\nApplied\nPending\nActive\nExpired"
+  },
+  {
+   "fieldname": "finance_details_section",
+   "fieldtype": "Section Break",
+   "label": "Finance Details"
+  },
+  {
+   "fieldname": "finance_provider",
+   "fieldtype": "Link",
+   "label": "Finance Provider",
+   "options": "Finance Provider"
+  },
+  {
+   "fieldname": "loan_ammount",
+   "fieldtype": "Currency",
+   "label": "Loan Ammount"
+  },
+  {
+   "fieldname": "down_payment",
+   "fieldtype": "Currency",
+   "label": "Down Payment"
+  },
+  {
+   "fieldname": "loan_status",
+   "fieldtype": "Select",
+   "label": "Loan Status",
+   "options": "\nPending\nApproved\nRejected\nDisbursed\nClosed"
+  },
+  {
+   "fieldname": "column_break_ilgx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vehicle_info_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Info"
+  },
+  {
+   "fieldname": "chassis_number",
+   "fieldtype": "Link",
+   "label": "Chassis Number",
+   "options": "Serial No"
+  },
+  {
+   "fetch_from": "chassis_number.custom_engine_number",
+   "fieldname": "engine_number",
+   "fieldtype": "Data",
+   "label": "Engine Number",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "chassis_number.custom_vehicle_color",
+   "fieldname": "vehicle_color",
+   "fieldtype": "Data",
+   "label": "Vehicle Color",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "chassis_number.custom_manufacturing_date",
+   "fieldname": "manufacturing_date",
+   "fieldtype": "Date",
+   "label": "Manufacturing Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_hdlu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rto_registration_id",
+   "fieldtype": "Link",
+   "label": "RTO Registration ID",
+   "options": "RTO Registration"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-11 17:47:02.150824",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Vehicle Sales Master",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

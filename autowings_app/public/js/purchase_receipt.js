@@ -67,3 +67,87 @@ function update_vin_entries(frm, item_code, qty) {
         frm.refresh_field("custom_vin");
     }
 }
+
+
+
+// add custom button for update table of VIN
+
+frappe.ui.form.on("Purchase Receipt", {
+    refresh: function(frm) {
+        // Add a custom button
+        frm.add_custom_button(__('Update VIN Data'), function() {
+            open_vin_modal(frm);
+        }, __("Autowings"));
+    }
+});
+
+function open_vin_modal(frm) {
+    let d = new frappe.ui.Dialog({
+        title: __("Update VIN Data"),
+        fields: [
+            {
+                label: __("Download VIN CSV"),
+                fieldname: "download_vin",
+                fieldtype: "Button",
+                click: function() {
+                    download_vin_csv(frm);
+                }
+            },
+            {
+                label: __("Upload VIN CSV"),
+                fieldname: "upload_vin",
+                fieldtype: "Attach",
+                reqd: 1
+            }
+        ],
+        primary_action_label: __("Upload & Update"),
+        primary_action(values) {
+            if (values.upload_vin) {
+                update_vin_data(frm, values.upload_vin);
+            }
+            d.hide();
+        }
+    });
+
+    d.show();
+}
+
+// Function to download existing VIN Data as CSV
+function download_vin_csv(frm) {
+    frappe.call({
+        method: "autowings_app.custom_scripts.purchase_receipt.download_vin_csv",
+        args: { docname: frm.doc.name },
+        callback: function(r) {
+            if (r.message) {
+                let csvData = r.message;
+                let blob = new Blob([csvData], { type: "text/csv" });
+                let url = window.URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                a.setAttribute("href", url);
+                a.setAttribute("download", `VIN_Details_${frm.doc.name}.csv`);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+    });
+}
+
+// Function to update VIN data from uploaded CSV
+function update_vin_data(frm, file_url) {
+    frappe.call({
+        method: "autowings_app.custom_scripts.purchase_receipt.upload_vin_csv",
+        args: {
+            docname: frm.doc.name,
+            file_url: file_url
+        },
+        callback: function(r) {
+            if (!r.exc) {
+                frappe.msgprint(__("VIN data updated successfully."));
+                frm.reload_doc();
+            }
+        }
+    });
+}
+
+

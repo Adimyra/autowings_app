@@ -1,52 +1,27 @@
-frappe.ui.form.on('Sales Invoice', {
+frappe.ui.form.on("Sales Invoice", {
     refresh: function(frm) {
-        if (!frm.is_new()) {
-            frm.add_custom_button('Create Insurance', function() {
-                frappe.call({
-                    method: 'autowings_app.autowings_app.doctype.vehicle_insurance.vehicle_insurance.create_vehicle_insurance',
-                    args: { sales_invoice: frm.doc.name },
-                    callback: function(r) {
-                        if (r.message) {
-                            frappe.msgprint(__('Vehicle Insurance Created: ' + r.message));
-                        }
-                    }
-                });
-            }, 'Create');
-
-            frm.add_custom_button('Create RTO Registration', function() {
-                frappe.call({
-                    method: 'autowings_app.autowings_app.doctype.rto_registration.rto_registration.create_rto_registration',
-                    args: { sales_invoice: frm.doc.name },
-                    callback: function(r) {
-                        if (r.message) {
-                            frappe.msgprint(__('RTO Registration Created: ' + r.message));
-                        }
-                    }
-                });
-            }, 'Create');
+        if (frm.doc.docstatus === 1) {
+            frm.add_custom_button("Create Vehicle Sales Master", function() {
+                create_vehicle_sales_master(frm);
+            }, "Autowings");
         }
     }
 });
 
-frappe.ui.form.on('Sales Invoice', {
-    refresh: function(frm) {
-        if (!frm.is_new()) {
-            frm.add_custom_button('Create Vehicle Sale', function() {
-                frappe.call({
-                    method: 'autowings_app.autowings_app.doctype.vehicle_sale.vehicle_sale.create_vehicle_sale',
-                    args: {
-                        sales_invoice: frm.doc.name
-                    },
-                    callback: function(r) {
-                        if (r.message) {
-                            frappe.msgprint(__('Vehicle Sale Created: ' + r.message));
-                        }
-                    }
-                });
-            }, 'Create');
+function create_vehicle_sales_master(frm) {
+    frappe.call({
+        method: "autowings_app.custom_scripts.sales_invoice.create_vehicle_sales_master",
+        args: {
+            sales_invoice: frm.doc.name
+        },
+        callback: function(response) {
+            if (response.message) {
+                frappe.msgprint("Vehicle Sales Masters Created Successfully.");
+                frm.reload_doc();
+            }
         }
-    }
-});
+    });
+}
 
 
 // for automated
@@ -121,4 +96,111 @@ function sync_vehicle_entries(frm) {
     });
 
     frm.refresh_field("custom_vehicle_details");
+}
+
+
+
+
+// for rto registration
+frappe.ui.form.on("Sales Invoice", {
+    refresh: function(frm) {
+        if (frm.doc.docstatus === 0) {
+            frm.fields_dict["custom_rto_registration"].df.onchange = function() {
+                if (frm.doc.custom_rto_registration) {
+                    open_rto_registration_modal(frm);
+                } else {
+                    remove_rto_registration_item(frm);
+                }
+            };
+        }
+    }
+});
+
+function open_rto_registration_modal(frm) {
+    frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+            doctype: "Item",
+            filters: { "item_group": "Services" },
+            fields: ["name", "item_name"]
+        },
+        callback: function(response) {
+            let service_items = response.message || [];
+            if (service_items.length === 0) {
+                frappe.msgprint("No service items found in 'Services' item group.");
+                return;
+            }
+
+            let item_options = service_items.map(item => ({
+                label: `${item.item_name} (${item.name})`,
+                value: item.name
+            }));
+
+            frappe.prompt([
+                {
+                    label: "RTO Registration Item",
+                    fieldname: "rto_item",
+                    fieldtype: "Select",
+                    options: item_options.map(i => i.value),
+                    reqd: 1
+                },
+                {
+                    label: "Registration Charge",
+                    fieldname: "registration_charge",
+                    fieldtype: "Currency",
+                    reqd: 1
+                },
+                {
+                    label: "RTO Office",
+                    fieldname: "rto_office",
+                    fieldtype: "Link",
+                    options: "RTO Office",
+                    reqd: 1
+                }
+            ], function(values) {
+                add_rto_registration_item(frm, values);
+            }, "RTO Registration Details", "Add");
+        }
+    });
+}
+
+function add_rto_registration_item(frm, values) {
+    frappe.call({
+        method: "frappe.client.get",
+        args: {
+            doctype: "Item",
+            name: values.rto_item
+        },
+        callback: function(response) {
+            let item_data = response.message;
+            if (!item_data) {
+                frappe.msgprint("Item details could not be fetched.");
+                return;
+            }
+
+            // Append item with required fields
+            frm.add_child("items", {
+                item_code: values.rto_item,
+                item_name: item_data.item_name,
+                description: item_data.description,
+                rate: values.registration_charge,
+                amount: values.registration_charge,
+                qty: 1,  // Default to 1 since it's a service charge
+                uom: item_data.stock_uom || "Nos",  // Default UOM
+                income_account: item_data.income_account || "Sales - AD", // Default Income Account
+                cost_center: item_data.cost_center || frm.doc.cost_center
+            });
+
+            frm.refresh_field("items");
+
+            // Save RTO details in custom fields
+            frm.set_value("custom_rto_office", values.rto_office);
+        }
+    });
+}
+
+function remove_rto_registration_item(frm) {
+    frm.set_value("custom_rto_office", "");
+    frm.doc.items = frm.doc.items.filter(item => item.item_group !== "Services");
+    frm.refresh_field("items");
 }

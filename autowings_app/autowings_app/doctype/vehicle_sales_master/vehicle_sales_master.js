@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Adimyra Systems Private Limited and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("Vehicle Sale", {
+// frappe.ui.form.on("Vehicle Sales Master", {
 // 	refresh(frm) {
 
 // 	},
