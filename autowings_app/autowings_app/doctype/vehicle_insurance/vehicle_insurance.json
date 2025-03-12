@@ -2,19 +2,24 @@
  "_liked_by": "[\"Administrator\"]",
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:insurance_policy_number",
+ "autoname": "format:INS-{YYYY}-{MM}-{#####}",
  "creation": "2025-03-06 16:45:28.896540",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "vsm_id",
   "customer",
-  "vehicle_sale",
-  "insurance_provider",
   "insurance_policy_number",
   "insurance_amount",
+  "insurance_status",
+  "column_break_sdit",
+  "insurance_provider",
+  "policy_name",
+  "coverage_details",
+  "premium_amount",
+  "policy_term_years",
   "insurance_start_date",
-  "insurance_end_date",
-  "insurance_status"
+  "insurance_end_date"
  ],
  "fields": [
   {
@@ -22,12 +27,6 @@
    "fieldtype": "Link",
    "label": "Customer",
    "options": "Customer"
-  },
-  {
-   "fieldname": "vehicle_sale",
-   "fieldtype": "Link",
-   "label": "Vehicle Sale",
-   "options": "Vehicle Sale"
   },
   {
    "fieldname": "insurance_provider",
@@ -60,16 +59,46 @@
    "fieldname": "insurance_status",
    "fieldtype": "Select",
    "label": "Insurance Status",
-   "options": "\nApplied\nPending\nActive\nExpired"
+   "options": "\nApplied\nPending\nActive\nExpired\nCancelled"
+  },
+  {
+   "fieldname": "vsm_id",
+   "fieldtype": "Link",
+   "label": "Vehicle Sales Master",
+   "options": "Vehicle Sales Master"
+  },
+  {
+   "fieldname": "column_break_sdit",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "policy_name",
+   "fieldtype": "Data",
+   "label": "Policy Name"
+  },
+  {
+   "fieldname": "coverage_details",
+   "fieldtype": "Data",
+   "label": "Coverage Details"
+  },
+  {
+   "fieldname": "premium_amount",
+   "fieldtype": "Currency",
+   "label": "Premium Amount"
+  },
+  {
+   "fieldname": "policy_term_years",
+   "fieldtype": "Data",
+   "label": "Policy Term (Years)"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-09 17:28:14.500428",
+ "modified": "2025-03-12 14:07:03.502297",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

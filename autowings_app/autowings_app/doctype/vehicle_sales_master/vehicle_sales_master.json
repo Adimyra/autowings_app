@@ -9,6 +9,9 @@
   "customer_details_section",
   "customer",
   "item",
+  "vehicle_type",
+  "vehicle_class",
+  "fuel_used",
   "column_break_gnfz",
   "sales_invoice",
   "is_delivered",
@@ -26,20 +29,21 @@
   "rto_registration_id",
   "registration_number",
   "rto_office",
-  "registration_fee",
   "column_break_vktw",
   "registration_status",
   "registration_date",
   "remarks",
   "insurance_details_section",
+  "insurance_id",
   "insurance_provider",
   "insurance_policy",
   "column_break_coab",
   "policy_number",
   "insurance_status",
   "finance_details_section",
+  "finance_id",
   "finance_provider",
-  "loan_ammount",
+  "loan_amount",
   "column_break_ilgx",
   "down_payment",
   "loan_status"
@@ -60,7 +64,8 @@
    "fieldname": "item",
    "fieldtype": "Link",
    "label": "Item / Model",
-   "options": "Item"
+   "options": "Item",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_gnfz",
@@ -82,7 +87,8 @@
    "fieldname": "delivery_note",
    "fieldtype": "Link",
    "label": "Delivery Note",
-   "options": "Delivery Note"
+   "options": "Delivery Note",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -108,40 +114,44 @@
    "label": "RTO Details"
   },
   {
+   "fetch_from": "rto_registration_id.registration_number",
    "fieldname": "registration_number",
    "fieldtype": "Data",
-   "label": "Registration Number"
+   "label": "Registration Number",
+   "read_only": 1
   },
   {
+   "fetch_from": "rto_registration_id.rto_office",
    "fieldname": "rto_office",
    "fieldtype": "Link",
    "label": "RTO Office",
-   "options": "RTO Office"
-  },
-  {
-   "fieldname": "registration_fee",
-   "fieldtype": "Currency",
-   "label": "Registration Fee"
+   "options": "RTO Office",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_vktw",
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "rto_registration_id.registration_status",
    "fieldname": "registration_status",
    "fieldtype": "Select",
    "label": "Registration Status",
-   "options": "\nApplied\nPending\nIn Progress\nCompleted\nRejected"
+   "options": "\nApplied\nPending\nIn Progress\nCompleted\nRejected",
+   "read_only": 1
   },
   {
+   "fetch_from": "rto_registration_id.registration_date",
    "fieldname": "registration_date",
    "fieldtype": "Date",
-   "label": "Registration Date"
+   "label": "Registration Date",
+   "read_only": 1
   },
   {
    "fieldname": "remarks",
    "fieldtype": "Data",
-   "label": "Remarks"
+   "label": "Remarks",
+   "read_only": 1
   },
   {
    "fieldname": "insurance_details_section",
@@ -149,16 +159,19 @@
    "label": "Insurance Details"
   },
   {
+   "fetch_from": "insurance_id.insurance_provider",
    "fieldname": "insurance_provider",
    "fieldtype": "Link",
    "label": "Insurance Provider",
-   "options": "Insurance Provider"
+   "options": "Insurance Provider",
+   "read_only": 1
   },
   {
    "fieldname": "insurance_policy",
    "fieldtype": "Link",
    "label": "Insurance Policy",
-   "options": "Insurance Policy"
+   "options": "Insurance Policy",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_coab",
@@ -167,13 +180,16 @@
   {
    "fieldname": "policy_number",
    "fieldtype": "Data",
-   "label": "Policy Number"
+   "label": "Policy Number",
+   "read_only": 1
   },
   {
+   "fetch_from": "insurance_id.insurance_status",
    "fieldname": "insurance_status",
    "fieldtype": "Select",
    "label": "Insurance Status",
-   "options": "\nApplied\nPending\nActive\nExpired"
+   "options": "\nApplied\nPending\nActive\nExpired",
+   "read_only": 1
   },
   {
    "fieldname": "finance_details_section",
@@ -181,26 +197,28 @@
    "label": "Finance Details"
   },
   {
+   "fetch_from": "finance_id.finance_provider",
    "fieldname": "finance_provider",
    "fieldtype": "Link",
    "label": "Finance Provider",
-   "options": "Finance Provider"
-  },
-  {
-   "fieldname": "loan_ammount",
-   "fieldtype": "Currency",
-   "label": "Loan Ammount"
+   "options": "Finance Provider",
+   "read_only": 1
   },
   {
    "fieldname": "down_payment",
    "fieldtype": "Currency",
-   "label": "Down Payment"
+   "label": "Down Payment",
+   "precision": "2",
+   "print_hide_if_no_value": 1,
+   "read_only": 1
   },
   {
+   "fetch_from": "finance_id.loan_status",
    "fieldname": "loan_status",
    "fieldtype": "Select",
    "label": "Loan Status",
-   "options": "\nPending\nApproved\nRejected\nDisbursed\nClosed"
+   "options": "\nPending\nApproved\nRejected\nDisbursed\nClosed",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_ilgx",
@@ -247,11 +265,53 @@
    "fieldtype": "Link",
    "label": "RTO Registration ID",
    "options": "RTO Registration"
+  },
+  {
+   "fetch_from": "item.custom_vehicle_type",
+   "fieldname": "vehicle_type",
+   "fieldtype": "Data",
+   "label": "Vehicle Type",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "item.custom_vehicle_class",
+   "fieldname": "vehicle_class",
+   "fieldtype": "Data",
+   "label": "Vehicle Class",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "item.custom_fuel_used",
+   "fieldname": "fuel_used",
+   "fieldtype": "Data",
+   "label": "Fuel Used",
+   "read_only": 1
+  },
+  {
+   "fieldname": "insurance_id",
+   "fieldtype": "Link",
+   "label": "Insurance ID",
+   "options": "Vehicle Insurance"
+  },
+  {
+   "fieldname": "finance_id",
+   "fieldtype": "Link",
+   "label": "Finance ID",
+   "options": "Vehicle Finance"
+  },
+  {
+   "fetch_from": "finance_id.loan_amount",
+   "fieldname": "loan_amount",
+   "fieldtype": "Currency",
+   "label": "Loan Amount",
+   "precision": "2",
+   "print_hide_if_no_value": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-11 17:47:02.150824",
+ "modified": "2025-03-12 15:02:33.216089",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",

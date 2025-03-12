@@ -102,105 +102,248 @@ function sync_vehicle_entries(frm) {
 
 
 // for rto registration
+
+// frappe.ui.form.on("Sales Invoice", {
+//     refresh: function(frm) {
+//         if (frm.doc.docstatus === 0) {
+//             frm.fields_dict["custom_rto_registration"].df.onchange = function() {
+//                 if (frm.doc.custom_rto_registration) {
+//                     open_rto_registration_modal(frm);
+//                 } else {
+//                     remove_rto_registration_item(frm);
+//                 }
+//             };
+//         }
+//     }
+// });
+
+// function open_rto_registration_modal(frm) {
+//     frappe.call({
+//         method: "frappe.client.get_list",
+//         args: {
+//             doctype: "Item",
+//             filters: { "item_group": "Services" },
+//             fields: ["name", "item_name"]
+//         },
+//         callback: function(response) {
+//             let service_items = response.message || [];
+//             if (service_items.length === 0) {
+//                 frappe.msgprint("No service items found in 'Services' item group.");
+//                 return;
+//             }
+
+//             let item_options = service_items.map(item => ({
+//                 label: `${item.item_name} (${item.name})`,
+//                 value: item.name
+//             }));
+
+//             frappe.prompt([
+//                 {
+//                     label: "RTO Registration Item",
+//                     fieldname: "rto_item",
+//                     fieldtype: "Select",
+//                     options: item_options.map(i => i.value),
+//                     reqd: 1
+//                 },
+//                 {
+//                     label: "Registration Charge",
+//                     fieldname: "registration_charge",
+//                     fieldtype: "Currency",
+//                     reqd: 1
+//                 },
+//                 {
+//                     label: "RTO Office",
+//                     fieldname: "rto_office",
+//                     fieldtype: "Link",
+//                     options: "RTO Office",
+//                     reqd: 1
+//                 }
+//             ], function(values) {
+//                 add_rto_registration_item(frm, values);
+//             }, "RTO Registration Details", "Add");
+//         }
+//     });
+// }
+
+// function add_rto_registration_item(frm, values) {
+//     frappe.call({
+//         method: "frappe.client.get",
+//         args: {
+//             doctype: "Item",
+//             name: values.rto_item
+//         },
+//         callback: function(response) {
+//             let item_data = response.message;
+//             if (!item_data) {
+//                 frappe.msgprint("Item details could not be fetched.");
+//                 return;
+//             }
+
+//             // Append item with required fields
+//             frm.add_child("items", {
+//                 item_code: values.rto_item,
+//                 item_name: item_data.item_name,
+//                 description: item_data.description,
+//                 rate: values.registration_charge,
+//                 amount: values.registration_charge,
+//                 qty: 1,  // Default to 1 since it's a service charge
+//                 uom: item_data.stock_uom || "Nos",  // Default UOM
+//                 income_account: item_data.income_account || "Sales - AD", // Default Income Account
+//                 cost_center: item_data.cost_center || frm.doc.cost_center
+//             });
+
+//             frm.refresh_field("items");
+
+//             // Save RTO details in custom fields
+//             frm.set_value("custom_rto_office", values.rto_office);
+//         }
+//     });
+// }
+
+// function remove_rto_registration_item(frm) {
+//     frm.set_value("custom_rto_office", "");
+//     frm.doc.items = frm.doc.items.filter(item => item.item_group !== "Services");
+//     frm.refresh_field("items");
+// }
+
+
 frappe.ui.form.on("Sales Invoice", {
-    refresh: function(frm) {
-        if (frm.doc.docstatus === 0) {
-            frm.fields_dict["custom_rto_registration"].df.onchange = function() {
-                if (frm.doc.custom_rto_registration) {
-                    open_rto_registration_modal(frm);
-                } else {
-                    remove_rto_registration_item(frm);
-                }
-            };
+    // RTO Registration Checkbox Logic
+    custom_rto_registration: function(frm) {
+        if (frm.doc.custom_rto_registration) {
+            let has_vehicle = frm.doc.items.some(item => item.custom_is_vehicle == 1);
+            if (!has_vehicle) {
+                frappe.throw("Please add a Vehicle Item before enabling RTO Registration.");
+                frm.set_value("custom_rto_registration", 0);
+                return;
+            }
+            add_or_update_service_item(frm, frm.doc.custom_rto_charge_item);
+        } else {
+            remove_service_item(frm, "custom_rto_charge_item");
+            frm.set_value("custom_rto_charge_item", "");  // Set to null when unchecked
+        }
+    },
+
+    // RTO Charge Item Selection Logic
+    custom_rto_charge_item: function(frm) {
+        if (frm.doc.custom_rto_registration) {
+            add_or_update_service_item(frm, frm.doc.custom_rto_charge_item);
+        }
+    },
+
+    // Insurance Checkbox Logic
+    custom_insurance: function(frm) {
+        if (frm.doc.custom_insurance) {
+            let has_vehicle = frm.doc.items.some(item => item.custom_is_vehicle == 1);
+            if (!has_vehicle) {
+                frappe.throw("Please add a Vehicle Item before enabling Insurance.");
+                frm.set_value("custom_insurance", 0);
+                return;
+            }
+            add_or_update_service_item(frm, frm.doc.custom_insurance_charge_item);
+        } else {
+            remove_service_item(frm, "custom_insurance_charge_item");
+            frm.set_value("custom_insurance_charge_item", "");  // Set to null when unchecked
+        }
+    },
+
+    // Insurance Charge Item Selection Logic
+    custom_insurance_charge_item: function(frm) {
+        if (frm.doc.custom_insurance) {
+            add_or_update_service_item(frm, frm.doc.custom_insurance_charge_item);
+        }
+    },
+
+    // Finance Checkbox Logic
+    custom_is_finance: function(frm) {
+        if (frm.doc.custom_is_finance) {
+            let has_vehicle = frm.doc.items.some(item => item.custom_is_vehicle == 1);
+            if (!has_vehicle) {
+                frappe.throw("Please add a Vehicle Item before enabling Finance.");
+                frm.set_value("custom_is_finance", 0);
+                return;
+            }
+        } else {
+            frm.set_value("custom_finance_provider", ""); // Set finance provider to null
+            frm.set_value("custom_loan_amount", ""); // Set loan amount to null
         }
     }
 });
 
-function open_rto_registration_modal(frm) {
-    frappe.call({
-        method: "frappe.client.get_list",
-        args: {
-            doctype: "Item",
-            filters: { "item_group": "Services" },
-            fields: ["name", "item_name"]
-        },
-        callback: function(response) {
-            let service_items = response.message || [];
-            if (service_items.length === 0) {
-                frappe.msgprint("No service items found in 'Services' item group.");
-                return;
-            }
+/**
+ * Helper function to add or update service charge items dynamically
+ */
+function add_or_update_service_item(frm, item_code) {
+    if (!item_code) return;
 
-            let item_options = service_items.map(item => ({
-                label: `${item.item_name} (${item.name})`,
-                value: item.name
-            }));
-
-            frappe.prompt([
-                {
-                    label: "RTO Registration Item",
-                    fieldname: "rto_item",
-                    fieldtype: "Select",
-                    options: item_options.map(i => i.value),
-                    reqd: 1
-                },
-                {
-                    label: "Registration Charge",
-                    fieldname: "registration_charge",
-                    fieldtype: "Currency",
-                    reqd: 1
-                },
-                {
-                    label: "RTO Office",
-                    fieldname: "rto_office",
-                    fieldtype: "Link",
-                    options: "RTO Office",
-                    reqd: 1
-                }
-            ], function(values) {
-                add_rto_registration_item(frm, values);
-            }, "RTO Registration Details", "Add");
-        }
-    });
-}
-
-function add_rto_registration_item(frm, values) {
     frappe.call({
         method: "frappe.client.get",
         args: {
             doctype: "Item",
-            name: values.rto_item
+            name: item_code
         },
-        callback: function(response) {
-            let item_data = response.message;
-            if (!item_data) {
-                frappe.msgprint("Item details could not be fetched.");
-                return;
+        callback: function(r) {
+            if (r.message) {
+                let item = r.message;
+                let existing_row = frm.doc.items.find(i => i.item_code === item_code);
+
+                if (existing_row) {
+                    existing_row.qty = 1;
+                    existing_row.rate = item.standard_rate || 0;
+                    existing_row.amount = existing_row.rate * existing_row.qty;
+                    existing_row.uom = item.stock_uom;
+                    existing_row.income_account = "Sales - A";  // Hardcoded
+                } else {
+                    let row = frm.add_child("items");
+                    row.item_code = item_code;
+                    row.item_name = item.item_name;
+                    row.qty = 1;
+                    row.rate = item.standard_rate || 0;
+                    row.amount = row.rate * row.qty;
+                    row.uom = item.stock_uom;
+                    row.income_account = "Sales - A";  // Hardcoded
+                }
+
+                frm.refresh_field("items");
             }
-
-            // Append item with required fields
-            frm.add_child("items", {
-                item_code: values.rto_item,
-                item_name: item_data.item_name,
-                description: item_data.description,
-                rate: values.registration_charge,
-                amount: values.registration_charge,
-                qty: 1,  // Default to 1 since it's a service charge
-                uom: item_data.stock_uom || "Nos",  // Default UOM
-                income_account: item_data.income_account || "Sales - AD", // Default Income Account
-                cost_center: item_data.cost_center || frm.doc.cost_center
-            });
-
-            frm.refresh_field("items");
-
-            // Save RTO details in custom fields
-            frm.set_value("custom_rto_office", values.rto_office);
         }
     });
 }
 
-function remove_rto_registration_item(frm) {
-    frm.set_value("custom_rto_office", "");
-    frm.doc.items = frm.doc.items.filter(item => item.item_group !== "Services");
+/**
+ * Helper function to remove service charge items when checkbox is unchecked
+ */
+function remove_service_item(frm, charge_field) {
+    let item_code = frm.doc[charge_field];
+    if (!item_code) return;
+
+    let updated_items = frm.doc.items.filter(item => item.item_code !== item_code);
+    frm.doc.items = updated_items;
     frm.refresh_field("items");
 }
+
+
+// for insurance policy
+frappe.ui.form.on("Sales Invoice", {
+    custom_insurance_provider: function(frm) {
+        if (frm.doc.custom_insurance_provider) {
+            frappe.call({
+                method: "autowings_app.custom_scripts.sales_invoice.get_insurance_policies",
+                args: { provider: frm.doc.custom_insurance_provider },
+                callback: function(response) {
+                    let policies = response.message || [];
+                    let options = policies.map(policy => ({
+                        label: policy.policy_name,
+                        value: policy.name
+                    }));
+
+                    frm.set_df_property("custom_insurance_policy", "options", options);
+                    frm.refresh_field("custom_insurance_policy");
+                }
+            });
+        } else {
+            frm.set_df_property("custom_insurance_policy", "options", []);
+            frm.set_value("custom_insurance_policy", "");
+        }
+    }
+});

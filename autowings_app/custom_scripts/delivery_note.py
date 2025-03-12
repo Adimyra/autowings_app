@@ -157,6 +157,8 @@ def update_vehicle_sales_master_from_delivery_note(delivery_note):
                 vsm_doc.vehicle_color = vin_data.vehicle_color
                 vsm_doc.manufacturing_date = vin_data.manufacturing_date
                 vsm_doc.is_delivered = 1  # Mark as delivered
+                vsm_doc.delivery_note = dn_doc.name  # Save Delivery Note document name in VSM
+
 
                 vsm_doc.save()
                 frappe.db.commit()

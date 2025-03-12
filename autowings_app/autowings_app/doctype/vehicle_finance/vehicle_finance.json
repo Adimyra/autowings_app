@@ -1,14 +1,15 @@
 {
+ "_liked_by": "[\"Administrator\"]",
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{customer}-{###}",
+ "autoname": "format:FIN-{YYYY}-{MM}{####}",
  "creation": "2025-03-06 17:07:55.287417",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "vsm_id",
   "customer",
-  "vehicle_sale",
-  "finance_company",
+  "finance_provider",
   "loan_amount",
   "down_payment",
   "emi_amount",
@@ -22,18 +23,6 @@
    "fieldname": "customer",
    "fieldtype": "Data",
    "label": "Customer"
-  },
-  {
-   "fieldname": "vehicle_sale",
-   "fieldtype": "Link",
-   "label": "Vehicle Sale",
-   "options": "Vehicle Sale"
-  },
-  {
-   "fieldname": "finance_company",
-   "fieldtype": "Link",
-   "label": "Finance Company",
-   "options": "Finance Provider"
   },
   {
    "fieldname": "loan_amount",
@@ -71,11 +60,23 @@
    "fieldtype": "Select",
    "label": "Loan Status",
    "options": "\nPending\nApproved\nRejected\nDisbursed\nClosed"
+  },
+  {
+   "fieldname": "vsm_id",
+   "fieldtype": "Link",
+   "label": "Vehicle Sales Master",
+   "options": "Vehicle Sales Master"
+  },
+  {
+   "fieldname": "finance_provider",
+   "fieldtype": "Link",
+   "label": "Finance Provider",
+   "options": "Finance Provider"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-06 17:09:29.226575",
+ "modified": "2025-03-12 14:15:21.722700",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Finance",
