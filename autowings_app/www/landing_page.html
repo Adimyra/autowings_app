@@ -1,0 +1,237 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+  {% set landing_page = frappe.get_all("Landing Page", fields=["*"])[0] if frappe.get_all("Landing Page") else None %}
+
+  <style>
+    /* Smooth Scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      height: 40vh;
+      width: 100%;
+      background: url('{{ landing_page.hero_image if landing_page.hero_image else "/assets/autowings_app/images/default-hero.jpg" }}') no-repeat center center/cover;
+      display: flex;
+      align-items: center;
+      padding-left: 10%;
+      text-align: left;
+    }
+    .hero-content {
+      max-width: 50%;
+      color: white;
+    }
+    .hero-title {
+      font-size: 2.8rem;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 10px;
+    }
+    .hero-subtitle {
+      font-size: 1.4rem;
+      color: #ddd;
+      margin-bottom: 20px;
+    }
+
+    /* Button Group */
+    .button-group {
+      display: flex;
+      gap: 15px;
+    }
+    .btn-primary, .btn-secondary {
+      padding: 14px 30px;
+      border-radius: 5px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      min-width: 180px;
+      justify-content: center;
+      height: 50px;
+    }
+    .btn-primary {
+      background-color: #112921;
+      color: white;
+    }
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+      margin-top: 16px;
+    }
+
+    /* Lead Form Section */
+    .lead-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      background: #f9f9f9;
+      width: 100%;
+    }
+    .lead-container {
+      display: flex;
+      max-width: 1100px;
+      width: 100%;
+      background: white;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .lead-image {
+      flex: 1;
+      background: url('{{ landing_page.lead_section_image if landing_page.lead_section_image else "/assets/autowings_app/images/default-lead.jpg" }}') no-repeat center center/cover;
+      min-height: 400px;
+    }
+    .lead-form-container {
+      flex: 1;
+      padding: 40px;
+    }
+    .lead-form-container h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    .lead-form {
+      display: flex;
+      flex-direction: column;
+    }
+    .lead-form input, .lead-form textarea {
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+      width: 100%;
+    }
+    .lead-form textarea {
+      height: 100px;
+    }
+
+    /* Lead Form Submit Button */
+    .lead-form button {
+      background: #112921;
+      color: white;
+      padding: 14px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      min-width: 200px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .lead-form button:hover {
+      background: #18392e;
+    }
+
+    /* Responsive Layout */
+    @media (max-width: 1024px) {
+      .hero-content {
+        max-width: 70%;
+      }
+    }
+    @media (max-width: 768px) {
+      .hero-section {
+        height: 50vh;
+        padding-left: 5%;
+      }
+      .hero-content {
+        max-width: 100%;
+      }
+      .button-group {
+        flex-direction: column;
+      }
+      .lead-container {
+        flex-direction: column;
+      }
+      .lead-image {
+        min-height: 250px;
+      }
+    }
+  </style>
+
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      {% if landing_page.heading %}
+        <h1 class="hero-title">{{ landing_page.heading }}</h1>
+      {% endif %}
+      {% if landing_page.sub_heading %}
+        <p class="hero-subtitle">{{ landing_page.sub_heading }}</p>
+      {% endif %}
+      <div class="button-group">
+        {% if landing_page.primary_button_label %}
+          <a href="#enquiry-section" class="btn-primary">
+            {{ landing_page.primary_button_label }}
+          </a>
+        {% endif %}
+        {% if landing_page.secondary_button_label %}
+          <a href="{{ landing_page.secondary_button_link }}" class="btn-secondary">
+            {{ landing_page.secondary_button_label }}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Lead Form Section (With ID for Scrolling) -->
+  {% if landing_page.display_enquiry_section %}
+  <div class="lead-section" id="enquiry-section">
+    <div class="lead-container">
+      <div class="lead-image"></div>
+      <div class="lead-form-container">
+        <h2>Enquire Now</h2>
+        <form id="lead-form" class="lead-form">
+          <input type="text" id="full_name" name="full_name" placeholder="Full Name" required>
+          <input type="email" id="email" name="email" placeholder="Email" required>
+          <input type="text" id="phone" name="phone" placeholder="Phone" required>
+          <input type="text" id="area" name="area" placeholder="Area (Optional)">
+          <textarea id="message" name="message" placeholder="Your Message" required></textarea>
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Lead Form Script -->
+  <script>
+    document.getElementById("lead-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      
+      let formData = {
+        "doctype": "Lead",
+        "lead_name": document.getElementById("full_name").value,
+        "email_id": document.getElementById("email").value,
+        "phone": document.getElementById("phone").value,
+        "query": document.getElementById("message").value,
+        "area": document.getElementById("area").value || null,
+        "source": "Website"
+      };
+
+      frappe.call({
+        method: "frappe.client.insert",
+        args: { doc: formData },
+        callback: function (response) {
+          if (response && response.message) {
+            alert("Thank you for your inquiry! We will get back to you soon.");
+            document.getElementById("lead-form").reset();
+          } else {
+            alert("Something went wrong! Please try again.");
+          }
+        }
+      });
+    });
+  </script>
+
+{% endblock %}
