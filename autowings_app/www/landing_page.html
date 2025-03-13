@@ -18,6 +18,7 @@
       align-items: center;
       padding-left: 10%;
       text-align: left;
+      margin-top: -20px;
     }
     .hero-content {
       max-width: 50%;
@@ -158,6 +159,22 @@
         min-height: 250px;
       }
     }
+
+    .spinner-border {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      vertical-align: text-bottom;
+      border: 0.15em solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spinner-border .75s linear infinite;
+    }
+
+    @keyframes spinner-border {
+      to { transform: rotate(360deg); }
+    }
+
   </style>
 
   <!-- Hero Section -->
@@ -184,7 +201,6 @@
     </div>
   </div>
 
-  <!-- Lead Form Section (With ID for Scrolling) -->
   {% if landing_page.display_enquiry_section %}
   <div class="lead-section" id="enquiry-section">
     <div class="lead-container">
@@ -197,77 +213,91 @@
           <input type="text" id="phone" name="phone" placeholder="Phone" required>
           <input type="text" id="area" name="area" placeholder="Area (Optional)">
           <textarea id="message" name="message" placeholder="Your Message" required></textarea>
-          <button type="submit">Submit</button>
+          
+          <!-- Button with Spinner -->
+          <button type="submit" id="submit-button">
+            <span id="submit-text">Submit</span>
+            <span id="submit-spinner" class="spinner-border spinner-border-sm" style="display: none;"></span>
+          </button>
         </form>
       </div>
     </div>
   </div>
-  {% endif %}
+{% endif %}
 
-  <!-- Lead Form Script -->
-  <script>
-    document.getElementById("lead-form").addEventListener("submit", function (event) {
-      event.preventDefault();
-  
-      let formData = {
-        full_name: document.getElementById("full_name").value,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        message: document.getElementById("message").value,
-        area: document.getElementById("area").value || null,
-      };
-  
-      fetch('/api/method/autowings_app.api.submit_lead', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      })
-      .then(response => response.json())  // Convert response to JSON
-      .then(data => {
-        console.log("Response from API:", data); // Log response in console
-  
-        // Extract correct message and status
-        let responseData = data.message || {};
-        let status = responseData.status || "error";
-        let successMessage = responseData.message || "Thank you! We will contact you soon.";
-  
-        if (status === "success") {
-          frappe.msgprint({
-            title: __('Success'),
-            indicator: 'green',
-            message: successMessage
-          });
-  
-          // Clear form after 2 seconds
-          setTimeout(() => {
-            document.getElementById("lead-form").reset();
-            frappe.hide_msgprint(); // Hide message popup
-          }, 2000);
-        } else {
-          let errorMessage = responseData.message || "Something went wrong! Please try again.";
-          frappe.msgprint({
-            title: __('Error'),
-            indicator: 'red',
-            message: errorMessage
-          });
-        }
-      })
-      .catch(error => {
-        console.error("Error:", error);
+
+  <!-- Lead Form Script --><script>
+  document.getElementById("lead-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    let submitButton = document.querySelector("#lead-form button");
+    submitButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Submitting...`; // Show loading spinner
+    submitButton.disabled = true; // Disable button to prevent multiple submissions
+
+    let formData = {
+      full_name: document.getElementById("full_name").value,
+      email: document.getElementById("email").value,
+      phone: document.getElementById("phone").value,
+      message: document.getElementById("message").value,
+      area: document.getElementById("area").value || null,
+    };
+
+    fetch('/api/method/autowings_app.api.submit_lead', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData)
+    })
+    .then(response => response.json())  // Convert response to JSON
+    .then(data => {
+      console.log("Response from API:", data); // Log response in console
+
+      // Extract correct message and status
+      let responseData = data.message || {};
+      let status = responseData.status || "error";
+
+      if (status === "success") {
+        frappe.msgprint({
+          title: __('Success'),
+          indicator: 'green',
+          message: "Thank you! We will contact you soon."  // Show custom message
+        });
+
+        // Clear form after 2 seconds
+        setTimeout(() => {
+          document.getElementById("lead-form").reset();
+          frappe.hide_msgprint(); // Hide message popup
+          submitButton.innerHTML = "Submit"; // Restore button text
+          submitButton.disabled = false; // Enable button
+        }, 2000);
+      } else {
+        let errorMessage = responseData.message || "Something went wrong! Please try again.";
         frappe.msgprint({
           title: __('Error'),
           indicator: 'red',
-          message: "Something went wrong. Please check the console."
+          message: errorMessage
         });
+
+        // Restore button state on error
+        submitButton.innerHTML = "Submit";
+        submitButton.disabled = false;
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      frappe.msgprint({
+        title: __('Error'),
+        indicator: 'red',
+        message: "Something went wrong. Please check the console."
       });
+
+      // Restore button state on error
+      submitButton.innerHTML = "Submit";
+      submitButton.disabled = false;
     });
-  </script>
-  
-  
-  
-  
+  });
+</script>
   
 
 {% endblock %}
