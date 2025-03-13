@@ -16,6 +16,8 @@ doc_events = {
     }
 }
 
+
+
 doctype_js = {
     "Opportunity": "public/js/opportunity.js",
     "Sales Order": "public/js/sales_order.js",
