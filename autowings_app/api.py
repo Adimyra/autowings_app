@@ -28,7 +28,7 @@ def submit_lead(full_name, email, phone, message, area=None):
             lead = frappe.get_doc("Lead", existing_lead)
             lead.custom_query = message  # Ensure query is updated
             lead.custom_area = area if area else None
-            lead.status = "Open"  # Set a meaningful status
+            lead.status = "Lead"  # Set a meaningful status
             lead.save(ignore_permissions=True)
             frappe.db.commit()
             response_message = _("Lead updated successfully!")
@@ -42,7 +42,7 @@ def submit_lead(full_name, email, phone, message, area=None):
                 "custom_query": message,  # Ensure query is set
                 "source": "Website",
                 "custom_area": area if area else None,
-                "status": "Open"  # Explicitly set status
+                "status": "Lead"  # Explicitly set status
             })
             lead.insert(ignore_permissions=True)
             frappe.db.commit()
