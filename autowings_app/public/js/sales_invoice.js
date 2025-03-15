@@ -28,7 +28,7 @@ function create_vehicle_sales_master(frm) {
 frappe.ui.form.on('Sales Invoice', {
     refresh: function(frm) {
         // Ensure manual row addition is allowed for custom_vehicle_details
-        frm.fields_dict['custom_vehicle_details'].grid.wrapper.find('.grid-add-row').show();
+        frm.fields_dict['custom_vin'].grid.wrapper.find('.grid-add-row').show();
     },
     
     update_stock: function(frm) {
@@ -62,7 +62,7 @@ frappe.ui.form.on('Sales Invoice Item', {
 
 // Function to sync `custom_vehicle_details` when an item is added
 function sync_vehicle_entries(frm) {
-    let vehicle_table = frm.doc.custom_vehicle_details || [];
+    let vehicle_table = frm.doc.custom_vin || [];
     let items_table = frm.doc.items || [];
 
     // Track existing vehicle records per item
@@ -81,12 +81,12 @@ function sync_vehicle_entries(frm) {
     });
 
     // Clear existing `custom_vehicle_details` table before inserting new entries
-    frm.clear_table("custom_vehicle_details");
+    frm.clear_table("custom_vin");
 
     // Add rows for each item according to its required quantity
     Object.keys(vehicle_counts).forEach(item_code => {
         for (let i = 0; i < vehicle_counts[item_code]; i++) {
-            let new_row = frm.add_child("custom_vehicle_details");
+            let new_row = frm.add_child("custom_vin");
             new_row.item = item_code;
             new_row.chassis_number = "";
             new_row.engine_number = "";
@@ -95,7 +95,7 @@ function sync_vehicle_entries(frm) {
         }
     });
 
-    frm.refresh_field("custom_vehicle_details");
+    frm.refresh_field("custom_vin");
 }
 
 
@@ -347,3 +347,82 @@ frappe.ui.form.on("Sales Invoice", {
         }
     }
 });
+
+
+// sales invoice naming series
+frappe.ui.form.on('Sales Invoice', {
+    onload: function(frm) {
+        frappe.call({
+            method: "autowings_app.api.get_user_naming_series",
+            args: {
+                user: frappe.session.user
+            },
+            callback: function(r) {
+                if (r.message) {
+                    frm.set_value("naming_series", r.message);
+                }
+            }
+        });
+    }
+});
+
+
+// set default vehicle
+frappe.ui.form.on('Sales Invoice', {
+    onload: function(frm) {
+        // Show modal only when creating a new Sales Invoice
+        if (frm.is_new()) {
+            let wrapper = document.createElement("div");
+            wrapper.innerHTML = `
+                <div style="display: flex; justify-content: center; gap: 20px; padding: 20px;">
+                    <button id="sell_spare" class="custom-button" style="background: #007bff; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 10px; cursor: pointer;">Sell Spare</button>
+                    <button id="sell_vehicle" class="custom-button" style="background: #28a745; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 10px; cursor: pointer;">Sell Vehicle</button>
+                </div>
+            `;
+
+            let dialog = new frappe.ui.Dialog({
+                title: 'What do you want to sell?',
+                fields: [
+                    {
+                        fieldname: "button_container",
+                        fieldtype: "HTML"
+                    }
+                ],
+                size: "small"
+            });
+
+            dialog.fields_dict.button_container.$wrapper.append(wrapper);
+            
+            // Event listeners for buttons
+            wrapper.querySelector("#sell_spare").addEventListener("click", function() {
+                dialog.hide();
+                frm.set_value('custom_sale_type', 'Spare');
+                update_items_custom_is_vehicle(frm);
+            });
+
+            wrapper.querySelector("#sell_vehicle").addEventListener("click", function() {
+                dialog.hide();
+                frm.set_value('custom_sale_type', 'Vehicle');
+                update_items_custom_is_vehicle(frm);
+            });
+
+            dialog.show();
+        }
+    },
+
+    // Trigger when the custom_sale_type field is changed manually
+    custom_sale_type: function(frm) {
+        update_items_custom_is_vehicle(frm);
+    }
+});
+
+// Function to update the custom_is_vehicle field in the items table
+function update_items_custom_is_vehicle(frm) {
+    let is_vehicle = frm.doc.custom_sale_type === 'Vehicle' ? 1 : 0;
+
+    frm.doc.items.forEach(item => {
+        frappe.model.set_value(item.doctype, item.name, 'custom_is_vehicle', is_vehicle);
+    });
+
+    frm.refresh_field('items'); // Refresh the table to apply changes
+}

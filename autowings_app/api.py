@@ -56,3 +56,34 @@ def submit_lead(full_name, email, phone, message, area=None):
         frappe.log_error(frappe.get_traceback(), "Lead Submission Error")
         frappe.logger().error(f"Error occurred: {str(e)}")
         return {"status": "error", "message": str(e)}
+
+
+
+# for serial grab in settings of user privilage
+
+import frappe
+
+@frappe.whitelist()
+def get_sales_invoice_series():
+    doctype_name = "Sales Invoice"
+    naming_series_field = frappe.get_meta(doctype_name).get_field("naming_series")
+
+    if naming_series_field and naming_series_field.options:
+        series_list = naming_series_field.options.split("\n")  # Convert to list
+        return series_list
+    return []
+
+
+# for sales invoice naming series
+
+import frappe
+
+@frappe.whitelist()
+def get_user_naming_series(user):
+    user_privileges = frappe.get_doc("User Privileges Settings")
+    
+    for entry in user_privileges.users:
+        if entry.user == user:
+            return entry.sales_invoice_series
+    
+    return None  # If no matching user is found

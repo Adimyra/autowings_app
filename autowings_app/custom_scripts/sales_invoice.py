@@ -255,15 +255,15 @@ def before_submit(doc, method):
             has_serial_no = frappe.db.get_value("Item", item.item_code, "has_serial_no")
             if has_serial_no:
                 chassis_list = [
-                    vin.chassis_number for vin in doc.get("custom_vehicle_details") 
+                    vin.chassis_number for vin in doc.get("custom_vin") 
                     if vin.item == item.item_code and vin.chassis_number
                 ]
                 if len(chassis_list) < int(item.qty):
                     frappe.throw(f"Not enough chassis numbers for item {item.item_code}.")
                 item.serial_no = "\n".join(chassis_list)
 
-        doc.custom_vehicle_details = [
-            vin for vin in doc.get("custom_vehicle_details") 
+        doc.custom_vin = [
+            vin for vin in doc.get("custom_vin") 
             if frappe.db.get_value("Item", vin.item, "has_serial_no")
         ]
 
@@ -325,7 +325,7 @@ def create_vehicle_sales_master(doc):
             continue  
 
         vehicle_details = [
-            vin for vin in doc.custom_vehicle_details 
+            vin for vin in doc.custom_vin 
             if vin.item == item.item_code and vin.chassis_number
         ]
 

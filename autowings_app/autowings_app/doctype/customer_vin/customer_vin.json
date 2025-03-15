@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-03-14 15:51:50.139419",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "vsm_id",
+  "chassis_number"
+ ],
+ "fields": [
+  {
+   "fieldname": "vsm_id",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vehicle Sales Master",
+   "options": "Vehicle Sales Master"
+  },
+  {
+   "fetch_from": "vsm_id.chassis_number",
+   "fieldname": "chassis_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Chassis Number"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-03-14 15:53:10.088754",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Customer VIN",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
