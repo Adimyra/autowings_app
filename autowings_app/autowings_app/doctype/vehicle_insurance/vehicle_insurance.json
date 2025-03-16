@@ -1,5 +1,4 @@
 {
- "_liked_by": "[\"Administrator\"]",
  "actions": [],
  "allow_rename": 1,
  "autoname": "format:INS-{YYYY}-{MM}-{#####}",
@@ -93,8 +92,13 @@
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-03-12 14:07:03.502297",
+ "links": [
+  {
+   "link_doctype": "Customer",
+   "link_fieldname": "name"
+  }
+ ],
+ "modified": "2025-03-16 19:18:06.371562",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",

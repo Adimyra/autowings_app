@@ -1,8 +1,17 @@
 {
  "charts": [],
- "content": "[{\"id\":\"BUwk3sAMaC\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Autowings</span>\",\"col\":12}},{\"id\":\"gfsYxrNpqe\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Items\",\"col\":3}}]",
+ "content": "[{\"id\":\"FviUxHjTs3\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Logged in user\",\"col\":12}},{\"id\":\"U3lzwYIlGJ\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"GF_5O3lYvP\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Custom Btn\",\"col\":7}},{\"id\":\"7A4hpjiEFS\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"GUM6-d4nMq\",\"type\":\"card\",\"data\":{\"card_name\":\"DOC\",\"col\":4}},{\"id\":\"FdLpix0QwP\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Master\",\"col\":4}},{\"id\":\"DjF4FIPWpo\",\"type\":\"card\",\"data\":{\"card_name\":\"Purchase Master\",\"col\":4}},{\"id\":\"yL3BuXsIrG\",\"type\":\"card\",\"data\":{\"card_name\":\"Vechile Info\",\"col\":4}},{\"id\":\"psYEkoEdSg\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
  "creation": "2025-02-10 20:08:53.718760",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "Logged in user",
+   "label": "Logged in user"
+  },
+  {
+   "custom_block_name": "Custom Btn",
+   "label": "Custom Btn"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -12,8 +21,244 @@
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Autowings",
- "links": [],
- "modified": "2025-02-10 20:09:27.565515",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "DOC",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Items",
+   "link_count": 0,
+   "link_to": "Item",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Item Groups",
+   "link_count": 0,
+   "link_to": "Item Group",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pricing List",
+   "link_count": 0,
+   "link_to": "Price List",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Master",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customers",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Invoice",
+   "link_count": 0,
+   "link_to": "Sales Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Payment Entry",
+   "link_count": 0,
+   "link_to": "Payment Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stock Balance",
+   "link_count": 0,
+   "link_to": "stock-balance",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Purchase Master",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Purchase Invoice",
+   "link_count": 0,
+   "link_to": "Purchase Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Supplier",
+   "link_count": 0,
+   "link_to": "Supplier",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Chassis No",
+   "link_count": 0,
+   "link_to": "Serial No",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Vechile Info",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Chassis No Wise",
+   "link_count": 0,
+   "link_to": "Serial No",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer wise",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "RTO Registration",
+   "link_count": 0,
+   "link_to": "RTO Registration",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Vehicle Insurance",
+   "link_count": 0,
+   "link_to": "Vehicle Insurance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Vehicle Finance",
+   "link_count": 0,
+   "link_to": "Vehicle Finance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "User Privileges Settings",
+   "link_count": 0,
+   "link_to": "User Privileges Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Landing Page Settings",
+   "link_count": 0,
+   "link_to": "Landing Page",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Finance Provider",
+   "link_count": 0,
+   "link_to": "Finance Provider",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Insurance Provider",
+   "link_count": 0,
+   "link_to": "Insurance Provider",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-03-16 23:54:37.293933",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings",
@@ -24,15 +269,6 @@
  "quick_lists": [],
  "roles": [],
  "sequence_id": 26.0,
- "shortcuts": [
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Items",
-   "link_to": "Item",
-   "stats_filter": "[]",
-   "type": "DocType"
-  }
- ],
+ "shortcuts": [],
  "title": "Autowings"
 }

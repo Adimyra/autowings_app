@@ -325,7 +325,7 @@ def update_customer_vsm(doc, vsm_doc_name):
     
     # ✅ Save the Customer document
     customer_doc.save(ignore_permissions=True)
-    frappe.msgprint(f"VSM ID updated for Customer: {customer_doc.name}")
+    # frappe.msgprint(f"VSM ID updated for Customer: {customer_doc.name}")
 
 
 def create_vehicle_sales_master(doc):

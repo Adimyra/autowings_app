@@ -532,19 +532,20 @@ function enforce_sale_type_selection(frm) {
             <div id="sale-type-modal" style="background: white; padding: 30px; border-radius: 10px; 
                 text-align: center; box-shadow: 0px 0px 20px rgba(0,0,0,0.2);">
                 
-                <h2 style="margin-bottom: 20px;">What do you want to sell?</h2>
-                <div style="display: flex; justify-content: center; gap: 20px;">
+               <h4 style="margin-bottom: 20px;">What do you want to sell?</h4>
+                <div style="display: flex; justify-content: center; gap: 40px; padding-top: 10px; padding-bottom: 10px;">
                     <button id="sell_spare" class="custom-button"
-                        style="background: #6c757d; color: white; padding: 15px 30px; font-size: 18px; 
+                        style="background: #6c757d; color: white; padding: 8px 20px; font-size: 18px; 
                         border: none; border-radius: 10px; cursor: pointer;">
                         Spare
                     </button>
                     <button id="sell_vehicle" class="custom-button"
-                        style="background: #000; color: white; padding: 15px 30px; font-size: 18px; 
+                        style="background: #000; color: white; padding: 8px 20px; font-size: 18px; 
                         border: none; border-radius: 10px; cursor: pointer;">
                         Vehicle
                     </button>
                 </div>
+
             </div>
         </div>
     `;
