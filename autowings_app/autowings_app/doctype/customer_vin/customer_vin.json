@@ -13,7 +13,6 @@
   {
    "fieldname": "vsm_id",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Vehicle Sales Master",
    "options": "Vehicle Sales Master"
   },
@@ -28,7 +27,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-14 15:53:10.088754",
+ "modified": "2025-03-17 00:19:54.894156",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Customer VIN",
