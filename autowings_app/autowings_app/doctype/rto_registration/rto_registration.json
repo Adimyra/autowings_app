@@ -1,7 +1,7 @@
 {
- "_liked_by": "[\"Administrator\"]",
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:RTO-{YYYY}-{MM}-{####}",
  "creation": "2025-03-08 14:22:32.759060",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -72,10 +72,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-11 18:17:48.759800",
+ "modified": "2025-03-16 14:41:00.820653",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
