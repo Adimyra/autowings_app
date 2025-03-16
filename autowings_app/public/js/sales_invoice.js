@@ -369,6 +369,122 @@ frappe.ui.form.on('Sales Invoice', {
 
 // set default vehicle
 
+// frappe.ui.form.on("Sales Invoice", {
+//     onload: function(frm) {
+//         check_and_show_sale_type_modal(frm);
+//     },
+
+//     refresh: function(frm) {
+//         check_and_show_sale_type_modal(frm);
+//     },
+
+//     custom_sale_type: function(frm) {
+//         // Make the custom_sale_type field read-only after selection
+//         frm.set_df_property("custom_sale_type", "read_only", 1);
+
+//         // Toggle specific vehicle-related sections visibility
+//         toggle_vehicle_fields(frm);
+//     },
+
+//     validate: function(frm) {
+//         // Prevent submission if custom_sale_type is still not set
+//         if (!frm.doc.custom_sale_type) {
+//             enforce_sale_type_selection(frm);
+//             frappe.throw(__("Please select a Sale Type (Spare or Vehicle) before saving."));
+//         }
+//     }
+// });
+
+// // **Check & Show Modal If custom_sale_type is Not Set**
+// function check_and_show_sale_type_modal(frm) {
+//     if (frm.is_new() && !frm.doc.custom_sale_type) {
+//         enforce_sale_type_selection(frm);
+//     }
+// }
+
+// // **Enforce Sale Type Selection Modal**
+// function enforce_sale_type_selection(frm) {
+//     if (window.saleTypeDialogActive) return; // Prevent multiple popups
+//     window.saleTypeDialogActive = true;
+
+//     let dialog = new frappe.ui.Dialog({
+//         title: "Select Sale Type",
+//         size: "small",
+//         fields: [{ fieldname: "button_container", fieldtype: "HTML" }],
+//         close_on_escape: false // Prevents closing with ESC
+//     });
+
+//     let wrapper = document.createElement("div");
+//     wrapper.innerHTML = `
+//         <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
+//             <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0px 0px 20px rgba(0,0,0,0.2);">
+//                 <h2 style="margin-bottom: 20px;">What do you want to sell?</h2>
+//                 <div style="display: flex; justify-content: center; gap: 20px;">
+//                     <button id="sell_spare" class="custom-button"
+//                         style="background: #6c757d; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 10px; cursor: pointer;">
+//                         Spare
+//                     </button>
+//                     <button id="sell_vehicle" class="custom-button"
+//                         style="background: #000; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 10px; cursor: pointer;">
+//                         Vehicle
+//                     </button>
+//                 </div>
+//             </div>
+//         </div>
+//     `;
+
+//     dialog.fields_dict.button_container.$wrapper.append(wrapper);
+    
+//     // Prevent closing modal without selection
+//     dialog.$wrapper.find(".modal-dialog").css("pointer-events", "none");
+
+//     wrapper.querySelector("#sell_spare").addEventListener("click", function() {
+//         frm.set_value("custom_sale_type", "Spare");
+//         frm.set_df_property("custom_sale_type", "read_only", 1);
+//         toggle_vehicle_fields(frm);
+//         dialog.hide();
+//         window.saleTypeDialogActive = false; // Reset flag after selection
+//     });
+
+//     wrapper.querySelector("#sell_vehicle").addEventListener("click", function() {
+//         frm.set_value("custom_sale_type", "Vehicle");
+//         frm.set_df_property("custom_sale_type", "read_only", 1);
+//         toggle_vehicle_fields(frm);
+//         dialog.hide();
+//         window.saleTypeDialogActive = false; // Reset flag after selection
+//     });
+
+//     dialog.show();
+
+//     // **Ensure modal keeps appearing until selection is made**
+//     let interval = setInterval(() => {
+//         if (!frm.doc.custom_sale_type) {
+//             if (!dialog.$wrapper.is(":visible")) {
+//                 dialog.show();
+//             }
+//         } else {
+//             clearInterval(interval);
+//         }
+//     }, 500);
+// }
+
+// // **Toggle Vehicle Info Fields Based on Selection**
+// function toggle_vehicle_fields(frm) {
+//     let is_vehicle = frm.doc.custom_sale_type === "Vehicle";
+
+//     // Fields to hide when "Spare" is selected
+//     let vehicle_fields = [
+//         "custom_chassis_engine_details",
+//         "custom_rto_details",
+//         "custom_insurance_details",
+//         "custom_financer_details",
+//         "custom_misc_details"
+//     ];
+
+//     vehicle_fields.forEach(field => {
+//         frm.toggle_display(field, is_vehicle);
+//     });
+// }
 frappe.ui.form.on("Sales Invoice", {
     onload: function(frm) {
         check_and_show_sale_type_modal(frm);
@@ -382,12 +498,12 @@ frappe.ui.form.on("Sales Invoice", {
         // Make the custom_sale_type field read-only after selection
         frm.set_df_property("custom_sale_type", "read_only", 1);
 
-        // Toggle specific vehicle-related sections visibility
+        // Toggle vehicle-related sections visibility
         toggle_vehicle_fields(frm);
     },
 
     validate: function(frm) {
-        // Prevent submission if custom_sale_type is still not set
+        // Prevent submission if `custom_sale_type` is not set
         if (!frm.doc.custom_sale_type) {
             enforce_sale_type_selection(frm);
             frappe.throw(__("Please select a Sale Type (Spare or Vehicle) before saving."));
@@ -395,7 +511,7 @@ frappe.ui.form.on("Sales Invoice", {
     }
 });
 
-// **Check & Show Modal If custom_sale_type is Not Set**
+// **Check & Show Modal If `custom_sale_type` is Not Set**
 function check_and_show_sale_type_modal(frm) {
     if (frm.is_new() && !frm.doc.custom_sale_type) {
         enforce_sale_type_selection(frm);
@@ -407,25 +523,25 @@ function enforce_sale_type_selection(frm) {
     if (window.saleTypeDialogActive) return; // Prevent multiple popups
     window.saleTypeDialogActive = true;
 
-    let dialog = new frappe.ui.Dialog({
-        title: "Select Sale Type",
-        size: "small",
-        fields: [{ fieldname: "button_container", fieldtype: "HTML" }],
-        close_on_escape: false // Prevents closing with ESC
-    });
-
     let wrapper = document.createElement("div");
+    wrapper.id = "sale-type-overlay";
     wrapper.innerHTML = `
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
-            <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0px 0px 20px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; 
+            position: fixed; top: 0; left: 0; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
+            
+            <div id="sale-type-modal" style="background: white; padding: 30px; border-radius: 10px; 
+                text-align: center; box-shadow: 0px 0px 20px rgba(0,0,0,0.2);">
+                
                 <h2 style="margin-bottom: 20px;">What do you want to sell?</h2>
                 <div style="display: flex; justify-content: center; gap: 20px;">
                     <button id="sell_spare" class="custom-button"
-                        style="background: #6c757d; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 10px; cursor: pointer;">
+                        style="background: #6c757d; color: white; padding: 15px 30px; font-size: 18px; 
+                        border: none; border-radius: 10px; cursor: pointer;">
                         Spare
                     </button>
                     <button id="sell_vehicle" class="custom-button"
-                        style="background: #000; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 10px; cursor: pointer;">
+                        style="background: #000; color: white; padding: 15px 30px; font-size: 18px; 
+                        border: none; border-radius: 10px; cursor: pointer;">
                         Vehicle
                     </button>
                 </div>
@@ -433,46 +549,31 @@ function enforce_sale_type_selection(frm) {
         </div>
     `;
 
-    dialog.fields_dict.button_container.$wrapper.append(wrapper);
-    
-    // Prevent closing modal without selection
-    dialog.$wrapper.find(".modal-dialog").css("pointer-events", "none");
+    document.body.appendChild(wrapper);
 
-    wrapper.querySelector("#sell_spare").addEventListener("click", function() {
+    document.getElementById("sell_spare").addEventListener("click", function() {
         frm.set_value("custom_sale_type", "Spare");
-        frm.set_df_property("custom_sale_type", "read_only", 1);
         toggle_vehicle_fields(frm);
-        dialog.hide();
-        window.saleTypeDialogActive = false; // Reset flag after selection
+        fadeOutAndCloseSaleModal();
     });
 
-    wrapper.querySelector("#sell_vehicle").addEventListener("click", function() {
+    document.getElementById("sell_vehicle").addEventListener("click", function() {
         frm.set_value("custom_sale_type", "Vehicle");
-        frm.set_df_property("custom_sale_type", "read_only", 1);
         toggle_vehicle_fields(frm);
-        dialog.hide();
-        window.saleTypeDialogActive = false; // Reset flag after selection
+        fadeOutAndCloseSaleModal();
     });
-
-    dialog.show();
-
-    // **Ensure modal keeps appearing until selection is made**
-    let interval = setInterval(() => {
-        if (!frm.doc.custom_sale_type) {
-            if (!dialog.$wrapper.is(":visible")) {
-                dialog.show();
-            }
-        } else {
-            clearInterval(interval);
-        }
-    }, 500);
 }
 
-// **Toggle Vehicle Info Fields Based on Selection**
+// **Smooth Fade-out Effect Before Closing Modal**
+function fadeOutAndCloseSaleModal() {
+    document.getElementById("sale-type-overlay").remove();
+    window.saleTypeDialogActive = false; // Reset flag after selection
+}
+
+// **Hide Vehicle-Specific Fields When "Spare" is Selected**
 function toggle_vehicle_fields(frm) {
     let is_vehicle = frm.doc.custom_sale_type === "Vehicle";
 
-    // Fields to hide when "Spare" is selected
     let vehicle_fields = [
         "custom_chassis_engine_details",
         "custom_rto_details",
