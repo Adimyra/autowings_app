@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:color_name",
+ "autoname": "field:color_code",
  "creation": "2025-03-06 16:08:25.267448",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -20,7 +20,8 @@
   {
    "fieldname": "color_code",
    "fieldtype": "Data",
-   "label": "Color Code"
+   "label": "Color Code",
+   "unique": 1
   },
   {
    "fieldname": "description",
@@ -30,7 +31,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-06 16:10:21.452070",
+ "modified": "2025-03-17 00:32:56.587519",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Color",
@@ -50,6 +51,7 @@
    "write": 1
   }
  ],
+ "search_fields": "color_code,color_name",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
