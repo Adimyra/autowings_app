@@ -234,6 +234,9 @@ def before_submit(doc, method):
                     f"VIN Entry for Item {vin.item} is incomplete. Please enter Chassis Number, Engine Number, Vehicle Color, and Manufacturing Date."
                 )
 
+    # ✅ Update `serial_no` in Items Table from `custom_vin`
+    update_items_with_chassis_numbers(doc)
+
     # ✅ Create Vehicle Sales Master (VSM)
     vsm_doc_name = create_vehicle_sales_master(doc)
 
@@ -283,6 +286,23 @@ def before_submit(doc, method):
 
     vsm_doc.save()
 
+def update_items_with_chassis_numbers(doc):
+    """
+    Update the `serial_no` field in the `items` table based on `custom_vin` chassis numbers.
+    """
+    item_chassis_map = {}
+
+    # ✅ Group chassis numbers by item code
+    for vin in doc.custom_vin:
+        if vin.item not in item_chassis_map:
+            item_chassis_map[vin.item] = []
+        item_chassis_map[vin.item].append(vin.chassis_number)
+
+    # ✅ Update items table
+    for item in doc.items:
+        if item.item_code in item_chassis_map:
+            item.serial_no = "\n".join(item_chassis_map[item.item_code])  # Assign chassis numbers to serial_no field
+            
 
 def update_serial_no_with_vsm(doc, vsm_doc_name):
     """Update Serial No doctype with VSM ID when `update_stock` is checked."""

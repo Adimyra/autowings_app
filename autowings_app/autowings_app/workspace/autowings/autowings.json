@@ -17,7 +17,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "setting-gear",
- "idx": 0,
+ "idx": 1,
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Autowings",
@@ -212,7 +212,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Settings",
-   "link_count": 4,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -256,9 +256,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Vehicle Colors",
+   "link_count": 0,
+   "link_to": "Vehicle Color",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-03-16 23:54:37.293933",
+ "modified": "2025-03-17 00:52:48.222151",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings",
