@@ -106,12 +106,17 @@ def download_vin_csv(docname):
 
     return output.getvalue()
 
+import frappe
+import csv
+import os
+import json
 
 @frappe.whitelist()
-def upload_vin_csv(docname, file_url):
+def upload_vin_csv(doc, file_url):
     """ Uploads a CSV file and updates the VIN child table in the Purchase Invoice """
-    doc = frappe.get_doc("Purchase Invoice", docname)
-    
+    doc = json.loads(doc)  # Convert JSON string to dictionary
+    purchase_invoice = frappe.get_doc(doc)  # Create a Frappe document object
+
     # Ensure correct file path resolution
     if not file_url.startswith("/private/"):  
         file_url = "/private" + file_url  # Convert public URL to private path
@@ -130,7 +135,7 @@ def upload_vin_csv(docname, file_url):
         vin_data = list(reader)
 
     # Clear existing VIN table
-    doc.set("custom_vin", [])
+    purchase_invoice.custom_vin = []  # Reset VIN table manually
 
     # Insert new VIN data
     for row in vin_data:
@@ -138,7 +143,7 @@ def upload_vin_csv(docname, file_url):
             continue  # Skip invalid rows
 
         item, chassis_number, engine_number, vehicle_color, manufacturing_date = row
-        doc.append("custom_vin", {
+        purchase_invoice.append("custom_vin", {
             "item": item.strip(),
             "chassis_number": chassis_number.strip(),
             "engine_number": engine_number.strip(),
@@ -146,16 +151,14 @@ def upload_vin_csv(docname, file_url):
             "manufacturing_date": manufacturing_date.strip() if manufacturing_date else None
         })
 
-    doc.save(ignore_permissions=True)  # Save as draft
-    frappe.db.commit()
-
     # Sync VIN data to Items table after upload
-    sync_vin_to_items(doc)
+    sync_vin_to_items(purchase_invoice)
 
-    return "VIN Data Updated Successfully"
+    return {"message": "VIN Data Updated Successfully", "doc": purchase_invoice}
+
 
 def sync_vin_to_items(doc):
-    """ Sync custom_vin child table data to items table """
+    """ Sync custom_vin child table data to items table with Item Name & UOM """
     if doc.custom_purchase_type != "Vehicle":
         return  # No need to sync for non-vehicle purchases
 
@@ -174,12 +177,20 @@ def sync_vin_to_items(doc):
         item_qty[vin.item] += 1
         item_serials[vin.item].append(vin.chassis_number)
 
-    # Add items back to the items table with correct quantity and serial_no
+    # ✅ Fetch Item Name and UOM from Item Doctype
     for item_code, qty in item_qty.items():
+        item_doc = frappe.get_doc("Item", item_code) if frappe.db.exists("Item", item_code) else None
+        
+        item_name = item_doc.item_name if item_doc else "Unknown Item"
+        uom = item_doc.stock_uom if item_doc else "Nos"
+
+        # Add items back to the items table with quantity, serial_no, item_name, and UOM
         item_row = doc.append("items", {
             "item_code": item_code,
+            "item_name": item_name,  # Set Item Name
+            "uom": uom,  # Set UOM
             "qty": qty,
             "serial_no": "\n".join(item_serials[item_code])  # Add all chassis numbers with line breaks
         })
 
-    frappe.msgprint("Items table updated based on VIN details.")
+    frappe.msgprint("Items table updated based on VIN details, including Item Name & UOM.")

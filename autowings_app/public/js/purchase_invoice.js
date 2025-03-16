@@ -1,6 +1,7 @@
 frappe.ui.form.on("Purchase Invoice", {
     onload: function(frm) {
         check_and_show_purchase_type_modal(frm);
+        show_vin_buttons(frm);
     },
 
     refresh: function(frm) {
@@ -14,6 +15,7 @@ frappe.ui.form.on("Purchase Invoice", {
 
         // Toggle purchase vehicle details section
         toggle_purchase_vehicle_fields(frm);
+        show_vin_buttons(frm);
     },
 
     validate: function(frm) {
@@ -101,7 +103,7 @@ function toggle_purchase_vehicle_fields(frm) {
     frm.toggle_display("custom_purchase_vehicle_details", is_vehicle);
 
     // Make `custom_vin` table mandatory when "Vehicle" is selected
-    frm.toggle_reqd("custom_vin", is_vehicle);
+    // frm.toggle_reqd("custom_vin", is_vehicle);
 }
 
 // **Sync `custom_vin` Table Data to `items` Table**
@@ -136,13 +138,22 @@ function sync_vin_to_items(frm) {
 }
 
 // **Show VIN Download/Upload Buttons inside "Autowings" Menu**
+// function show_vin_buttons(frm) {
+//     if (frm.doc.custom_purchase_type === "Vehicle") {
+//         frm.add_custom_button(__('Update VIN Data'), function() {
+//             open_vin_modal(frm);
+//         }, __("Autowings"));
+//     }
+// }
+// ✅ Show "Update VIN Data" button directly (not under Autowings menu)
 function show_vin_buttons(frm) {
     if (frm.doc.custom_purchase_type === "Vehicle") {
         frm.add_custom_button(__('Update VIN Data'), function() {
             open_vin_modal(frm);
-        }, __("Autowings"));
+        });
     }
 }
+
 
 // **Open Modal for VIN Upload & Download**
 function open_vin_modal(frm) {
@@ -197,19 +208,23 @@ function download_vin_csv(frm) {
     });
 }
 
-// **Upload VIN CSV & Update Purchase Invoice**
 function update_vin_data(frm, file_url) {
     frappe.call({
         method: "autowings_app.custom_scripts.purchase_invoice.upload_vin_csv",
         args: {
-            docname: frm.doc.name,
+            doc: JSON.stringify(frm.doc),  // ✅ Pass full document as JSON string
             file_url: file_url
         },
         callback: function(r) {
             if (!r.exc) {
                 frappe.msgprint(__("VIN data updated successfully."));
-                frm.reload_doc();
+                
+                // Update the form with new VIN data without requiring a save
+                frappe.model.sync(r.message.doc);
+                frm.refresh();
             }
         }
     });
 }
+
+// for update items

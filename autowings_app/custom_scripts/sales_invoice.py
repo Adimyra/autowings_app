@@ -255,6 +255,8 @@ def before_submit(doc, method):
     # ✅ Update Serial No doctype with VSM ID
     if doc.update_stock:
         update_serial_no_with_vsm(doc, vsm_doc_name)
+        update_customer_vsm(doc, vsm_doc_name)
+
 
     # ✅ Update VSM Document with RTO, Insurance & Finance IDs
     vsm_doc = frappe.get_doc("Vehicle Sales Master", vsm_doc_name)
@@ -289,6 +291,41 @@ def update_serial_no_with_vsm(doc, vsm_doc_name):
             serial_no_doc = frappe.get_doc("Serial No", vin.chassis_number)
             serial_no_doc.custom_vsm_id = vsm_doc_name
             serial_no_doc.save()
+
+import frappe
+
+def update_customer_vsm(doc, vsm_doc_name):
+    """
+    Update the Customer doctype's `custom_vin` child table with VSM ID.
+    - If chassis number exists, update the `vsm_id`.
+    - If chassis number does not exist, append a new row.
+    """
+    
+    # ✅ Ensure the document has a customer linked
+    if not doc.customer:
+        frappe.throw("Customer is required to update VSM ID in Customer doctype.")
+    
+    # ✅ Fetch the Customer document
+    customer_doc = frappe.get_doc("Customer", doc.customer)
+
+    # ✅ Loop through all VINs in `custom_vin` from Sales Invoice
+    for vin in doc.get("custom_vin"):
+        # Check if chassis_number already exists in Customer's `custom_vin`
+        existing_vin = next((cv for cv in customer_doc.get("custom_vin") if cv.chassis_number == vin.chassis_number), None)
+        
+        if existing_vin:
+            # ✅ Update the VSM ID for existing chassis number
+            existing_vin.vsm_id = vsm_doc_name
+        else:
+            # ✅ Append new VIN entry in Customer's `custom_vin` table
+            customer_doc.append("custom_vin", {
+                "chassis_number": vin.chassis_number,
+                "vsm_id": vsm_doc_name
+            })
+    
+    # ✅ Save the Customer document
+    customer_doc.save(ignore_permissions=True)
+    frappe.msgprint(f"VSM ID updated for Customer: {customer_doc.name}")
 
 
 def create_vehicle_sales_master(doc):
