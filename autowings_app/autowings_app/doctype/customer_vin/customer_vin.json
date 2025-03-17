@@ -7,7 +7,10 @@
  "engine": "InnoDB",
  "field_order": [
   "vsm_id",
-  "chassis_number"
+  "chassis_number",
+  "engine_number",
+  "vehicle_color",
+  "item"
  ],
  "fields": [
   {
@@ -19,15 +22,37 @@
   {
    "fetch_from": "vsm_id.chassis_number",
    "fieldname": "chassis_number",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Chassis Number"
+   "label": "Chassis Number",
+   "options": "Serial No"
+  },
+  {
+   "fetch_from": "chassis_number.custom_engine_number",
+   "fieldname": "engine_number",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Engine Number"
+  },
+  {
+   "fetch_from": "chassis_number.custom_vehicle_color",
+   "fieldname": "vehicle_color",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Vehicle Color"
+  },
+  {
+   "fetch_from": "chassis_number.item_name",
+   "fieldname": "item",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Item / Model"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-17 00:19:54.894156",
+ "modified": "2025-03-17 11:50:44.124766",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Customer VIN",
