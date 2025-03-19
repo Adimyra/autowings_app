@@ -27,7 +27,7 @@ frappe.ui.form.on("Purchase Invoice", {
 
         // Ensure VIN child table is mandatory if "Vehicle" is selected
         if (frm.doc.custom_purchase_type === "Vehicle" && (!frm.doc.custom_vin || frm.doc.custom_vin.length === 0)) {
-            frappe.throw(__("VIN details are required in the `custom_vin` table when purchasing a Vehicle."));
+            frappe.throw(__("VIN details must be added using a CSV file. Please click the 'Update VIN Data' button to upload."));
         }
     },
 
@@ -139,14 +139,6 @@ function sync_vin_to_items(frm) {
     frm.refresh_field("items");
 }
 
-// **Show VIN Download/Upload Buttons inside "Autowings" Menu**
-// function show_vin_buttons(frm) {
-//     if (frm.doc.custom_purchase_type === "Vehicle") {
-//         frm.add_custom_button(__('Update VIN Data'), function() {
-//             open_vin_modal(frm);
-//         }, __("Autowings"));
-//     }
-// }
 // ✅ Show "Update VIN Data" button directly (not under Autowings menu)
 function show_vin_buttons(frm) {
     if (frm.doc.custom_purchase_type === "Vehicle") {
@@ -168,6 +160,14 @@ function open_vin_modal(frm) {
                 fieldtype: "Button",
                 click: function() {
                     download_vin_csv(frm);
+                }
+            },
+            {
+                label: __("Download Blank CSV"),
+                fieldname: "download_vin",
+                fieldtype: "Button",
+                click: function() {
+                    download_blank_vin_csv(frm);
                 }
             },
             {
@@ -210,6 +210,26 @@ function download_vin_csv(frm) {
     });
 }
 
+function download_blank_vin_csv(frm) {
+    frappe.call({
+        method: "autowings_app.custom_scripts.purchase_invoice.download_blank_vin_csv",
+        callback: function(r) {
+            if (r.message) {
+                let csvData = r.message;
+                let blob = new Blob([csvData], { type: "text/csv" });
+                let url = window.URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                a.setAttribute("href", url);
+                a.setAttribute("download", "VIN_Blank_Template.csv");
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+    });
+}
+
+
 function update_vin_data(frm, file_url) {
     frappe.call({
         method: "autowings_app.custom_scripts.purchase_invoice.upload_vin_csv",
@@ -229,4 +249,122 @@ function update_vin_data(frm, file_url) {
     });
 }
 
-// for update items
+
+
+// frappe.ui.form.on("Purchase Invoice", {
+//     refresh: function(frm) {
+//         if (frm.doc.docstatus === 1 && frm.doc.custom_purchase_type === "Vehicle") {
+//             frm.add_custom_button(__('Chassis Update'), function() {
+//                 update_chassis_details(frm);
+//             }).addClass("btn btn-primary").css({
+//                 "background-color": "black",
+//                 "color": "white",
+//                 "font-weight": "bold"
+//             });
+//         }
+//     }
+// });
+
+// function update_chassis_details(frm) {
+//     frappe.call({
+//         method: "autowings_app.custom_scripts.purchase_invoice.update_chassis_details",
+//         args: {
+//             docname: frm.doc.name
+//         },
+//         callback: function(response) {
+//             if (!response.exc) {
+//                 frappe.msgprint(__("Chassis details updated successfully!"));
+//             }
+//         }
+//     });
+// }
+frappe.ui.form.on("Purchase Invoice", {
+    refresh: function(frm) {
+        // ✅ Show "Chassis Update" button for submitted invoices
+        if (frm.doc.docstatus === 1 && frm.doc.custom_purchase_type === "Vehicle") {
+            frm.add_custom_button(__('Chassis Update'), function() {
+                update_chassis_details(frm);
+            }).addClass("btn btn-primary").css({
+                "background-color": "black",
+                "color": "white",
+                "font-weight": "bold"
+            });
+        }
+    },
+
+    after_save: function(frm) {
+        // ✅ Ask user to update chassis after submitting
+        if (frm.doc.docstatus === 1 && frm.doc.custom_purchase_type === "Vehicle") {
+            frappe.confirm(
+                "Do you want to update chassis details now?",
+                function() {
+                    // ✅ User clicked "Yes", trigger chassis update
+                    update_chassis_details(frm);
+                },
+                function() {
+                    // ❌ User clicked "No", just continue
+                    frappe.msgprint("Chassis update skipped.");
+                }
+            );
+        }
+    }
+});
+
+// ✅ Function to call the backend and update Serial No details
+function update_chassis_details(frm) {
+    frappe.call({
+        method: "autowings_app.custom_scripts.purchase_invoice.update_chassis_details",
+        args: {
+            docname: frm.doc.name
+        },
+        callback: function(response) {
+            if (!response.exc) {
+                frappe.msgprint(__("Chassis details updated successfully!"));
+            }
+        }
+    });
+}
+
+
+// frappe.ui.form.on("Purchase Invoice", {
+//     refresh: function(frm) {
+//         // Ensure the button is added only once to avoid duplicates
+//         if (!frm.custom_buttons || !frm.custom_buttons["Update VIN Data"]) {
+//             frm.fields_dict.custom_update_vin_data.$wrapper.find("button").on("click", function() {
+//                 frappe.msgprint({
+//                     title: __('Notification'),
+//                     indicator: 'blue',
+//                     message: __('✅ Button Clicked: Update VIN Data')
+//                 });
+//             });
+//         }
+//     }
+// });
+frappe.ui.form.on("Purchase Invoice", {
+    refresh: function(frm) {
+        // Hide the button if the document is submitted (docstatus == 1)
+        if (frm.doc.docstatus === 1) {
+            frm.set_df_property("custom_update_vin_data", "hidden", 1);
+        } else {
+            // Ensure the button is visible when not submitted
+            frm.set_df_property("custom_update_vin_data", "hidden", 0);
+
+            // Ensure the button is added only once
+            if (!frm.custom_buttons || !frm.custom_buttons["Update VIN Data"]) {
+                frm.fields_dict.custom_update_vin_data.$wrapper.find("button").on("click", function() {
+                    open_vin_modal(frm); // 🔥 Trigger the VIN Modal
+                });
+
+                // Change the button color to black with white text
+                frm.fields_dict.custom_update_vin_data.$wrapper.find("button")
+                    .css({
+                        "background-color": "black",
+                        "color": "white",
+                        "border-radius": "5px",
+                        "padding": "6px 12px",
+                        "font-size": "14px"
+                    });
+            }
+        }
+    }
+});

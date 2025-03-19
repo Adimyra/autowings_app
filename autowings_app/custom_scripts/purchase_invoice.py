@@ -3,27 +3,27 @@ import csv
 import os
 import io
 
-def before_save(doc, method):
-    """ Automatically add rows in 'custom_vin' child table based on item quantity """
-    existing_vins = {vin.item: vin for vin in doc.get("custom_vin")}
+# def before_save(doc, method):
+#     """ Automatically add rows in 'custom_vin' child table based on item quantity """
+#     existing_vins = {vin.item: vin for vin in doc.get("custom_vin")}
 
-    for item in doc.get("items"):
-        qty = int(item.qty)
-        existing_count = len([vin for vin in doc.get("custom_vin") if vin.item == item.item_code])
+#     for item in doc.get("items"):
+#         qty = int(item.qty)
+#         existing_count = len([vin for vin in doc.get("custom_vin") if vin.item == item.item_code])
 
-        # Add missing VIN entries if not enough rows exist
-        if existing_count < qty:
-            for _ in range(qty - existing_count):
-                doc.append("custom_vin", {
-                    "item": item.item_code,
-                    "chassis_number": "",  # Empty initially
-                    "engine_number": "",
-                    "vehicle_color": "",
-                    "manufacturing_date": ""
-                })
+#         # Add missing VIN entries if not enough rows exist
+#         if existing_count < qty:
+#             for _ in range(qty - existing_count):
+#                 doc.append("custom_vin", {
+#                     "item": item.item_code,
+#                     "chassis_number": "",  # Empty initially
+#                     "engine_number": "",
+#                     "vehicle_color": "",
+#                     "manufacturing_date": ""
+#                 })
 
-    # Sync VIN table updates to Items table
-    sync_vin_to_items(doc)
+#     # Sync VIN table updates to Items table
+#     sync_vin_to_items(doc)
 
 def before_submit(doc, method):
     """ Before Submit: Ensure all VIN fields are filled and assign serial numbers to items """
@@ -38,16 +38,43 @@ def before_submit(doc, method):
     # Sync VIN data to Items table before final submission
     sync_vin_to_items(doc)
 
+# def on_submit(doc, method):
+#     """ After Submit: Update Serial No Docs with VIN Details """
+#     for vin in doc.get("custom_vin"):
+#         if frappe.db.exists("Serial No", vin.chassis_number):
+#             frappe.db.set_value("Serial No", vin.chassis_number, {
+#                 "custom_chassis_number": vin.chassis_number,
+#                 "custom_engine_number": vin.engine_number,
+#                 "custom_vehicle_color": vin.vehicle_color,
+#                 "custom_manufacturing_date": vin.manufacturing_date
+#             })
+
+import frappe
+
 def on_submit(doc, method):
-    """ After Submit: Update Serial No Docs with VIN Details """
+    """ After Submit: Update newly created Serial No docs with details from custom_vin """
+    
+    frappe.enqueue(update_serial_nos_after_submission, queue="short", doc_name=doc.name)
+
+def update_serial_nos_after_submission(doc_name):
+    """ Enqueue this function to ensure Serial Nos are updated after they are created """
+    doc = frappe.get_doc("Purchase Invoice", doc_name)
+
     for vin in doc.get("custom_vin"):
         if frappe.db.exists("Serial No", vin.chassis_number):
+            # ✅ Update the existing Serial No (created by Purchase Invoice)
             frappe.db.set_value("Serial No", vin.chassis_number, {
-                "custom_chassis_number": vin.chassis_number,
                 "custom_engine_number": vin.engine_number,
                 "custom_vehicle_color": vin.vehicle_color,
                 "custom_manufacturing_date": vin.manufacturing_date
             })
+            frappe.msgprint(f"✅ Updated Serial No {vin.chassis_number} with VIN details.")
+        else:
+            frappe.msgprint(f"⚠️ Serial No {vin.chassis_number} not found. Try refreshing after a few seconds.")
+
+    frappe.db.commit()
+
+
 
 def sync_vin_to_items(doc):
     """ Sync custom_vin child table data to items table """
@@ -105,6 +132,25 @@ def download_vin_csv(docname):
     writer.writerows(data)   # Write data
 
     return output.getvalue()
+
+import frappe
+import csv
+import io
+
+@frappe.whitelist()
+def download_blank_vin_csv():
+    """Generates a blank CSV file with predefined headers for VIN data"""
+    
+    # Predefined CSV Headers
+    header = ["item", "chassis_number", "engine_number", "vehicle_color", "manufacturing_date"]
+    
+    # Generate CSV in memory (only headers, no data)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(header)  # Write only the header row
+
+    return output.getvalue()
+
 
 import frappe
 import csv
@@ -194,3 +240,26 @@ def sync_vin_to_items(doc):
         })
 
     frappe.msgprint("Items table updated based on VIN details, including Item Name & UOM.")
+
+import frappe
+
+@frappe.whitelist()
+def update_chassis_details(docname):
+    """Fetch custom_vin table from Purchase Invoice and update matching Serial No documents"""
+    doc = frappe.get_doc("Purchase Invoice", docname)
+    
+    for vin in doc.custom_vin:
+        if frappe.db.exists("Serial No", vin.chassis_number):
+            # ✅ Update Serial No with VIN details
+            frappe.db.set_value("Serial No", vin.chassis_number, {
+                "custom_chassis_number": vin.chassis_number,
+                "custom_engine_number": vin.engine_number,
+                "custom_vehicle_color": vin.vehicle_color,
+                "custom_manufacturing_date": vin.manufacturing_date
+            })
+            frappe.msgprint(f"✅ Updated Serial No {vin.chassis_number}.")
+        else:
+            frappe.msgprint(f"⚠️ Serial No {vin.chassis_number} not found!")
+
+    frappe.db.commit()
+    return {"message": "Chassis details updated successfully!"}
