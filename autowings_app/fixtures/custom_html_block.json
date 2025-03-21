@@ -2,8 +2,8 @@
  {
   "docstatus": 0,
   "doctype": "Custom HTML Block",
-  "html": "<div class=\"profile-container\">\n    <div class=\"cover-photo\">\n        <img src=\"/assets/autowings_app/images/coverimageautowings.jpg\" alt=\"Cover Photo\">\n    </div>\n    <img id=\"user_image\" class=\"profile-img\" alt=\"User Image\">\n    <div class=\"profile-body\">\n        <div class=\"profile-info-clock\">\n            <div class=\"profile-details\">\n                <div class=\"profile-item\">\n                    <h2 id=\"full_name\"></h2>\n                </div>\n                <div class=\"profile-item\">\n                    <strong>Email:</strong> <span id=\"email\"></span>\n                </div>\n                <div class=\"profile-item\">\n                    <strong>Last Logged In:</strong> <span id=\"last_login\"></span>\n                </div>\n            </div>\n            <!-- Clock in Profile -->\n            <div id=\"clock\"></div>\n        </div>\n    </div>\n</div>",
-  "modified": "2025-03-21 16:09:12.416482",
+  "html": "<div class=\"profile-container\">\n    <div class=\"cover-photo\">\n        <img src=\"/assets/autowings_app/images/twowheeler.png\" alt=\"Cover Photo\">\n    </div>\n    <img id=\"user_image\" class=\"profile-img\" alt=\"User Image\">\n    <div class=\"profile-body\">\n        <div class=\"profile-info-clock\">\n            <div class=\"profile-details\">\n                <div class=\"profile-item\">\n                    <h2 id=\"full_name\"></h2>\n                </div>\n                <div class=\"profile-item\">\n                    <strong>Email:</strong> <span id=\"email\"></span>\n                </div>\n                <div class=\"profile-item\">\n                    <strong>Last Logged In:</strong> <span id=\"last_login\"></span>\n                </div>\n            </div>\n            <!-- Clock in Profile -->\n            <div id=\"clock\"></div>\n        </div>\n    </div>\n</div>",
+  "modified": "2025-03-21 16:21:28.200711",
   "name": "Logged in user",
   "private": 0,
   "roles": [],
