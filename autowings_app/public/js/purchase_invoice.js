@@ -154,16 +154,16 @@ function open_vin_modal(frm) {
     let d = new frappe.ui.Dialog({
         title: __("Update VIN Data"),
         fields: [
+            // {
+            //     label: __("Download VIN CSV"),
+            //     fieldname: "download_vin",
+            //     fieldtype: "Button",
+            //     click: function() {
+            //         download_vin_csv(frm);
+            //     }
+            // },
             {
-                label: __("Download VIN CSV"),
-                fieldname: "download_vin",
-                fieldtype: "Button",
-                click: function() {
-                    download_vin_csv(frm);
-                }
-            },
-            {
-                label: __("Download Blank CSV"),
+                label: __("Get Upload Template"),
                 fieldname: "download_vin",
                 fieldtype: "Button",
                 click: function() {
@@ -230,24 +230,50 @@ function download_blank_vin_csv(frm) {
 }
 
 
+// function update_vin_data(frm, file_url) {
+//     frappe.call({
+//         method: "autowings_app.custom_scripts.purchase_invoice.upload_vin_csv",
+//         args: {
+//             doc: JSON.stringify(frm.doc),  // ✅ Pass full document as JSON string
+//             file_url: file_url
+//         },
+//         callback: function(r) {
+//             if (!r.exc) {
+//                 frappe.msgprint(__("VIN data updated successfully."));
+                
+//                 // Update the form with new VIN data without requiring a save
+//                 frappe.model.sync(r.message.doc);
+//                 frm.refresh();
+//             }
+//         }
+//     });
+// }
+
 function update_vin_data(frm, file_url) {
     frappe.call({
-        method: "autowings_app.custom_scripts.purchase_invoice.upload_vin_csv",
+        method: "autowings_app.custom_scripts.purchase_invoice.upload_vin_csv_temp",
         args: {
-            doc: JSON.stringify(frm.doc),  // ✅ Pass full document as JSON string
+            doc: JSON.stringify(frm.doc),
             file_url: file_url
         },
         callback: function(r) {
-            if (!r.exc) {
-                frappe.msgprint(__("VIN data updated successfully."));
-                
-                // Update the form with new VIN data without requiring a save
-                frappe.model.sync(r.message.doc);
+            if (r.message && r.message.validated_doc) {
+                // ✅ VIN data is valid, update the doc
+                frappe.model.sync(r.message.validated_doc);
                 frm.refresh();
+                frappe.msgprint(__("✅ VIN data updated successfully."));
+            } else if (r.message && r.message.error) {
+                // 🚫 Show validation errors with copy button
+                frappe.msgprint({
+                    title: __("Error"),
+                    message: r.message.error,
+                    indicator: "red"
+                });
             }
         }
     });
 }
+
 
 
 

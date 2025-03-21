@@ -203,43 +203,190 @@ def upload_vin_csv(doc, file_url):
     return {"message": "VIN Data Updated Successfully", "doc": purchase_invoice}
 
 
+import frappe
+import csv
+import os
+import json
+
+@frappe.whitelist()
+def upload_vin_csv_temp(doc, file_url):
+    doc = json.loads(doc)
+    purchase_invoice = frappe.get_doc(doc)
+
+    # Resolve file path
+    if not file_url.startswith("/private/"):
+        file_url = "/private" + file_url
+    file_path = frappe.get_site_path(file_url.strip("/"))
+
+    if not os.path.exists(file_path):
+        frappe.throw(f"Uploaded file not found at {file_path}")
+
+    # Read CSV
+    with open(file_path, "r", encoding="utf-8") as file:
+        reader = csv.reader(file)
+        headers = next(reader)
+        vin_data = list(reader)
+
+    new_vins = []
+    duplicate_chassis = []
+    duplicate_engine = []
+
+    for row in vin_data:
+        if len(row) < 5:
+            continue
+
+        item, chassis, engine, color, mfg_date = [val.strip() for val in row]
+
+        # Check for duplicates
+        if frappe.db.exists("Serial No", {"name": chassis}):
+            duplicate_chassis.append(chassis)
+        if frappe.db.exists("Serial No", {"custom_engine_number": engine}):
+            duplicate_engine.append(engine)
+
+        new_vins.append({
+            "item": item,
+            "chassis_number": chassis,
+            "engine_number": engine,
+            "vehicle_color": color,
+            "manufacturing_date": mfg_date or None
+        })
+
+    # # Show error if duplicates found
+    # if duplicate_chassis or duplicate_engine:
+    #     msg = ""
+    #     if duplicate_chassis:
+    #         msg += f"🚫 Duplicate Chassis Numbers: {', '.join(duplicate_chassis)}<br>"
+    #     if duplicate_engine:
+    #         msg += f"🚫 Duplicate Engine Numbers: {', '.join(duplicate_engine)}"
+    #     return {"error": msg}
+
+    if duplicate_chassis or duplicate_engine:
+        msg = '<div style="margin-bottom:10px;">'
+        msg += """
+            <table class="table table-bordered" style="margin-bottom:10px;">
+                <thead>
+                    <tr>
+                        <th>🚗 Duplicate Chassis Number</th>
+                        <th>🛠️ Duplicate Engine Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+
+        copy_lines = ["Chassis Number\tEngine Number"]
+        max_len = max(len(duplicate_chassis), len(duplicate_engine))
+
+        for i in range(max_len):
+            chassis_val = duplicate_chassis[i] if i < len(duplicate_chassis) else ""
+            engine_val = duplicate_engine[i] if i < len(duplicate_engine) else ""
+
+            # If chassis_val exists, convert it to a clickable link
+            if chassis_val:
+                chassis_link = f'<a href="/app/serial-no/{chassis_val}" target="_blank">{chassis_val}</a>'
+            else:
+                chassis_link = ""
+
+            msg += f"<tr><td>{chassis_link}</td><td>{engine_val}</td></tr>"
+            copy_lines.append(f"{chassis_val}\t{engine_val}")
+
+        msg += "</tbody></table>"
+
+        full_copy_text = "\n".join(copy_lines)
+
+        msg += f"""
+            <div style="text-align: right;">
+                <button class="btn btn-sm btn-primary"
+                        onclick="navigator.clipboard.writeText(`{full_copy_text}`); frappe.show_alert('Copied to clipboard!')">
+                    📋 Copy
+                </button>
+            </div>
+        </div>
+        """
+
+        return {"error": msg}
+
+
+
+
+    # Set VIN table
+    purchase_invoice.set("custom_vin", [])
+    for vin in new_vins:
+        purchase_invoice.append("custom_vin", vin)
+
+    # Sync to items
+    sync_vin_to_items(purchase_invoice)
+
+    return {"validated_doc": purchase_invoice}
+
+
 def sync_vin_to_items(doc):
-    """ Sync custom_vin child table data to items table with Item Name & UOM """
+    """Update Items table based on VIN entries"""
     if doc.custom_purchase_type != "Vehicle":
-        return  # No need to sync for non-vehicle purchases
+        return
 
-    # Clear items table before syncing
-    doc.set("items", [])
+    doc.set("items", [])  # Clear existing
 
-    # Track unique items and their chassis numbers
     item_qty = {}
     item_serials = {}
 
-    for vin in doc.get("custom_vin"):
-        if vin.item not in item_qty:
-            item_qty[vin.item] = 0
-            item_serials[vin.item] = []
+    for vin in doc.custom_vin:
+        item = vin.item
+        item_qty.setdefault(item, 0)
+        item_serials.setdefault(item, [])
+        item_qty[item] += 1
+        item_serials[item].append(vin.chassis_number)
 
-        item_qty[vin.item] += 1
-        item_serials[vin.item].append(vin.chassis_number)
-
-    # ✅ Fetch Item Name and UOM from Item Doctype
     for item_code, qty in item_qty.items():
         item_doc = frappe.get_doc("Item", item_code) if frappe.db.exists("Item", item_code) else None
-        
         item_name = item_doc.item_name if item_doc else "Unknown Item"
         uom = item_doc.stock_uom if item_doc else "Nos"
 
-        # Add items back to the items table with quantity, serial_no, item_name, and UOM
-        item_row = doc.append("items", {
+        doc.append("items", {
             "item_code": item_code,
-            "item_name": item_name,  # Set Item Name
-            "uom": uom,  # Set UOM
+            "item_name": item_name,
+            "uom": uom,
             "qty": qty,
-            "serial_no": "\n".join(item_serials[item_code])  # Add all chassis numbers with line breaks
+            "serial_no": "\n".join(item_serials[item_code])
         })
 
-    frappe.msgprint("Items table updated based on VIN details, including Item Name & UOM.")
+
+# def sync_vin_to_items(doc):
+#     """ Sync custom_vin child table data to items table with Item Name & UOM """
+#     if doc.custom_purchase_type != "Vehicle":
+#         return  # No need to sync for non-vehicle purchases
+
+#     # Clear items table before syncing
+#     doc.set("items", [])
+
+#     # Track unique items and their chassis numbers
+#     item_qty = {}
+#     item_serials = {}
+
+#     for vin in doc.get("custom_vin"):
+#         if vin.item not in item_qty:
+#             item_qty[vin.item] = 0
+#             item_serials[vin.item] = []
+
+#         item_qty[vin.item] += 1
+#         item_serials[vin.item].append(vin.chassis_number)
+
+#     # ✅ Fetch Item Name and UOM from Item Doctype
+#     for item_code, qty in item_qty.items():
+#         item_doc = frappe.get_doc("Item", item_code) if frappe.db.exists("Item", item_code) else None
+        
+#         item_name = item_doc.item_name if item_doc else "Unknown Item"
+#         uom = item_doc.stock_uom if item_doc else "Nos"
+
+#         # Add items back to the items table with quantity, serial_no, item_name, and UOM
+#         item_row = doc.append("items", {
+#             "item_code": item_code,
+#             "item_name": item_name,  # Set Item Name
+#             "uom": uom,  # Set UOM
+#             "qty": qty,
+#             "serial_no": "\n".join(item_serials[item_code])  # Add all chassis numbers with line breaks
+#         })
+
+#     frappe.msgprint("Items table updated based on VIN details, including Item Name & UOM.")
 
 import frappe
 

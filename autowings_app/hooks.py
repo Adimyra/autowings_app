@@ -40,9 +40,10 @@ doc_events = {
     "Sales Invoice": {
         "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit"
     },
-    "Serial No": {
-        "before_save": "autowings_app.custom_scripts.serial_no_validation.validate_serial_no_and_engine_number"
+     "Purchase Invoice": {
+        "validate": "autowings_app.custom_scripts.serial_no_validation.validate_chassis_and_engine_number"
     }
+
 }
 
 web_routes = [
