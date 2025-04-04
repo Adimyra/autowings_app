@@ -9,6 +9,9 @@ app_license = "mit"
 # ------------------
 
 # required_apps = []
+app_include_js = [
+    "/assets/autowings_app/js/lib/chart.min.js"
+]
 
 doc_events = {
     "Item": {
