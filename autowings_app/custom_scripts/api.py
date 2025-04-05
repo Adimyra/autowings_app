@@ -95,19 +95,32 @@
 #         'events': events,
 #         'tasks': todos
 #     }
+
 import frappe
 from frappe.utils import nowdate, add_days, getdate, get_datetime
 import json
+import logging
+
+# Set up logging for debugging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @frappe.whitelist()
-def get_dashboard_counts(user, filter_type, date_range=None):
+def get_dashboard_counts(user, filter_type, date_range=None, lead_status_filter=None):
     start_date, end_date = get_date_range(filter_type, date_range)
+    logger.debug(f"Dashboard Counts - Filter: {filter_type}, Date Range: {start_date} to {end_date}, Lead Status Filter: {lead_status_filter}")
 
-    leads = frappe.get_list('Lead', filters=[
+    # Filter leads by status if lead_status_filter is provided
+    lead_filters = [
         ['lead_owner', '=', user],
         ['creation', 'between', [start_date, end_date]]
-    ], fields=['name'])
+    ]
+    if lead_status_filter:
+        lead_filters.append(['status', 'in', lead_status_filter])
+
+    leads = frappe.get_list('Lead', filters=lead_filters, fields=['name', 'status', 'creation'])
     lead_count = len(leads)
+    logger.debug(f"Found {lead_count} leads: {leads}")
 
     opportunities = frappe.get_list('Opportunity', filters=[
         ['opportunity_owner', '=', user],
@@ -133,6 +146,7 @@ def get_dashboard_counts(user, filter_type, date_range=None):
     tasks = frappe.get_list('ToDo', filters=[
         ['allocated_to', '=', user],
         ['status', '=', 'Open'],
+        ['reference_type', 'in', ['Opportunity', 'Lead']],
         ['date', 'between', [start_date, end_date]]
     ], fields=['name'])
     task_count = len(tasks)
@@ -146,12 +160,21 @@ def get_dashboard_counts(user, filter_type, date_range=None):
     }
 
 @frappe.whitelist()
-def get_leads(user, filter_type, date_range=None):
+def get_leads(user, filter_type, date_range=None, status_filter=None):
     start_date, end_date = get_date_range(filter_type, date_range)
-    return frappe.get_list('Lead', filters=[
+    logger.debug(f"Get Leads - Filter: {filter_type}, Date Range: {start_date} to {end_date}, Status Filter: {status_filter}")
+
+    filters = [
         ['lead_owner', '=', user],
         ['creation', 'between', [start_date, end_date]]
-    ], fields=['name', 'lead_name', 'status', 'modified'])
+    ]
+    if status_filter:
+        filters.append(['status', 'in', status_filter])  # Filter leads by status
+        logger.debug(f"Applying status filter: {status_filter}")
+
+    leads = frappe.get_list('Lead', filters=filters, fields=['name', 'lead_name', 'status', 'creation', 'modified'])
+    logger.debug(f"Retrieved leads: {leads}")
+    return leads
 
 @frappe.whitelist()
 def get_opportunities(user, filter_type, date_range=None):
@@ -174,8 +197,9 @@ def get_tasks(user, filter_type, date_range=None):
     start_date, end_date = get_date_range(filter_type, date_range)
     return frappe.get_list('ToDo', filters=[
         ['allocated_to', '=', user],
+        ['reference_type', 'in', ['Opportunity', 'Lead']],
         ['date', 'between', [start_date, end_date]]
-    ], fields=['name', 'description', 'date', 'status'])
+    ], fields=['name', 'description', 'date', 'status', 'reference_type'])
 
 @frappe.whitelist()
 def get_related_items(reference_name, item_type):
@@ -191,7 +215,8 @@ def get_related_items(reference_name, item_type):
     elif item_type == 'tasks':
         return frappe.get_list('ToDo', filters=[
             ['reference_name', '=', reference_name],
-            ['status', '=', 'Open']
+            ['status', '=', 'Open'],
+            ['reference_type', 'in', ['Opportunity', 'Lead']]
         ], fields=['name', 'description', 'date', 'status'])
     return []
 
@@ -201,9 +226,11 @@ def get_upcoming_tasks(user, filter_type, date_range=None):
     today = getdate()
     tasks = frappe.get_list('ToDo', filters=[
         ['allocated_to', '=', user],
+        ['status', '=', 'Open'],
+        ['reference_type', 'in', ['Opportunity', 'Lead']],
         ['date', '>=', today],
         ['date', 'between', [start_date, end_date]]
-    ], fields=['name', 'description', 'date', 'status'], order_by='date asc', limit=3)
+    ], fields=['name', 'description', 'date', 'status'], order_by='date asc')
     return tasks
 
 @frappe.whitelist()
@@ -212,9 +239,10 @@ def get_upcoming_events(user, filter_type, date_range=None):
     today = getdate()
     events = frappe.get_list('Event', filters=[
         ['owner', '=', user],
+        ['status', '=', 'Open'],
         ['starts_on', '>=', today],
         ['starts_on', 'between', [start_date, end_date]]
-    ], fields=['name', 'subject', 'starts_on', 'status'], order_by='starts_on asc', limit=3)
+    ], fields=['name', 'subject', 'starts_on', 'status'], order_by='starts_on asc')
     return events
 
 @frappe.whitelist()
@@ -262,4 +290,4 @@ def get_date_range(filter_type, date_range):
         if isinstance(date_range, str):
             date_range = json.loads(date_range)
         return date_range['start'], date_range['end']
-    return add_days(today, -30), today
+    return add_days(today, -30), today  # Default to monthly

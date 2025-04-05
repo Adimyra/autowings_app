@@ -357,6 +357,7 @@
 //     // Initial render
 //     renderDashboard('monthly');
 // };
+
 frappe.pages['adi-crm'].on_page_load = function(wrapper) {
     var page = frappe.ui.make_app_page({
         parent: wrapper,
@@ -371,71 +372,388 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
             body {
                 background: linear-gradient(to top right, #ffffff);
                 font-family: sans-serif;
+                margin: 0;
+                padding: 0;
             }
-            .adi-crm-flex { display: flex; height: 100vh; }
-            .adi-crm-sidebar { width: 240px; background: white; padding: 24px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border-top-right-radius: 24px; border-bottom-right-radius: 24px; }
-            .adi-crm-sidebar h2 { color: #fb923c; font-size: 20px; font-weight: bold; margin-bottom: 24px; }
-            .adi-crm-sidebar ul li { margin-bottom: 16px; cursor: pointer; font-weight: 500; color: #374151; }
-            .adi-crm-sidebar ul li:hover, .adi-crm-sidebar ul li.adi-crm-active { color: #fb923c; }
-            .adi-crm-main { flex: 1; padding: 24px; overflow-y: auto; }
-            .adi-crm-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-            .adi-crm-filters { margin-top: 20px; display: flex; align-items: center; }
-            .adi-crm-filters button { padding: 8px 16px; margin-right: 12px; border-radius: 9999px; font-weight: 500; border: none; background-color: #fff7ed; color: #fb923c; }
-            .adi-crm-filters button.adi-crm-active { background-color: #fb923c; color: white; }
-            .adi-crm-grid { display: grid; gap: 24px; margin-top: 24px; }
-            .adi-crm-grid-3 { grid-template-columns: repeat(5, 1fr); }
-            .adi-crm-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); text-align: center; }
-            .adi-crm-card h1 { font-size: 36px; font-weight: bold; }
-            .adi-crm-orange { color: #fb923c; }
-            .adi-crm-green { color: #22c55e; }
-            .adi-crm-blue { color: #3b82f6; }
-            .adi-crm-section-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
-            .adi-crm-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
-            .adi-crm-table th, .adi-crm-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
-            .adi-crm-table th { background: #fff7ed; color: #fb923c; }
-            .adi-crm-table tr:hover { background: #f9fafb; cursor: pointer; }
-            .adi-crm-date-range { margin-left: 12px; display: inline-block; }
-            .adi-crm-date-range input { padding: 5px; margin-right: 10px; border: 1px solid #e5e7eb; border-radius: 4px; }
-            .adi-crm-date-range button { padding: 8px 16px; border-radius: 9999px; font-weight: 500; border: none; background-color: #fb923c; color: white; }
+            .adi-crm-flex { 
+                display: flex; 
+                height: 100vh; 
+                position: relative; 
+            }
+            .adi-crm-sidebar { 
+                width: 240px; 
+                background: white; 
+                padding: 24px; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+                border-top-right-radius: 24px; 
+                border-bottom-right-radius: 24px; 
+                transition: transform 0.3s ease; 
+                position: fixed; 
+                height: 100%; 
+                z-index: 1000; 
+            }
+            .adi-crm-sidebar-collapsed {
+                transform: translateX(-100%);
+            }
+            .adi-crm-sidebar-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 24px;
+            }
+            .adi-crm-sidebar h2 { 
+                color: #fb923c; 
+                font-size: 20px; 
+                font-weight: bold; 
+                margin: 0; 
+            }
+            .adi-crm-sidebar ul li { 
+                margin-bottom: 16px; 
+                cursor: pointer; 
+                font-weight: 500; 
+                color: #374151; 
+            }
+            .adi-crm-sidebar ul li:hover, 
+            .adi-crm-sidebar ul li.adi-crm-active { 
+                color: #fb923c; 
+            }
+            .adi-crm-main { 
+                flex: 1; 
+                padding: 24px; 
+                overflow-y: auto; 
+                margin-left: 240px; 
+                transition: margin-left 0.3s ease; 
+            }
+            .adi-crm-main-full {
+                margin-left: 0;
+            }
+            .adi-crm-top-bar { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                margin-bottom: 24px; 
+            }
+            .adi-crm-top-bar .hamburger-menu-top {
+                display: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: #fb923c;
+                margin-right: 16px;
+            }
+            .adi-crm-filters { 
+                margin-top: 20px; 
+                display: flex; 
+                align-items: center; 
+                flex-wrap: wrap; 
+                gap: 10px; 
+            }
+            .adi-crm-filters button { 
+                padding: 8px 16px; 
+                border-radius: 9999px; 
+                font-weight: 500; 
+                border: none; 
+                background-color: #fff7ed; 
+                color: #fb923c; 
+            }
+            .adi-crm-filters button.adi-crm-active { 
+                background-color: #fb923c; 
+                color: white; 
+            }
+            .adi-crm-grid { 
+                display: grid; 
+                gap: 24px; 
+                margin-top: 24px; 
+            }
+            .adi-crm-grid-3 { 
+                grid-template-columns: repeat(5, 1fr); 
+            }
+            .adi-crm-card { 
+                background: white; 
+                padding: 24px; 
+                border-radius: 16px; 
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); 
+                text-align: center; 
+            }
+            .adi-crm-card h1 { 
+                font-size: 36px; 
+                font-weight: bold; 
+            }
+            .adi-crm-orange { 
+                color: #fb923c; 
+            }
+            .adi-crm-green { 
+                color: #22c55e; 
+            }
+            .adi-crm-blue { 
+                color: #3b82f6; 
+            }
+            .adi-crm-section-title { 
+                font-size: 20px; 
+                font-weight: 600; 
+                margin-bottom: 16px; 
+            }
+            .adi-crm-table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-top: 24px; 
+            }
+            .adi-crm-table th, 
+            .adi-crm-table td { 
+                padding: 12px; 
+                text-align: left; 
+                border-bottom: 1px solid #e5e7eb; 
+            }
+            .adi-crm-table th { 
+                background: #fff7ed; 
+                color: #fb923c; 
+            }
+            .adi-crm-table tr:hover { 
+                background: #f9fafb; 
+                cursor: pointer; 
+            }
+            .adi-crm-date-range { 
+                margin-left: 12px; 
+                display: inline-flex; 
+                align-items: center; 
+                gap: 10px; 
+            }
+            .adi-crm-date-range input { 
+                padding: 5px; 
+                border: 1px solid #e5e7eb; 
+                border-radius: 4px; 
+            }
+            .adi-crm-date-range button { 
+                padding: 8px 16px; 
+                border-radius: 9999px; 
+                font-weight: 500; 
+                border: none; 
+                background-color: #fb923c; 
+                color: white; 
+            }
             .adi-crm-modal { 
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                background: rgba(0,0,0,0.5); display: none; 
-                justify-content: center; align-items: center; 
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                width: 100%; 
+                height: 100%; 
+                background: rgba(0,0,0,0.5); 
+                display: none; 
+                justify-content: center; 
+                align-items: center; 
+                z-index: 2000; 
             }
             .adi-crm-modal-content { 
-                background: white; padding: 24px; border-radius: 12px; 
-                width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; 
+                background: white; 
+                padding: 24px; 
+                border-radius: 12px; 
+                width: 90%; 
+                max-width: 600px; 
+                max-height: 80vh; 
+                overflow-y: auto; 
                 box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); 
-                text-align: left; animation: slideIn 0.3s ease-out; 
+                text-align: left; 
+                animation: slideIn 0.3s ease-out; 
             }
             @keyframes slideIn {
                 from { transform: translateY(-50px); opacity: 0; }
                 to { transform: translateY(0); opacity: 1; }
             }
-            .modal-header { font-size: 24px; font-weight: bold; color: #fb923c; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; }
-            .modal-body .form-grid { display: grid; gap: 20px; }
-            .modal-body label { font-size: 14px; color: #374151; font-weight: 500; display: block; margin-bottom: 5px; }
-            .modal-body input, .modal-body select { 
-                width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; 
-                font-size: 14px; transition: border-color 0.3s; 
+            .modal-header { 
+                font-size: 24px; 
+                font-weight: bold; 
+                color: #fb923c; 
+                margin-bottom: 20px; 
+                border-bottom: 1px solid #e5e7eb; 
+                padding-bottom: 10px; 
             }
-            .modal-body input:focus, .modal-body select:focus { border-color: #fb923c; outline: none; }
-            .modal-footer { margin-top: 20px; text-align: right; }
+            .modal-body .form-grid { 
+                display: grid; 
+                gap: 20px; 
+                grid-template-columns: repeat(2, 1fr); 
+            }
+            .modal-body label { 
+                font-size: 14px; 
+                color: #374151; 
+                font-weight: 500; 
+                display: block; 
+                margin-bottom: 5px; 
+            }
+            .modal-body input, 
+            .modal-body select { 
+                width: 100%; 
+                padding: 10px; 
+                border: 1px solid #e5e7eb; 
+                border-radius: 6px; 
+                font-size: 14px; 
+                transition: border-color 0.3s; 
+            }
+            .modal-body input:focus, 
+            .modal-body select:focus { 
+                border-color: #fb923c; 
+                outline: none; 
+            }
+            .modal-footer { 
+                margin-top: 20px; 
+                text-align: right; 
+            }
             .adi-crm-create-btn {
-                padding: 8px 20px; border-radius: 6px; background: #fb923c; 
-                color: white; border: none; cursor: pointer; margin-left: 10px; 
-                font-weight: 500; transition: background 0.3s;
+                padding: 8px 20px; 
+                border-radius: 6px; 
+                background: #fb923c; 
+                color: white; 
+                border: none; 
+                cursor: pointer; 
+                margin-left: 10px; 
+                font-weight: 500; 
+                transition: background 0.3s;
             }
-            .adi-crm-create-btn:hover { background: #f97316; }
-            .adi-crm-search { margin-left: 12px; padding: 5px; border: 1px solid #e5e7eb; border-radius: 4px; width: 200px; }
-            .adi-crm-status-filter { padding: 5px; border: 1px solid #e5e7eb; border-radius: 4px; }
-            .task-item { display: flex; align-items: center; padding: 8px; margin-bottom: 8px; background: #f9fafb; border-radius: 6px; }
-            .task-item img { width: 20px; height: 20px; margin-right: 10px; }
+            .adi-crm-create-btn:hover { 
+                background: #f97316; 
+            }
+            .adi-crm-search { 
+                margin-left: 12px; 
+                padding: 5px; 
+                border: 1px solid #e5e7eb; 
+                border-radius: 4px; 
+                width: 200px; 
+            }
+            .adi-crm-status-filter { 
+                padding: 5px; 
+                border: 1px solid #e5e7eb; 
+                border-radius: 4px; 
+            }
+            .task-event-container {
+                display: flex;
+                justify-content: space-between;
+                gap: 24px;
+                margin-top: 24px;
+            }
+            .task-event-section {
+                flex: 1;
+                background: white;
+                padding: 24px;
+                border-radius: 16px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            }
+            .task-event-card {
+                background: #f9fafb;
+                padding: 16px;
+                border-radius: 8px;
+                margin-bottom: 12px;
+                transition: transform 0.2s;
+                cursor: pointer;
+            }
+            .task-event-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            .task-event-card h4 {
+                margin: 0 0 8px;
+                font-size: 16px;
+                color: #374151;
+            }
+            .task-event-card p {
+                margin: 4px 0;
+                font-size: 14px;
+                color: #6b7280;
+            }
+            .task-event-card .status {
+                font-weight: 500;
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+            }
+            .task-event-card .status-open {
+                background: #e0f2fe;
+                color: #0369a1;
+            }
+            .task-event-card .status-closed {
+                background: #dcfce7;
+                color: #15803d;
+            }
+            .hamburger-menu {
+                display: none;
+                position: fixed;
+                top: 40px;
+                left: 16px;
+                z-index: 1100;
+                font-size: 24px;
+                cursor: pointer;
+                color: #fb923c;
+            }
+            .collapse-icon {
+                font-size: 20px;
+                cursor: pointer;
+                color: #fb923c;
+                display: block;
+            }
+            .see-more-btn {
+                display: block;
+                margin: 12px auto;
+                padding: 8px 16px;
+                border-radius: 9999px;
+                background: #fb923c;
+                color: white;
+                border: none;
+                cursor: pointer;
+                text-align: center;
+                font-weight: 500;
+            }
+            .see-more-btn:hover {
+                background: #f97316;
+            }
+
+            @media (max-width: 768px) {
+                .adi-crm-sidebar {
+                    transform: translateX(-100%);
+                }
+                .adi-crm-sidebar-visible {
+                    transform: translateX(0);
+                }
+                .adi-crm-main {
+                    margin-left: 0;
+                }
+                .adi-crm-grid-3 {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+                .task-event-container {
+                    flex-direction: column;
+                }
+                .hamburger-menu {
+                    display: block !important;
+                }
+                .hamburger-menu-top {
+                    display: inline-block !important;
+                }
+                .modal-body .form-grid {
+                    grid-template-columns: 1fr;
+                }
+                .collapse-icon {
+                    display: block;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .adi-crm-grid-3 {
+                    grid-template-columns: 1fr;
+                }
+                .adi-crm-table th, .adi-crm-table td {
+                    padding: 8px;
+                    font-size: 14px;
+                }
+                .adi-crm-search {
+                    width: 150px;
+                }
+            }
         </style>
 
+        <div class="hamburger-menu" id="hamburger-menu">☰</div>
         <div class="adi-crm-flex">
-            <div class="adi-crm-sidebar">
-                <h2>Adi CRM</h2>
+            <div class="adi-crm-sidebar" id="adi-crm-sidebar">
+                <div class="adi-crm-sidebar-header">
+                    <h2>Adi CRM</h2>
+                    <span class="collapse-icon" id="collapse-icon">⬅️</span>
+                </div>
                 <ul>
                     <li class="adi-crm-active" data-view="dashboard">📊 Dashboard</li>
                     <li data-view="leads">👥 Leads</li>
@@ -444,12 +762,39 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                     <li data-view="tasks">✅ Tasks</li>
                 </ul>
             </div>
-            <div class="adi-crm-main" id="adi-crm-content"></div>
+            <div class="adi-crm-main" id="adi-crm-main">
+                <div id="adi-crm-content"></div>
+            </div>
             <div class="adi-crm-modal" id="adi-crm-modal">
                 <div class="adi-crm-modal-content" id="adi-crm-modal-content"></div>
             </div>
         </div>
     `);
+
+    function toggleSidebar() {
+        const $sidebar = $('#adi-crm-sidebar');
+        const $main = $('#adi-crm-main');
+        const $hamburger = $('#hamburger-menu');
+        const $collapseIcon = $('#collapse-icon');
+        const isCollapsed = $sidebar.hasClass('adi-crm-sidebar-collapsed');
+
+        $sidebar.toggleClass('adi-crm-sidebar-collapsed adi-crm-sidebar-visible');
+        $main.toggleClass('adi-crm-main-full');
+        $collapseIcon.text(isCollapsed ? '⬅️' : '➡️');
+
+        // Show hamburger menu immediately after collapse on all screens
+        $hamburger.show();
+
+        // Hide top bar hamburger on desktop when sidebar is visible
+        if ($(window).width() > 768 && !isCollapsed) {
+            $('.hamburger-menu-top').hide();
+        } else {
+            $('.hamburger-menu-top').show();
+        }
+    }
+
+    $('#hamburger-menu').click(toggleSidebar);
+    $('#collapse-icon').click(toggleSidebar);
 
     function showModal(content) {
         $('#adi-crm-modal-content').html(content);
@@ -570,7 +915,7 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                                     frappe.msgprint('Lead created successfully!');
                                     $('#adi-crm-modal').hide();
                                     clearLeadForm();
-                                    renderLeads('monthly'); // Refresh Leads list on current page
+                                    renderLeads('monthly');
                                 } else {
                                     frappe.msgprint('Error creating lead.');
                                 }
@@ -580,6 +925,8 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                 }
             });
         });
+
+        $(document).on('click', '.hamburger-menu-top', toggleSidebar);
     }
 
     function clearLeadForm() {
@@ -600,11 +947,11 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
         $(`#${view}-table-body tr`).each(function() {
             let rowStatus;
             if (view === 'events') {
-                rowStatus = $(this).find('td:nth-child(5)').text(); // 5th column for Events
+                rowStatus = $(this).find('td:nth-child(5)').text();
             } else if (view === 'leads' || view === 'opportunities') {
-                rowStatus = $(this).find('td:nth-child(3)').text(); // 3rd column for Leads and Opportunities
+                rowStatus = $(this).find('td:nth-child(3)').text();
             } else if (view === 'tasks') {
-                rowStatus = $(this).find('td:nth-child(3)').text(); // 3rd column for Tasks
+                rowStatus = $(this).find('td:nth-child(3)').text();
             }
             if (status === 'All' || rowStatus === status) {
                 $(this).show();
@@ -628,13 +975,15 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                 <span class="adi-crm-date-range" id="date-range-picker"></span>
             </div>
             <div class="adi-crm-grid adi-crm-grid-3" id="dashboard-cards"></div>
-            <div class="adi-crm-card mt-6">
-                <div class="adi-crm-section-title">Upcoming Tasks</div>
-                <div id="upcoming-tasks"></div>
-            </div>
-            <div class="adi-crm-card mt-6">
-                <div class="adi-crm-section-title">Upcoming Events</div>
-                <div id="upcoming-events"></div>
+            <div class="task-event-container">
+                <div class="task-event-section">
+                    <div class="adi-crm-section-title">Upcoming Tasks (Open)</div>
+                    <div id="upcoming-tasks"></div>
+                </div>
+                <div class="task-event-section">
+                    <div class="adi-crm-section-title">Upcoming Events (Open)</div>
+                    <div id="upcoming-events"></div>
+                </div>
             </div>
         `);
 
@@ -684,15 +1033,28 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
             callback: function(r) {
                 if (r.message) {
                     let html = '';
-                    r.message.forEach(task => {
+                    const limitedTasks = r.message.slice(0, 5);
+                    limitedTasks.forEach(task => {
                         html += `
-                            <div class="task-item">
-                                <img src="/assets/autowings_app/images/task-icon.png" alt="Task Icon">
-                                <span>${task.description} - ${frappe.datetime.str_to_user(task.date)} (${task.status})</span>
+                            <div class="task-event-card" data-task="${task.name}">
+                                <h4>${task.description}</h4>
+                                <p>Due: ${frappe.datetime.str_to_user(task.date)}</p>
+                                <p><span class="status status-${task.status.toLowerCase()}">${task.status}</span></p>
                             </div>
                         `;
                     });
-                    $('#upcoming-tasks').html(html || '<p>No upcoming tasks</p>');
+                    if (r.message.length > 5) {
+                        html += `<button class="see-more-btn" data-view="tasks">See More</button>`;
+                    }
+                    $('#upcoming-tasks').html(html || '<p>No upcoming open tasks</p>');
+
+                    $('#upcoming-tasks .task-event-card').click(function() {
+                        const taskName = $(this).data('task');
+                        frappe.set_route('todo', taskName);
+                    });
+                    $('#upcoming-tasks .see-more-btn').click(function() {
+                        $('.adi-crm-sidebar li[data-view="tasks"]').click();
+                    });
                 }
             }
         });
@@ -703,15 +1065,28 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
             callback: function(r) {
                 if (r.message) {
                     let html = '';
-                    r.message.forEach(event => {
+                    const limitedEvents = r.message.slice(0, 5);
+                    limitedEvents.forEach(event => {
                         html += `
-                            <div class="task-item">
-                                <img src="/assets/autowings_app/images/event-icon.png" alt="Event Icon">
-                                <span>${event.subject} - ${frappe.datetime.str_to_user(event.starts_on)} (${event.status})</span>
+                            <div class="task-event-card" data-event="${event.name}">
+                                <h4>${event.subject}</h4>
+                                <p>Starts: ${frappe.datetime.str_to_user(event.starts_on)}</p>
+                                <p><span class="status status-${event.status.toLowerCase()}">${event.status}</span></p>
                             </div>
                         `;
                     });
-                    $('#upcoming-events').html(html || '<p>No upcoming events</p>');
+                    if (r.message.length > 5) {
+                        html += `<button class="see-more-btn" data-view="events">See More</button>`;
+                    }
+                    $('#upcoming-events').html(html || '<p>No upcoming open events</p>');
+
+                    $('#upcoming-events .task-event-card').click(function() {
+                        const eventName = $(this).data('event');
+                        frappe.set_route('event', eventName);
+                    });
+                    $('#upcoming-events .see-more-btn').click(function() {
+                        $('.adi-crm-sidebar li[data-view="events"]').click();
+                    });
                 }
             }
         });
@@ -987,6 +1362,7 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                         <th>Description</th>
                         <th>Due Date</th>
                         <th><select class="adi-crm-status-filter" id="tasks-status-filter"><option value="All">All Status</option></select></th>
+                        <th>Reference Type</th>
                     </tr>
                 </thead>
                 <tbody id="tasks-table-body"></tbody>
@@ -1018,6 +1394,7 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                                 <td>${task.description}</td>
                                 <td>${frappe.datetime.str_to_user(task.date)}</td>
                                 <td>${task.status}</td>
+                                <td>${task.reference_type}</td>
                             </tr>
                         `);
                     });
@@ -1095,7 +1472,20 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
         else if (view === 'opportunities') renderOpportunities('monthly');
         else if (view === 'events') renderEvents('monthly');
         else if (view === 'tasks') renderTasks('monthly');
+
+        if ($(window).width() <= 768) {
+            $('#adi-crm-sidebar').removeClass('adi-crm-sidebar-visible').addClass('adi-crm-sidebar-collapsed');
+            $('#adi-crm-main').addClass('adi-crm-main-full');
+            $('#hamburger-menu').show();
+        }
     });
+
+    // Initial setup to ensure hamburger menu is visible on load if collapsed
+    if ($(window).width() <= 768) {
+        $('#adi-crm-sidebar').addClass('adi-crm-sidebar-collapsed');
+        $('#adi-crm-main').addClass('adi-crm-main-full');
+        $('#hamburger-menu').show();
+    }
 
     renderDashboard('monthly');
 };
