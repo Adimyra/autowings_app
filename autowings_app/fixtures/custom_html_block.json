@@ -13,8 +13,8 @@
  {
   "docstatus": 0,
   "doctype": "Custom HTML Block",
-  "html": "\n  <div class=\"container\">\n    <div class=\"button-container\" role=\"group\" aria-label=\"Action Buttons\">\n      <!-- Customer Management Buttons -->\n      <a href=\"/app/sales-invoice/new-sales-invoice\" class=\"button -dark\" aria-label=\"Dashboard\">Create Sales Invoice</a>\n      <a href=\"/app/purchase-invoice/new-purchase-invoice\" class=\"button -dark\" aria-label=\"New AMC\">Create Purchase Invoice</a>\n     \n    </div>\n  </div>",
-  "modified": "2025-03-16 23:51:40.930787",
+  "html": "\n  <div class=\"container\">\n    <div class=\"button-container\" role=\"group\" aria-label=\"Action Buttons\">\n      <!-- Customer Management Buttons -->\n      <a href=\"/app/sales-invoice/new-sales-invoice\" class=\"button -dark\" aria-label=\"Dashboard\">Create Sales Invoice</a>\n      <a href=\"/app/purchase-invoice/new-purchase-invoice\" class=\"button -dark\" aria-label=\"New AMC\">Create Purchase Invoice</a>\n     <a href=\"/app/adi-crm\" class=\"button -dark\" aria-label=\"Adi CRM\">Adi CRM</a>\n\n    </div>\n  </div>",
+  "modified": "2025-04-05 22:07:41.807203",
   "name": "Custom Btn",
   "private": 0,
   "roles": [],
