@@ -465,7 +465,7 @@ def create_lead(**kwargs):
             'state': kwargs.get('state'),
             'custom_area': kwargs.get('area'),
             'country': kwargs.get('country', 'India'),
-            'company': kwargs.get('company', 'Autowings Dev'),
+            'company': kwargs.get('company', 'Autowings'),
             'lead_owner': kwargs.get('lead_owner')
         })
         doc.insert()

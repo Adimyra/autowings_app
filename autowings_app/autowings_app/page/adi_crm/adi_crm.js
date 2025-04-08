@@ -907,7 +907,7 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                                 state: state,
                                 area: area,
                                 country: 'India',
-                                company: 'Autowings Dev',
+                                company: 'Autowings',
                                 lead_owner: current_user
                             },
                             callback: function(response) {

@@ -597,7 +597,7 @@ frappe.pages['lead-and-opportunity'].on_page_load = function(wrapper) {
                             opportunity_type: "Sales",
                             source: lead.source || "Website",
                             opportunity_owner: lead.lead_owner,
-                            company: "Autowings Dev",
+                            company: "Autowings",
                             transaction_date: frappe.datetime.nowdate(),
                             currency: "INR",
                             conversion_rate: 1,
@@ -732,7 +732,7 @@ frappe.pages['lead-and-opportunity'].on_page_load = function(wrapper) {
                     city: city,
                     state: state,
                     country: "India",
-                    company: "Autowings Dev"
+                    company: "Autowings"
                 }
             },
             callback: function(response) {
