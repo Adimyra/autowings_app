@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"FviUxHjTs3\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Logged in user\",\"col\":12}},{\"id\":\"U3lzwYIlGJ\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"GF_5O3lYvP\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Custom Btn\",\"col\":12}},{\"id\":\"7A4hpjiEFS\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"GUM6-d4nMq\",\"type\":\"card\",\"data\":{\"card_name\":\"DOC\",\"col\":4}},{\"id\":\"FdLpix0QwP\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Master\",\"col\":4}},{\"id\":\"DjF4FIPWpo\",\"type\":\"card\",\"data\":{\"card_name\":\"Purchase Master\",\"col\":4}},{\"id\":\"yL3BuXsIrG\",\"type\":\"card\",\"data\":{\"card_name\":\"Vechile Info\",\"col\":4}},{\"id\":\"psYEkoEdSg\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
+ "content": "[{\"id\":\"FviUxHjTs3\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Logged in user\",\"col\":12}},{\"id\":\"U3lzwYIlGJ\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"0_rycza-Lp\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"sales Btn\",\"col\":12}},{\"id\":\"9S0qBI3PeY\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"purchase btn\",\"col\":9}},{\"id\":\"SjW2-K-Yj8\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"btns\",\"col\":3}},{\"id\":\"7A4hpjiEFS\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"GUM6-d4nMq\",\"type\":\"card\",\"data\":{\"card_name\":\"DOC\",\"col\":4}},{\"id\":\"FdLpix0QwP\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Master\",\"col\":4}},{\"id\":\"DjF4FIPWpo\",\"type\":\"card\",\"data\":{\"card_name\":\"Purchase Master\",\"col\":4}},{\"id\":\"yL3BuXsIrG\",\"type\":\"card\",\"data\":{\"card_name\":\"Vechile Info\",\"col\":4}},{\"id\":\"psYEkoEdSg\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
  "creation": "2025-02-10 20:08:53.718760",
  "custom_blocks": [
   {
@@ -8,8 +8,16 @@
    "label": "Logged in user"
   },
   {
-   "custom_block_name": "Custom Btn",
-   "label": "Custom Btn"
+   "custom_block_name": "sales Btn",
+   "label": "sales Btn"
+  },
+  {
+   "custom_block_name": "purchase btn",
+   "label": "purchase btn"
+  },
+  {
+   "custom_block_name": "btns",
+   "label": "btns"
   }
  ],
  "docstatus": 0,
@@ -268,7 +276,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-04-05 22:07:56.137331",
+ "modified": "2025-04-10 04:40:01.300060",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings",

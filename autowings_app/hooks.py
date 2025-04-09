@@ -40,11 +40,36 @@ doc_events = {
         "before_save": "autowings_app.custom_scripts.delivery_note.before_save",
         "before_submit": "autowings_app.custom_scripts.delivery_note.before_submit"
     },
+    # "Sales Invoice": {
+    #     "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit"
+    # },
     "Sales Invoice": {
-        "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit"
+        "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit",
+        "on_submit": "autowings_app.custom_scripts.events.on_submit_sales_invoice"
     },
      "Purchase Invoice": {
         "validate": "autowings_app.custom_scripts.serial_no_validation.validate_chassis_and_engine_number"
+    },
+    # "RTO Registration": {
+    #     "on_update": "autowings_app.custom_scripts.events.on_update_rto_registration"
+    # },
+    # "Vehicle Insurance": {
+    #     "on_update": "autowings_app.custom_scripts.events.on_update_vehicle_insurance"
+    # },
+    # "Vehicle Finance": {
+    #     "on_update": "autowings_app.custom_scripts.events.on_update_vehicle_finance"
+    # }
+    "RTO Registration": {
+        "before_save": "autowings_app.custom_scripts.events.before_save_rto_registration",
+        "on_update": "autowings_app.custom_scripts.events.on_update_rto_registration"
+    },
+    "Vehicle Insurance": {
+        "before_save": "autowings_app.custom_scripts.events.before_save_vehicle_insurance",
+        "on_update": "autowings_app.custom_scripts.events.on_update_vehicle_insurance"
+    },
+    "Vehicle Finance": {
+        "before_save": "autowings_app.custom_scripts.events.before_save_vehicle_finance",
+        "on_update": "autowings_app.custom_scripts.events.on_update_vehicle_finance"
     }
 
 }

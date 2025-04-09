@@ -38,7 +38,8 @@
    "fieldname": "rto_office",
    "fieldtype": "Link",
    "label": "RTO Office",
-   "options": "RTO Office"
+   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"RTO\"]]",
+   "options": "Supplier"
   },
   {
    "fieldname": "registration_status",
@@ -72,7 +73,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-16 14:41:00.820653",
+ "modified": "2025-04-10 02:50:38.936737",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

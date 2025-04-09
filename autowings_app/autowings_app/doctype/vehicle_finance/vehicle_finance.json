@@ -1,5 +1,4 @@
 {
- "_liked_by": "[\"Administrator\"]",
  "actions": [],
  "allow_rename": 1,
  "autoname": "format:FIN-{YYYY}-{MM}{####}",
@@ -8,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "vsm_id",
+  "sales_invoice",
   "customer",
   "finance_provider",
   "loan_amount",
@@ -71,12 +71,19 @@
    "fieldname": "finance_provider",
    "fieldtype": "Link",
    "label": "Finance Provider",
-   "options": "Finance Provider"
+   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"Financer\"]]",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-12 14:15:21.722700",
+ "modified": "2025-04-10 02:49:59.559769",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Finance",

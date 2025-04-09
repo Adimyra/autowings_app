@@ -64,6 +64,11 @@ function enforce_purchase_type_selection(frm) {
                         border: none; border-radius: 10px; cursor: pointer;">
                         Spare
                     </button>
+                    <button id="purchase_other" class="custom-button"
+                        style="background: #6c757d; color: white; padding: 8px 20px; font-size: 18px; 
+                        border: none; border-radius: 10px; cursor: pointer;">
+                        Other
+                    </button>
                     <button id="purchase_vehicle" class="custom-button"
                         style="background: #000; color: white; padding: 8px 20px; font-size: 18px; 
                         border: none; border-radius: 10px; cursor: pointer;">
@@ -80,6 +85,11 @@ function enforce_purchase_type_selection(frm) {
 
     document.getElementById("purchase_spare").addEventListener("click", function() {
         frm.set_value("custom_purchase_type", "Spare");
+        toggle_purchase_vehicle_fields(frm);
+        fadeOutAndClosePurchaseModal();
+    });
+    document.getElementById("purchase_other").addEventListener("click", function() {
+        frm.set_value("custom_purchase_type", "Other");
         toggle_purchase_vehicle_fields(frm);
         fadeOutAndClosePurchaseModal();
     });

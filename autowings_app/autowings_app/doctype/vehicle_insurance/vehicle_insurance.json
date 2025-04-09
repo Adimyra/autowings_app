@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "vsm_id",
+  "sales_invoice",
   "customer",
   "insurance_policy_number",
   "insurance_amount",
@@ -31,7 +32,8 @@
    "fieldname": "insurance_provider",
    "fieldtype": "Link",
    "label": "Insurance Provider",
-   "options": "Insurance Provider"
+   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"Insurance\"]]",
+   "options": "Supplier"
   },
   {
    "fieldname": "insurance_policy_number",
@@ -89,6 +91,12 @@
    "fieldname": "policy_term_years",
    "fieldtype": "Data",
    "label": "Policy Term (Years)"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -98,7 +106,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-03-16 19:18:06.371562",
+ "modified": "2025-04-10 02:51:08.892000",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",
