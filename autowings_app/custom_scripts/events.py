@@ -24,22 +24,22 @@
 #         je_rto.title = f"RTO Charge - {doc.customer}"
 #         je_rto.remark = f"Initial RTO charge of ₹{doc.custom_registration_charge} for Sales Invoice {doc.name} paid to {doc.custom_rto_office}."
 #         je_rto.append("accounts", {
-#             "account": "Debtors - AD",
+#             "account": "Debtors - A",
 #             "party_type": "Customer",
 #             "party": doc.customer,
 #             "debit_in_account_currency": doc.custom_registration_charge,
 #             "credit_in_account_currency": 0,
-#             "cost_center": "Main - AD",
+#             "cost_center": "Main - A",
 #             "against_account": doc.custom_rto_office
 #         })
 #         je_rto.append("accounts", {
-#             "account": "RTO Charges Payable - AD",
+#             "account": "RTO Charges Payable - A",
 #             "party_type": "Supplier",
 #             "party": doc.custom_rto_office,
 #             "debit_in_account_currency": 0,
 #             "credit_in_account_currency": doc.custom_registration_charge,
-#             "cost_center": "Main - AD",
-#             "against_account": "Debtors - AD"
+#             "cost_center": "Main - A",
+#             "against_account": "Debtors - A"
 #         })
 #         je_rto.save()
 #         je_rto.submit()
@@ -63,22 +63,22 @@
 #         je_insurance.title = f"Insurance Charge - {doc.customer}"
 #         je_insurance.remark = f"Initial Insurance charge of ₹{doc.custom_insurance_amount} for Sales Invoice {doc.name} paid to {doc.custom_insurance_provider}."
 #         je_insurance.append("accounts", {
-#             "account": "Debtors - AD",
+#             "account": "Debtors - A",
 #             "party_type": "Customer",
 #             "party": doc.customer,
 #             "debit_in_account_currency": doc.custom_insurance_amount,
 #             "credit_in_account_currency": 0,
-#             "cost_center": "Main - AD",
+#             "cost_center": "Main - A",
 #             "against_account": doc.custom_insurance_provider
 #         })
 #         je_insurance.append("accounts", {
-#             "account": "Insurance Charges Payable - AD",
+#             "account": "Insurance Charges Payable - A",
 #             "party_type": "Supplier",
 #             "party": doc.custom_insurance_provider,
 #             "debit_in_account_currency": 0,
 #             "credit_in_account_currency": doc.custom_insurance_amount,
-#             "cost_center": "Main - AD",
-#             "against_account": "Debtors - AD"
+#             "cost_center": "Main - A",
+#             "against_account": "Debtors - A"
 #         })
 #         je_insurance.save()
 #         je_insurance.submit()
@@ -102,22 +102,22 @@
 #         je_finance.title = doc.custom_finance_provider  # Match the title from your example
 #         je_finance.remark = f"Received ₹{doc.custom_finance_amount} from {doc.custom_finance_provider} for {doc.customer}’s vehicle purchase under Sales Invoice {doc.name}."
 #         je_finance.append("accounts", {
-#             "account": "Bank Account - AD",  # Changed from Debtors - AD to Bank Account
+#             "account": "Bank Account - A",  # Changed from Debtors - A to Bank Account
 #             "party_type": "",
 #             "party": "",
 #             "debit_in_account_currency": doc.custom_finance_amount,
 #             "credit_in_account_currency": 0,
-#             "cost_center": "Main - AD",
+#             "cost_center": "Main - A",
 #             "against_account": doc.custom_finance_provider
 #         })
 #         je_finance.append("accounts", {
-#             "account": "Financer Advances - AD",
+#             "account": "Financer Advances - A",
 #             "party_type": "Supplier",
 #             "party": doc.custom_finance_provider,
 #             "debit_in_account_currency": 0,
 #             "credit_in_account_currency": doc.custom_finance_amount,
-#             "cost_center": "Main - AD",
-#             "against_account": "Bank Account - AD"
+#             "cost_center": "Main - A",
+#             "against_account": "Bank Account - A"
 #         })
 #         je_finance.save()
 #         je_finance.submit()
@@ -143,22 +143,22 @@
 #             je.remark = f"Adjusted RTO charge from ₹{estimated} to ₹{actual} (+₹{diff}) for Sales Invoice {sales_invoice}."
 #             if diff > 0:
 #                 je.append("accounts", {
-#                     "account": "RTO Charges Payable - AD",
+#                     "account": "RTO Charges Payable - A",
 #                     "party_type": "Supplier",
 #                     "party": doc.rto_office,
 #                     "debit_in_account_currency": diff,
 #                     "credit_in_account_currency": 0,
-#                     "cost_center": "Main - AD",
-#                     "against_account": "Debtors - AD"
+#                     "cost_center": "Main - A",
+#                     "against_account": "Debtors - A"
 #                 })
 #                 je.append("accounts", {
-#                     "account": "Debtors - AD",
+#                     "account": "Debtors - A",
 #                     "party_type": "Customer",
 #                     "party": doc.customer,
 #                     "debit_in_account_currency": 0,
 #                     "credit_in_account_currency": diff,
-#                     "cost_center": "Main - AD",
-#                     "against_account": "RTO Charges Payable - AD"
+#                     "cost_center": "Main - A",
+#                     "against_account": "RTO Charges Payable - A"
 #                 })
 #             je.save()
 #             je.submit()
@@ -182,22 +182,22 @@
 #             je.remark = f"Adjusted Insurance charge from ₹{estimated} to ₹{actual} (+₹{diff}) for Sales Invoice {sales_invoice}."
 #             if diff > 0:
 #                 je.append("accounts", {
-#                     "account": "Insurance Charges Payable - AD",
+#                     "account": "Insurance Charges Payable - A",
 #                     "party_type": "Supplier",
 #                     "party": doc.insurance_provider,
 #                     "debit_in_account_currency": diff,
 #                     "credit_in_account_currency": 0,
-#                     "cost_center": "Main - AD",
-#                     "against_account": "Debtors - AD"
+#                     "cost_center": "Main - A",
+#                     "against_account": "Debtors - A"
 #                 })
 #                 je.append("accounts", {
-#                     "account": "Debtors - AD",
+#                     "account": "Debtors - A",
 #                     "party_type": "Customer",
 #                     "party": doc.customer,
 #                     "debit_in_account_currency": 0,
 #                     "credit_in_account_currency": diff,
-#                     "cost_center": "Main - AD",
-#                     "against_account": "Insurance Charges Payable - AD"
+#                     "cost_center": "Main - A",
+#                     "against_account": "Insurance Charges Payable - A"
 #                 })
 #             je.save()
 #             je.submit()
@@ -221,22 +221,22 @@
 #             je.remark = f"Adjusted Finance amount from ₹{estimated} to ₹{actual} (+₹{diff}) for Sales Invoice {sales_invoice}."
 #             if diff > 0:
 #                 je.append("accounts", {
-#                     "account": "Debtors - AD",
+#                     "account": "Debtors - A",
 #                     "party_type": "Customer",
 #                     "party": doc.customer,
 #                     "debit_in_account_currency": diff,
 #                     "credit_in_account_currency": 0,
-#                     "cost_center": "Main - AD",
+#                     "cost_center": "Main - A",
 #                     "against_account": doc.finance_provider
 #                 })
 #                 je.append("accounts", {
-#                     "account": "Financer Advances - AD",
+#                     "account": "Financer Advances - A",
 #                     "party_type": "Supplier",
 #                     "party": doc.finance_provider,
 #                     "debit_in_account_currency": 0,
 #                     "credit_in_account_currency": diff,
-#                     "cost_center": "Main - AD",
-#                     "against_account": "Debtors - AD"
+#                     "cost_center": "Main - A",
+#                     "against_account": "Debtors - A"
 #                 })
 #             je.save()
 #             je.submit()
@@ -268,22 +268,22 @@ def on_submit_sales_invoice(doc, method):
         je_rto.title = f"RTO Charge - {doc.customer}"
         je_rto.remark = f"Initial RTO charge of ₹{doc.custom_registration_charge} for Sales Invoice {doc.name} paid to {doc.custom_rto_office}."
         je_rto.append("accounts", {
-            "account": "Debtors - AD",
+            "account": "Debtors - A",
             "party_type": "Customer",
             "party": doc.customer,
             "debit_in_account_currency": doc.custom_registration_charge,
             "credit_in_account_currency": 0,
-            "cost_center": "Main - AD",
+            "cost_center": "Main - A",
             "against_account": doc.custom_rto_office
         })
         je_rto.append("accounts", {
-            "account": "RTO Charges Payable - AD",
+            "account": "RTO Charges Payable - A",
             "party_type": "Supplier",
             "party": doc.custom_rto_office,
             "debit_in_account_currency": 0,
             "credit_in_account_currency": doc.custom_registration_charge,
-            "cost_center": "Main - AD",
-            "against_account": "Debtors - AD"
+            "cost_center": "Main - A",
+            "against_account": "Debtors - A"
         })
         je_rto.save()
         je_rto.submit()
@@ -307,22 +307,22 @@ def on_submit_sales_invoice(doc, method):
         je_insurance.title = f"Insurance Charge - {doc.customer}"
         je_insurance.remark = f"Initial Insurance charge of ₹{doc.custom_insurance_amount} for Sales Invoice {doc.name} paid to {doc.custom_insurance_provider}."
         je_insurance.append("accounts", {
-            "account": "Debtors - AD",
+            "account": "Debtors - A",
             "party_type": "Customer",
             "party": doc.customer,
             "debit_in_account_currency": doc.custom_insurance_amount,
             "credit_in_account_currency": 0,
-            "cost_center": "Main - AD",
+            "cost_center": "Main - A",
             "against_account": doc.custom_insurance_provider
         })
         je_insurance.append("accounts", {
-            "account": "Insurance Charges Payable - AD",
+            "account": "Insurance Charges Payable - A",
             "party_type": "Supplier",
             "party": doc.custom_insurance_provider,
             "debit_in_account_currency": 0,
             "credit_in_account_currency": doc.custom_insurance_amount,
-            "cost_center": "Main - AD",
-            "against_account": "Debtors - AD"
+            "cost_center": "Main - A",
+            "against_account": "Debtors - A"
         })
         je_insurance.save()
         je_insurance.submit()
@@ -346,22 +346,22 @@ def on_submit_sales_invoice(doc, method):
         je_finance.title = doc.custom_finance_provider
         je_finance.remark = f"Received ₹{doc.custom_finance_amount} from {doc.custom_finance_provider} for {doc.customer}’s vehicle purchase under Sales Invoice {doc.name}."
         je_finance.append("accounts", {
-            "account": "Bank Account - AD",
+            "account": "Bank Account - A",
             "party_type": "",
             "party": "",
             "debit_in_account_currency": doc.custom_finance_amount,
             "credit_in_account_currency": 0,
-            "cost_center": "Main - AD",
+            "cost_center": "Main - A",
             "against_account": doc.custom_finance_provider
         })
         je_finance.append("accounts", {
-            "account": "Financer Advances - AD",
+            "account": "Financer Advances - A",
             "party_type": "Supplier",
             "party": doc.custom_finance_provider,
             "debit_in_account_currency": 0,
             "credit_in_account_currency": doc.custom_finance_amount,
-            "cost_center": "Main - AD",
-            "against_account": "Bank Account - AD"
+            "cost_center": "Main - A",
+            "against_account": "Bank Account - A"
         })
         je_finance.save()
         je_finance.submit()
@@ -466,22 +466,22 @@ def create_rto_adjustment_je(doc, diff):
         je.title = f"RTO Adjustment - {doc.customer}"
         je.remark = f"Adjusted RTO charge from ₹{doc.registration_charge - diff} to ₹{doc.registration_charge} (+₹{diff}) for Sales Invoice {doc.sales_invoice}."
         je.append("accounts", {
-            "account": "RTO Charges Payable - AD",
+            "account": "RTO Charges Payable - A",
             "party_type": "Supplier",
             "party": doc.rto_office,
             "debit_in_account_currency": diff,
             "credit_in_account_currency": 0,
-            "cost_center": "Main - AD",
-            "against_account": "Debtors - AD"
+            "cost_center": "Main - A",
+            "against_account": "Debtors - A"
         })
         je.append("accounts", {
-            "account": "Debtors - AD",
+            "account": "Debtors - A",
             "party_type": "Customer",
             "party": doc.customer,
             "debit_in_account_currency": 0,
             "credit_in_account_currency": diff,
-            "cost_center": "Main - AD",
-            "against_account": "RTO Charges Payable - AD"
+            "cost_center": "Main - A",
+            "against_account": "RTO Charges Payable - A"
         })
         je.save()
         je.submit()
@@ -495,22 +495,22 @@ def create_insurance_adjustment_je(doc, diff):
         je.title = f"Insurance Adjustment - {doc.customer}"
         je.remark = f"Adjusted Insurance charge from ₹{doc.insurance_amount - diff} to ₹{doc.insurance_amount} (+₹{diff}) for Sales Invoice {doc.sales_invoice}."
         je.append("accounts", {
-            "account": "Insurance Charges Payable - AD",
+            "account": "Insurance Charges Payable - A",
             "party_type": "Supplier",
             "party": doc.insurance_provider,
             "debit_in_account_currency": diff,
             "credit_in_account_currency": 0,
-            "cost_center": "Main - AD",
-            "against_account": "Debtors - AD"
+            "cost_center": "Main - A",
+            "against_account": "Debtors - A"
         })
         je.append("accounts", {
-            "account": "Debtors - AD",
+            "account": "Debtors - A",
             "party_type": "Customer",
             "party": doc.customer,
             "debit_in_account_currency": 0,
             "credit_in_account_currency": diff,
-            "cost_center": "Main - AD",
-            "against_account": "Insurance Charges Payable - AD"
+            "cost_center": "Main - A",
+            "against_account": "Insurance Charges Payable - A"
         })
         je.save()
         je.submit()
@@ -524,22 +524,22 @@ def create_finance_adjustment_je(doc, diff):
         je.title = f"Finance Adjustment - {doc.customer}"
         je.remark = f"Adjusted Finance amount from ₹{doc.loan_amount - diff} to ₹{doc.loan_amount} (+₹{diff}) for Sales Invoice {doc.sales_invoice}."
         je.append("accounts", {
-            "account": "Debtors - AD",
+            "account": "Debtors - A",
             "party_type": "Customer",
             "party": doc.customer,
             "debit_in_account_currency": diff,
             "credit_in_account_currency": 0,
-            "cost_center": "Main - AD",
+            "cost_center": "Main - A",
             "against_account": doc.finance_provider
         })
         je.append("accounts", {
-            "account": "Financer Advances - AD",
+            "account": "Financer Advances - A",
             "party_type": "Supplier",
             "party": doc.finance_provider,
             "debit_in_account_currency": 0,
             "credit_in_account_currency": diff,
-            "cost_center": "Main - AD",
-            "against_account": "Debtors - AD"
+            "cost_center": "Main - A",
+            "against_account": "Debtors - A"
         })
         je.save()
         je.submit()
@@ -563,22 +563,22 @@ def on_update_rto_registration(doc, method):
             je.remark = f"Adjusted RTO charge from ₹{estimated} to ₹{actual} (+₹{diff}) for Sales Invoice {sales_invoice}."
             if diff > 0:
                 je.append("accounts", {
-                    "account": "RTO Charges Payable - AD",
+                    "account": "RTO Charges Payable - A",
                     "party_type": "Supplier",
                     "party": doc.rto_office,
                     "debit_in_account_currency": diff,
                     "credit_in_account_currency": 0,
-                    "cost_center": "Main - AD",
-                    "against_account": "Debtors - AD"
+                    "cost_center": "Main - A",
+                    "against_account": "Debtors - A"
                 })
                 je.append("accounts", {
-                    "account": "Debtors - AD",
+                    "account": "Debtors - A",
                     "party_type": "Customer",
                     "party": doc.customer,
                     "debit_in_account_currency": 0,
                     "credit_in_account_currency": diff,
-                    "cost_center": "Main - AD",
-                    "against_account": "RTO Charges Payable - AD"
+                    "cost_center": "Main - A",
+                    "against_account": "RTO Charges Payable - A"
                 })
             je.save()
             je.submit()
@@ -603,22 +603,22 @@ def on_update_vehicle_insurance(doc, method):
             je.remark = f"Adjusted Insurance charge from ₹{estimated} to ₹{actual} (+₹{diff}) for Sales Invoice {sales_invoice}."
             if diff > 0:
                 je.append("accounts", {
-                    "account": "Insurance Charges Payable - AD",
+                    "account": "Insurance Charges Payable - A",
                     "party_type": "Supplier",
                     "party": doc.insurance_provider,
                     "debit_in_account_currency": diff,
                     "credit_in_account_currency": 0,
-                    "cost_center": "Main - AD",
-                    "against_account": "Debtors - AD"
+                    "cost_center": "Main - A",
+                    "against_account": "Debtors - A"
                 })
                 je.append("accounts", {
-                    "account": "Debtors - AD",
+                    "account": "Debtors - A",
                     "party_type": "Customer",
                     "party": doc.customer,
                     "debit_in_account_currency": 0,
                     "credit_in_account_currency": diff,
-                    "cost_center": "Main - AD",
-                    "against_account": "Insurance Charges Payable - AD"
+                    "cost_center": "Main - A",
+                    "against_account": "Insurance Charges Payable - A"
                 })
             je.save()
             je.submit()
@@ -643,22 +643,22 @@ def on_update_vehicle_finance(doc, method):
             je.remark = f"Adjusted Finance amount from ₹{estimated} to ₹{actual} (+₹{diff}) for Sales Invoice {sales_invoice}."
             if diff > 0:
                 je.append("accounts", {
-                    "account": "Debtors - AD",
+                    "account": "Debtors - A",
                     "party_type": "Customer",
                     "party": doc.customer,
                     "debit_in_account_currency": diff,
                     "credit_in_account_currency": 0,
-                    "cost_center": "Main - AD",
+                    "cost_center": "Main - A",
                     "against_account": doc.finance_provider
                 })
                 je.append("accounts", {
-                    "account": "Financer Advances - AD",
+                    "account": "Financer Advances - A",
                     "party_type": "Supplier",
                     "party": doc.finance_provider,
                     "debit_in_account_currency": 0,
                     "credit_in_account_currency": diff,
-                    "cost_center": "Main - AD",
-                    "against_account": "Debtors - AD"
+                    "cost_center": "Main - A",
+                    "against_account": "Debtors - A"
                 })
             je.save()
             je.submit()
