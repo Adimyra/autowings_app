@@ -79,10 +79,16 @@ web_routes = [
 ]
 
 
+# fixtures = [
+#     {"dt": "Custom HTML Block"}
+# ]
 fixtures = [
-    {"dt": "Custom HTML Block"}
+    {"dt": "Journal Entry Template"}
 ]
-
+# fixtures = [
+#     {"dt": "Account", "filters": [["name", "in", ["RTO Charges Payable - AD", "Insurance Charges Payable - AD", "Financer Advances - AD"]]]},
+#     {"dt": "Supplier Group", "filters": [["name", "in", ["Insurance", "Financer", "RTO"]]]}
+# ]
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
 # 	{

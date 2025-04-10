@@ -1,0 +1,112 @@
+[
+ {
+  "accounts": [
+   {
+    "account": "Debtors - A",
+    "parent": "Insurance",
+    "parentfield": "accounts",
+    "parenttype": "Journal Entry Template"
+   },
+   {
+    "account": "Insurance Charges Payable - A",
+    "parent": "Insurance",
+    "parentfield": "accounts",
+    "parenttype": "Journal Entry Template"
+   }
+  ],
+  "company": "Autowings",
+  "docstatus": 0,
+  "doctype": "Journal Entry Template",
+  "is_opening": "No",
+  "modified": "2025-04-10 12:47:36.537258",
+  "multi_currency": 0,
+  "name": "Insurance",
+  "naming_series": "ACC-JV-.YYYY.-",
+  "template_title": "Insurance",
+  "voucher_type": "Journal Entry"
+ },
+ {
+  "accounts": [
+   {
+    "account": "Cash - A",
+    "parent": "RTO",
+    "parentfield": "accounts",
+    "parenttype": "Journal Entry Template"
+   },
+   {
+    "account": "RTO Charges Payable - A",
+    "parent": "RTO",
+    "parentfield": "accounts",
+    "parenttype": "Journal Entry Template"
+   }
+  ],
+  "company": "Autowings",
+  "docstatus": 0,
+  "doctype": "Journal Entry Template",
+  "is_opening": "No",
+  "modified": "2025-04-10 12:48:50.496206",
+  "multi_currency": 0,
+  "name": "RTO",
+  "naming_series": "ACC-JV-.YYYY.-",
+  "template_title": "RTO",
+  "voucher_type": "Journal Entry"
+ },
+ {
+  "accounts": [
+   {
+    "account": "Bank Account - A",
+    "parent": "Financer",
+    "parentfield": "accounts",
+    "parenttype": "Journal Entry Template"
+   },
+   {
+    "account": "Financer Advances - A",
+    "parent": "Financer",
+    "parentfield": "accounts",
+    "parenttype": "Journal Entry Template"
+   }
+  ],
+  "company": "Autowings",
+  "docstatus": 0,
+  "doctype": "Journal Entry Template",
+  "is_opening": "No",
+  "modified": "2025-04-10 12:49:51.327990",
+  "multi_currency": 0,
+  "name": "Financer",
+  "naming_series": "ACC-JV-.YYYY.-",
+  "template_title": "Financer",
+  "voucher_type": "Journal Entry"
+ },
+ {
+  "accounts": [
+   {
+    "account": "Debtors - A",
+    "parent": "RTO and Insurance",
+    "parentfield": "accounts",
+    "parenttype": "Journal Entry Template"
+   },
+   {
+    "account": "RTO Charges Payable - A",
+    "parent": "RTO and Insurance",
+    "parentfield": "accounts",
+    "parenttype": "Journal Entry Template"
+   },
+   {
+    "account": "Insurance Charges Payable - A",
+    "parent": "RTO and Insurance",
+    "parentfield": "accounts",
+    "parenttype": "Journal Entry Template"
+   }
+  ],
+  "company": "Autowings",
+  "docstatus": 0,
+  "doctype": "Journal Entry Template",
+  "is_opening": "No",
+  "modified": "2025-04-10 00:27:08.808473",
+  "multi_currency": 0,
+  "name": "RTO and Insurance",
+  "naming_series": "ACC-JV-.YYYY.-",
+  "template_title": "RTO and Insurance",
+  "voucher_type": "Journal Entry"
+ }
+]
