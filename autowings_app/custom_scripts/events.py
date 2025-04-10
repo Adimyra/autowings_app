@@ -378,7 +378,7 @@ def before_save_rto_registration(doc, method):
             actual = doc.registration_charge or 0
             diff = actual - estimated
             if diff != 0:
-                enqueue("autowings_app.events.trigger_confirmation", doc=doc, doctype_name="RTO Registration", diff=diff, estimated=estimated, actual=actual, create_je_func=create_rto_adjustment_je.__name__)
+                enqueue("autowings_app.custom_scripts.events.trigger_confirmation", doc=doc, doctype_name="RTO Registration", diff=diff, estimated=estimated, actual=actual, create_je_func=create_rto_adjustment_je.__name__)
 
 def before_save_vehicle_insurance(doc, method):
     if doc.docstatus == 0:  # Non-submitable document
@@ -389,7 +389,7 @@ def before_save_vehicle_insurance(doc, method):
             actual = doc.insurance_amount or 0
             diff = actual - estimated
             if diff != 0:
-                enqueue("autowings_app.events.trigger_confirmation", doc=doc, doctype_name="Vehicle Insurance", diff=diff, estimated=estimated, actual=actual, create_je_func=create_insurance_adjustment_je.__name__)
+                enqueue("autowings_app.custom_scripts.events.trigger_confirmation", doc=doc, doctype_name="Vehicle Insurance", diff=diff, estimated=estimated, actual=actual, create_je_func=create_insurance_adjustment_je.__name__)
 
 def before_save_vehicle_finance(doc, method):
     if doc.docstatus == 0:  # Non-submitable document
@@ -400,7 +400,7 @@ def before_save_vehicle_finance(doc, method):
             actual = doc.loan_amount or 0
             diff = actual - estimated
             if diff != 0:
-                enqueue("autowings_app.events.trigger_confirmation", doc=doc, doctype_name="Vehicle Finance", diff=diff, estimated=estimated, actual=actual, create_je_func=create_finance_adjustment_je.__name__)
+                enqueue("autowings_app.custom_scripts.events.trigger_confirmation", doc=doc, doctype_name="Vehicle Finance", diff=diff, estimated=estimated, actual=actual, create_je_func=create_finance_adjustment_je.__name__)
 
 @frappe.whitelist()
 def trigger_confirmation(doc, doctype_name, diff, estimated, actual, create_je_func):
@@ -419,11 +419,11 @@ def trigger_confirmation(doc, doctype_name, diff, estimated, actual, create_je_f
             "actions": [
                 {
                     "label": "Yes",
-                    "action": f"frappe.call({{ method: 'autowings_app.events.process_confirmation', args: {{ docname: '{doc.name}', doctype: '{doc.doctype}', diff: {diff}, doctype_name: '{doctype_name}' }} }})"
+                    "action": f"frappe.call({{ method: 'autowings_app.custom_scripts.events.process_confirmation', args: {{ docname: '{doc.name}', doctype: '{doc.doctype}', diff: {diff}, doctype_name: '{doctype_name}' }} }})"
                 },
                 {
                     "label": "No",
-                    "action": f"frappe.call({{ method: 'autowings_app.events.process_cancellation', args: {{ docname: '{doc.name}', doctype: '{doc.doctype}', estimated: {estimated} }} }})"
+                    "action": f"frappe.call({{ method: 'autowings_app.custom_scripts.events.process_cancellation', args: {{ docname: '{doc.name}', doctype: '{doc.doctype}', estimated: {estimated} }} }})"
                 }
             ]
         }

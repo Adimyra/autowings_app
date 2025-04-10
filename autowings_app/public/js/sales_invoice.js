@@ -3,7 +3,7 @@ frappe.ui.form.on("Sales Invoice", {
     custom_insurance_provider: function(frm) {
         if (frm.doc.custom_insurance_provider) {
             frappe.call({
-                method: "autowings_app.events.get_insurance_policies",
+                method: "autowings_app.custom_scripts.sales_invoice.get_insurance_policies",
                 args: { provider: frm.doc.custom_insurance_provider },
                 callback: function(response) {
                     let policies = response.message || [];
