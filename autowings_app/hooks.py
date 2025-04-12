@@ -83,7 +83,7 @@ web_routes = [
 #     {"dt": "Custom HTML Block"}
 # ]
 fixtures = [
-    {"dt": "Journal Entry Template"}
+    {"dt": "Sales Taxes and Charges Template"}
 ]
 # fixtures = [
 #     {"dt": "Account", "filters": [["name", "in", ["RTO Charges Payable - AD", "Insurance Charges Payable - AD", "Financer Advances - AD"]]]},
