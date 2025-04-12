@@ -82,13 +82,13 @@ web_routes = [
 # fixtures = [
 #     {"dt": "Custom HTML Block"}
 # ]
-fixtures = [
-    {"dt": "Party Type", "filters": [["name", "in", ["Financer"]]]},
-]
 # fixtures = [
-#     {"dt": "Account", "filters": [["name", "in", ["RTO Charges Payable - AD", "Insurance Charges Payable - AD", "Financer Advances - AD"]]]},
-#     {"dt": "Supplier Group", "filters": [["name", "in", ["Insurance", "Financer", "RTO"]]]}
+#     {"dt": "Party Type", "filters": [["name", "in", ["Financer"]]]},
 # ]
+fixtures = [
+    {"dt": "Account", "filters": [["name", "in", ["RTO Charges Payable - A", "Insurance Charges Payable - A", "Finance Receivable - A"]]]},
+    {"dt": "Supplier Group", "filters": [["name", "in", ["Insurance", "RTO"]]]}
+]
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
 # 	{

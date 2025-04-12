@@ -1,27 +1,6 @@
 [
  {
   "account_currency": "INR",
-  "account_name": "Financer Advances",
-  "account_number": null,
-  "account_type": "Payable",
-  "balance_must_be": "",
-  "company": "Autowings",
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Account",
-  "freeze_account": "No",
-  "include_in_gross": 0,
-  "is_group": 0,
-  "modified": "2025-04-10 00:31:38.484972",
-  "name": "Financer Advances - A",
-  "old_parent": "Current Liabilities - A",
-  "parent_account": "Current Liabilities - A",
-  "report_type": "Balance Sheet",
-  "root_type": "Liability",
-  "tax_rate": 0.0
- },
- {
-  "account_currency": "INR",
   "account_name": "RTO Charges Payable",
   "account_number": null,
   "account_type": "Payable",
@@ -60,6 +39,27 @@
   "parent_account": "Current Liabilities - A",
   "report_type": "Balance Sheet",
   "root_type": "Liability",
+  "tax_rate": 0.0
+ },
+ {
+  "account_currency": "INR",
+  "account_name": "Finance Receivable",
+  "account_number": null,
+  "account_type": "Receivable",
+  "balance_must_be": "",
+  "company": "Autowings",
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Account",
+  "freeze_account": "No",
+  "include_in_gross": 0,
+  "is_group": 0,
+  "modified": "2025-04-12 15:51:15.558484",
+  "name": "Finance Receivable - A",
+  "old_parent": "Accounts Receivable - A",
+  "parent_account": "Accounts Receivable - A",
+  "report_type": "Balance Sheet",
+  "root_type": "Asset",
   "tax_rate": 0.0
  }
 ]
