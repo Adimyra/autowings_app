@@ -71,8 +71,7 @@
    "fieldname": "finance_provider",
    "fieldtype": "Link",
    "label": "Finance Provider",
-   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"Financer\"]]",
-   "options": "Supplier"
+   "options": "Financer"
   },
   {
    "fieldname": "sales_invoice",
@@ -83,7 +82,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-10 02:49:59.559769",
+ "modified": "2025-04-13 00:08:30.997185",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Finance",

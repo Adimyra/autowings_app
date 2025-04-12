@@ -220,7 +220,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Settings",
-   "link_count": 5,
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -248,9 +248,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Finance Provider",
+   "label": "Financer",
    "link_count": 0,
-   "link_to": "Finance Provider",
+   "link_to": "Financer",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -274,9 +274,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Supplier",
+   "link_count": 0,
+   "link_to": "Supplier",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-04-10 04:40:01.300060",
+ "modified": "2025-04-13 01:09:47.879680",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings",

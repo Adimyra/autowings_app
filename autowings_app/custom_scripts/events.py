@@ -346,22 +346,22 @@ def on_submit_sales_invoice(doc, method):
         je_finance.title = doc.custom_finance_provider
         je_finance.remark = f"Received ₹{doc.custom_finance_amount} from {doc.custom_finance_provider} for {doc.customer}’s vehicle purchase under Sales Invoice {doc.name}."
         je_finance.append("accounts", {
-            "account": "Bank Account - A",
-            "party_type": "",
-            "party": "",
+            "account": "Finance Receivable - A",
+            "party_type": "Financer",
+            "party": doc.custom_finance_provider,
             "debit_in_account_currency": doc.custom_finance_amount,
             "credit_in_account_currency": 0,
             "cost_center": "Main - A",
             "against_account": doc.custom_finance_provider
         })
         je_finance.append("accounts", {
-            "account": "Financer Advances - A",
-            "party_type": "Supplier",
-            "party": doc.custom_finance_provider,
+            "account": "Debtors - A",
+            "party_type": "Customer",
+            "party": doc.customer,
             "debit_in_account_currency": 0,
             "credit_in_account_currency": doc.custom_finance_amount,
             "cost_center": "Main - A",
-            "against_account": "Bank Account - A"
+            "against_account": "Finance Receivable - A"
         })
         je_finance.save()
         je_finance.submit()
