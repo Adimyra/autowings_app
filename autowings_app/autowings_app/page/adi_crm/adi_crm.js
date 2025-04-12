@@ -548,7 +548,7 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                 border-radius: 12px; 
                 width: 90%; 
                 max-width: 600px; 
-                max-height: 80vh; 
+                max-height: 100vh; 
                 overflow-y: auto; 
                 box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); 
                 text-align: left; 
@@ -570,6 +570,7 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                 display: grid; 
                 gap: 20px; 
                 grid-template-columns: repeat(2, 1fr); 
+                padding: 20px;
             }
             .modal-body label { 
                 font-size: 14px; 
@@ -852,9 +853,8 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                                 <div><label>Last Name</label><input type="text" id="lead_last_name" placeholder="Last Name"></div>
                                 <div><label>Gender</label><select id="lead_gender"><option value="">Select Gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
                                 <div><label>Source</label><select id="lead_source"><option value="">Select Source</option>${sourceOptions}</select></div>
-                                <div><label>Status *</label><select id="lead_status"><option value="Lead">Lead</option><option value="Open">Open</option><option value="Replied">Replied</option><option value="Opportunity">Opportunity</option><option value="Quotation">Quotation</option><option value="Lost Quotation">Lost Quotation</option><option value="Interested">Interested</option><option value="Converted">Converted</option><option value="Do Not Contact">Do Not Contact</option></select></div>
                                 <div><label>Email</label><input type="email" id="lead_email" placeholder="Email"></div>
-                                <div><label>Mobile No</label><input type="text" id="lead_mobile_no" placeholder="Mobile No"></div>
+                                <div><label>Mobile No *</label><input type="text" id="lead_mobile_no" placeholder="Mobile No" required></div>
                                 <div><label>City</label><input type="text" id="lead_city" placeholder="City" value="Ranchi"></div>
                                 <div><label>State</label><input type="text" id="lead_state" placeholder="State" value="Jharkhand"></div>
                                 <div><label>Area</label><input type="text" id="lead_area" placeholder="Enter Area"></div>
@@ -884,8 +884,8 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                         let state = $('#lead_state').val();
                         let area = $('#lead_area').val();
 
-                        if (!firstName || !status) {
-                            frappe.msgprint('First Name and Status are required fields.');
+                        if (!firstName || !mobileNo) {
+                            frappe.msgprint('First Name and Mobile No are required fields.');
                             return;
                         }
 
@@ -900,7 +900,7 @@ frappe.pages['adi-crm'].on_page_load = function(wrapper) {
                                 lead_name: leadName,
                                 gender: gender,
                                 source: source,
-                                status: status,
+                                status: 'Lead',
                                 email_id: email,
                                 mobile_no: mobileNo,
                                 city: city,
