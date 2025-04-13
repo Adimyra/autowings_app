@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-13 17:45:26.474715",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "misc_account",
+  "amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "misc_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Misc Account",
+   "options": "Miscellaneous Entry"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-13 17:46:16.031823",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Misc Journal",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
