@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "naming_series:",
+ "autoname": "field:financer_name",
  "creation": "2025-04-12 23:53:11.467513",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -30,6 +30,7 @@
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
+   "hidden": 1,
    "options": "ACC-FN-.###"
   },
   {
@@ -57,15 +58,16 @@
   {
    "fieldname": "financer_name",
    "fieldtype": "Data",
-   "label": "Financer Name"
+   "label": "Financer Name",
+   "unique": 1
   }
  ],
  "links": [],
- "modified": "2025-04-13 01:05:08.695220",
+ "modified": "2025-04-14 18:43:04.721388",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Financer",
- "naming_rule": "By \"Naming Series\" field",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
