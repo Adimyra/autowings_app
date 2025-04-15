@@ -228,9 +228,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "User Privileges Settings",
+   "label": "Autowings Naming Series",
    "link_count": 0,
-   "link_to": "User Privileges Settings",
+   "link_to": "Autowings Naming Series",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -241,26 +241,6 @@
    "label": "Landing Page Settings",
    "link_count": 0,
    "link_to": "Landing Page",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Financer",
-   "link_count": 0,
-   "link_to": "Financer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Insurance Provider",
-   "link_count": 0,
-   "link_to": "Insurance Provider",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -286,7 +266,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-04-13 01:09:47.879680",
+ "modified": "2025-04-15 18:52:15.097111",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings",
