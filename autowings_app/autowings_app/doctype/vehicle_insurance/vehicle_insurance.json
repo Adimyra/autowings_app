@@ -8,6 +8,7 @@
  "field_order": [
   "vsm_id",
   "sales_invoice",
+  "journal_entry_id",
   "customer",
   "insurance_policy_number",
   "insurance_amount",
@@ -97,6 +98,12 @@
    "fieldtype": "Link",
    "label": "Sales Invoice",
    "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "journal_entry_id",
+   "fieldtype": "Link",
+   "label": "Journal Entry ID",
+   "options": "Journal Entry"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -106,7 +113,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-04-10 02:51:08.892000",
+ "modified": "2025-04-15 16:12:54.040570",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",

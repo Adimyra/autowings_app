@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestRTOCharges(FrappeTestCase):
+class TestAutowingsNamingSeries(FrappeTestCase):
 	pass

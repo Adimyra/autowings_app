@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class RTOOffice(Document):
+class MiscJournalvsm(Document):
 	pass

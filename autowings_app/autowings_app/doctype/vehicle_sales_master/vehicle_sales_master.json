@@ -46,7 +46,9 @@
   "loan_amount",
   "column_break_ilgx",
   "down_payment",
-  "loan_status"
+  "loan_status",
+  "misc_accounts_section",
+  "vehicle_misc_sales_id"
  ],
  "fields": [
   {
@@ -203,7 +205,8 @@
    "fieldname": "finance_provider",
    "fieldtype": "Link",
    "label": "Finance Provider",
-   "options": "Financer",
+   "link_filters": "[[\"Customer\",\"customer_group\",\"=\",\"Financer\"]]",
+   "options": "Customer",
    "read_only": 1
   },
   {
@@ -309,11 +312,22 @@
    "precision": "2",
    "print_hide_if_no_value": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "misc_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Misc Accounts"
+  },
+  {
+   "fieldname": "vehicle_misc_sales_id",
+   "fieldtype": "Link",
+   "label": "Vehicle Misc Sales Id",
+   "options": "Vehicle Misc Sales"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-13 00:08:10.245579",
+ "modified": "2025-04-15 16:18:14.030298",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",

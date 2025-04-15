@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class Financer(Document):
+class AutowingsNamingChild(Document):
 	pass

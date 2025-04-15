@@ -9,6 +9,7 @@
   "vsm_id",
   "customer",
   "sales_invoice",
+  "journal_entry_id",
   "registration_number",
   "rto_office",
   "registration_charge",
@@ -69,11 +70,17 @@
    "fieldtype": "Link",
    "label": "Vehicle Sales Master ID",
    "options": "Vehicle Sales Master"
+  },
+  {
+   "fieldname": "journal_entry_id",
+   "fieldtype": "Link",
+   "label": "Journal Entry ID",
+   "options": "Journal Entry"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-10 02:50:38.936737",
+ "modified": "2025-04-15 16:13:31.459951",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

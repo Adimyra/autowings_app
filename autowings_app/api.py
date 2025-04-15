@@ -87,3 +87,44 @@ def get_user_naming_series(user):
             return entry.sales_invoice_series
     
     return None  # If no matching user is found
+
+
+import frappe
+
+@frappe.whitelist()
+def get_sales_invoice_series():
+    doctype_name = "Sales Invoice"
+    naming_series_field = frappe.get_meta(doctype_name).get_field("naming_series")
+    
+    if naming_series_field and naming_series_field.options:
+        series_list = naming_series_field.options.split("\n")  # Convert to list
+        return series_list
+    return []
+
+
+@frappe.whitelist()
+def get_sub_sales_types(sales_type):
+    if not sales_type:
+        return []
+    
+    try:
+        # Fetch the Autowings Naming Series single doctype record
+        naming_series_doc = frappe.get_single("Autowings Naming Series")
+    except frappe.DoesNotExistError:
+        frappe.log_error("Autowings Naming Series single doctype record not found.", "get_sub_sales_types")
+        return []
+    
+    # Fetch child table entries where sales_type matches
+    entries = frappe.get_all(
+        "Autowings Naming Child",
+        filters={
+            "parent": naming_series_doc.name,
+            "parenttype": "Autowings Naming Series",
+            "parentfield": "autowings_naming_series_configuration",
+            "sales_type": sales_type
+        },
+        fields=["sub_sales_type", "sales_naming_series"],
+        order_by="idx"
+    )
+    
+    return entries

@@ -1,47 +1,35 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-03-19 10:26:36.647925",
+ "creation": "2025-04-15 17:07:10.479224",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "table_sfws",
-  "name1",
-  "test_button"
+  "autowings_naming_series_configuration"
  ],
  "fields": [
   {
-   "fieldname": "table_sfws",
+   "fieldname": "autowings_naming_series_configuration",
    "fieldtype": "Table",
-   "options": "child vin"
-  },
-  {
-   "fieldname": "name1",
-   "fieldtype": "Data",
-   "label": "Name"
-  },
-  {
-   "fieldname": "test_button",
-   "fieldtype": "Button",
-   "label": "Test Btton"
+   "label": "Autowings Naming Series Configuration",
+   "options": "Autowings Naming Child"
   }
  ],
  "index_web_pages_for_search": 1,
+ "issingle": 1,
  "links": [],
- "modified": "2025-03-19 18:26:06.753938",
+ "modified": "2025-04-15 17:07:42.478101",
  "modified_by": "Administrator",
  "module": "Autowings App",
- "name": "test22",
+ "name": "Autowings Naming Series",
  "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
    "delete": 1,
    "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
-   "report": 1,
    "role": "System Manager",
    "share": 1,
    "write": 1

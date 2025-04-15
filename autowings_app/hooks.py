@@ -27,7 +27,9 @@ doctype_js = {
     "Sales Invoice": "public/js/sales_invoice.js",
     "Purchase Receipt": "public/js/purchase_receipt.js",
     "Purchase Invoice": "public/js/purchase_invoice.js",
-    "Delivery Note": "public/js/delivery_note.js"
+    "Delivery Note": "public/js/delivery_note.js",
+    "Supplier": "public/js/supplier.js"
+
 }
 
 doc_events = {
@@ -42,10 +44,15 @@ doc_events = {
     },
     # "Sales Invoice": {
     #     "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit"
+    # # },
+    # "Sales Invoice": {
+    #     "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit",
+    #     "on_submit": "autowings_app.custom_scripts.events.on_submit_sales_invoice"
     # },
     "Sales Invoice": {
         "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit",
-        "on_submit": "autowings_app.custom_scripts.events.on_submit_sales_invoice"
+        "after_insert": "autowings_app.custom_scripts.sales_invoice.after_insert_sales_invoice",
+        "on_submit": "autowings_app.custom_scripts.sales_invoice.on_submit_sales_invoice"
     },
      "Purchase Invoice": {
         "validate": "autowings_app.custom_scripts.serial_no_validation.validate_chassis_and_engine_number"
@@ -59,17 +66,22 @@ doc_events = {
     # "Vehicle Finance": {
     #     "on_update": "autowings_app.custom_scripts.events.on_update_vehicle_finance"
     # }
-    "RTO Registration": {
-        "before_save": "autowings_app.custom_scripts.events.before_save_rto_registration",
-        "on_update": "autowings_app.custom_scripts.events.on_update_rto_registration"
-    },
-    "Vehicle Insurance": {
-        "before_save": "autowings_app.custom_scripts.events.before_save_vehicle_insurance",
-        "on_update": "autowings_app.custom_scripts.events.on_update_vehicle_insurance"
-    },
-    "Vehicle Finance": {
-        "before_save": "autowings_app.custom_scripts.events.before_save_vehicle_finance",
-        "on_update": "autowings_app.custom_scripts.events.on_update_vehicle_finance"
+    # "RTO Registration": {
+    #     "before_save": "autowings_app.custom_scripts.events.before_save_rto_registration",
+    #     "on_update": "autowings_app.custom_scripts.events.on_update_rto_registration"
+    # },
+    # "Vehicle Insurance": {
+    #     "before_save": "autowings_app.custom_scripts.events.before_save_vehicle_insurance",
+    #     "on_update": "autowings_app.custom_scripts.events.on_update_vehicle_insurance"
+    # },
+    # "Vehicle Finance": {
+    #     "before_save": "autowings_app.custom_scripts.events.before_save_vehicle_finance",
+    #     "on_update": "autowings_app.custom_scripts.events.on_update_vehicle_finance"
+    # },
+    "Supplier": {
+        "after_insert": "autowings_app.custom_scripts.supplier.on_supplier_save",
+        "on_update": "autowings_app.custom_scripts.supplier.on_supplier_save",
+        "on_trash": "autowings_app.custom_scripts.supplier.on_supplier_trash"
     }
 
 }
@@ -85,9 +97,12 @@ web_routes = [
 # fixtures = [
 #     {"dt": "Party Type", "filters": [["name", "in", ["Financer"]]]},
 # ]
+# fixtures = [
+#     {"dt": "Account", "filters": [["name", "in", ["RTO Charges Payable - A", "Insurance Charges Payable - A", "Finance Receivable - A"]]]},
+#     {"dt": "Supplier Group", "filters": [["name", "in", ["Insurance", "RTO"]]]}
+# ]
 fixtures = [
-    {"dt": "Account", "filters": [["name", "in", ["RTO Charges Payable - A", "Insurance Charges Payable - A", "Finance Receivable - A"]]]},
-    {"dt": "Supplier Group", "filters": [["name", "in", ["Insurance", "RTO"]]]}
+    {"doctype": "Customer Group", "filters": {"name": ["in", ["Financer"]]}}
 ]
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [

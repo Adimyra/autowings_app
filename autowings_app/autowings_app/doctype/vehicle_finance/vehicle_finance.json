@@ -8,6 +8,7 @@
  "field_order": [
   "vsm_id",
   "sales_invoice",
+  "journal_entry_id",
   "customer",
   "finance_provider",
   "loan_amount",
@@ -71,18 +72,25 @@
    "fieldname": "finance_provider",
    "fieldtype": "Link",
    "label": "Finance Provider",
-   "options": "Financer"
+   "link_filters": "[[\"Customer\",\"customer_group\",\"=\",\"Financer\"]]",
+   "options": "Customer"
   },
   {
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
    "label": "Sales Invoice",
    "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "journal_entry_id",
+   "fieldtype": "Link",
+   "label": "Journal Entry ID",
+   "options": "Journal Entry"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-13 00:08:30.997185",
+ "modified": "2025-04-15 16:13:58.550472",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Finance",
