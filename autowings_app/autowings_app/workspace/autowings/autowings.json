@@ -160,8 +160,57 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Settings",
+   "link_count": 6,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Autowings Naming Series",
+   "link_count": 0,
+   "link_to": "Autowings Naming Series",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Landing Page Settings",
+   "link_count": 0,
+   "link_to": "Landing Page",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Vehicle Colors",
+   "link_count": 0,
+   "link_to": "Vehicle Color",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Supplier",
+   "link_count": 0,
+   "link_to": "Supplier",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Vechile Info",
-   "link_count": 5,
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -219,54 +268,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Settings",
-   "link_count": 6,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Autowings Naming Series",
+   "label": "Vehicle Misc Sales",
    "link_count": 0,
-   "link_to": "Autowings Naming Series",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Landing Page Settings",
-   "link_count": 0,
-   "link_to": "Landing Page",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Vehicle Colors",
-   "link_count": 0,
-   "link_to": "Vehicle Color",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Supplier",
-   "link_count": 0,
-   "link_to": "Supplier",
+   "link_to": "Vehicle Misc Sales",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-04-15 18:52:15.097111",
+ "modified": "2025-04-16 03:01:26.613439",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings",

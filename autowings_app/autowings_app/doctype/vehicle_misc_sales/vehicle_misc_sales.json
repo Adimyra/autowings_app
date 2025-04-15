@@ -6,9 +6,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "customer",
+  "column_break_pgff",
   "vsm_id",
   "sales_invoice",
-  "customer",
   "section_break_bmxr",
   "misc_accounts"
  ],
@@ -16,19 +17,26 @@
   {
    "fieldname": "vsm_id",
    "fieldtype": "Data",
-   "label": "Vehicle Sales Master"
+   "label": "Vehicle Sales Master",
+   "read_only": 1
   },
   {
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Sales Invoice",
-   "options": "Sales Invoice"
+   "options": "Sales Invoice",
+   "read_only": 1
   },
   {
    "fieldname": "customer",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_bmxr",
@@ -39,11 +47,15 @@
    "fieldtype": "Table",
    "label": "Misc Accounts",
    "options": "Misc Journal vsm"
+  },
+  {
+   "fieldname": "column_break_pgff",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-15 16:12:12.512575",
+ "modified": "2025-04-16 02:57:31.438151",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Misc Sales",

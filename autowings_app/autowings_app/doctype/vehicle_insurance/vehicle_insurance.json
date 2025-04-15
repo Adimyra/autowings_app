@@ -10,15 +10,17 @@
   "sales_invoice",
   "journal_entry_id",
   "customer",
-  "insurance_policy_number",
-  "insurance_amount",
-  "insurance_status",
+  "policy_term_years",
   "column_break_sdit",
+  "insurance_status",
   "insurance_provider",
   "policy_name",
+  "insurance_amount",
+  "insurance_policy_number",
+  "section_break_onuq",
   "coverage_details",
   "premium_amount",
-  "policy_term_years",
+  "column_break_wkph",
   "insurance_start_date",
   "insurance_end_date"
  ],
@@ -26,12 +28,17 @@
   {
    "fieldname": "customer",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "read_only": 1
   },
   {
    "fieldname": "insurance_provider",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Insurance Provider",
    "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"Insurance\"]]",
    "options": "Supplier"
@@ -60,6 +67,8 @@
   {
    "fieldname": "insurance_status",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Insurance Status",
    "options": "\nApplied\nPending\nActive\nExpired\nCancelled"
   },
@@ -67,7 +76,8 @@
    "fieldname": "vsm_id",
    "fieldtype": "Link",
    "label": "Vehicle Sales Master",
-   "options": "Vehicle Sales Master"
+   "options": "Vehicle Sales Master",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_sdit",
@@ -81,7 +91,8 @@
   {
    "fieldname": "coverage_details",
    "fieldtype": "Data",
-   "label": "Coverage Details"
+   "label": "Coverage Details",
+   "read_only": 1
   },
   {
    "fieldname": "premium_amount",
@@ -96,14 +107,26 @@
   {
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Sales Invoice",
-   "options": "Sales Invoice"
+   "options": "Sales Invoice",
+   "read_only": 1
   },
   {
    "fieldname": "journal_entry_id",
    "fieldtype": "Link",
    "label": "Journal Entry ID",
-   "options": "Journal Entry"
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_onuq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_wkph",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -113,7 +136,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-04-15 16:12:54.040570",
+ "modified": "2025-04-16 03:00:13.613558",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",

@@ -10,20 +10,26 @@
   "sales_invoice",
   "journal_entry_id",
   "customer",
+  "column_break_hrsx",
+  "loan_status",
   "finance_provider",
   "loan_amount",
-  "down_payment",
-  "emi_amount",
-  "loan_tenure_months",
+  "section_break_ffkz",
   "loan_type",
+  "down_payment",
+  "loan_tenure_months",
+  "column_break_dnwj",
   "interest_rate",
-  "loan_status"
+  "emi_amount"
  ],
  "fields": [
   {
    "fieldname": "customer",
    "fieldtype": "Data",
-   "label": "Customer"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "read_only": 1
   },
   {
    "fieldname": "loan_amount",
@@ -59,6 +65,8 @@
   {
    "fieldname": "loan_status",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Loan Status",
    "options": "\nPending\nApproved\nRejected\nDisbursed\nClosed"
   },
@@ -66,11 +74,14 @@
    "fieldname": "vsm_id",
    "fieldtype": "Link",
    "label": "Vehicle Sales Master",
-   "options": "Vehicle Sales Master"
+   "options": "Vehicle Sales Master",
+   "read_only": 1
   },
   {
    "fieldname": "finance_provider",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Finance Provider",
    "link_filters": "[[\"Customer\",\"customer_group\",\"=\",\"Financer\"]]",
    "options": "Customer"
@@ -78,19 +89,35 @@
   {
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Sales Invoice",
-   "options": "Sales Invoice"
+   "options": "Sales Invoice",
+   "read_only": 1
   },
   {
    "fieldname": "journal_entry_id",
    "fieldtype": "Link",
    "label": "Journal Entry ID",
-   "options": "Journal Entry"
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_hrsx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ffkz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_dnwj",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-15 16:13:58.550472",
+ "modified": "2025-04-16 02:59:11.754303",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Finance",

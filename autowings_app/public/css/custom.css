@@ -1,0 +1,29 @@
+.btn-update-journals {
+    background: transparent;
+    border: 2px solid #555555;
+    color: #555555;
+    box-shadow: none;
+    padding: 8px 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-update-journals:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+    color: #fff;
+    text-decoration: none;
+    background: rgba(85, 85, 85, 0.1);
+    border-color: #2a2a2a;
+}
+
+.btn-update-journals:active {
+    opacity: 0.75;
+    transform: translateY(0);
+}
+
+.btn-update-journals span {
+    position: relative;
+    z-index: 1;
+}
