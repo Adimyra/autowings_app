@@ -68,7 +68,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Loan Status",
-   "options": "\nPending\nApproved\nRejected\nDisbursed\nClosed"
+   "options": "\nPending\nApplied\nApproved\nRejected\nDisbursed\nClosed"
   },
   {
    "fieldname": "vsm_id",
@@ -117,7 +117,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-16 02:59:11.754303",
+ "modified": "2025-04-16 14:41:18.869198",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Finance",

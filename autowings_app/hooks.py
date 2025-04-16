@@ -10,7 +10,8 @@ app_license = "mit"
 
 # required_apps = []
 app_include_js = [
-    "/assets/autowings_app/js/lib/chart.min.js"
+    "/assets/autowings_app/js/lib/chart.min.js",
+    # "/assets/autowings_app/js/payment_entry.js"
 ]
 app_include_css = [
     "/assets/autowings_app/css/custom.css",
@@ -31,11 +32,18 @@ doctype_js = {
     "Purchase Receipt": "public/js/purchase_receipt.js",
     "Purchase Invoice": "public/js/purchase_invoice.js",
     "Delivery Note": "public/js/delivery_note.js",
-    "Supplier": "public/js/supplier.js"
+    "Supplier": "public/js/supplier.js",
+    "Payment Entry": "public/js/payment_entry.js"
 
 }
 
 doc_events = {
+    # hooks.py for autowings_app
+
+    # "Payment Entry": {
+    #     "validate": "autowings_app.custom_scripts.payment_entry.validate_payment_entry",
+    #     "before_save": "autowings_app.custom_scripts.payment_entry.before_save_payment_entry"
+    # },
     "Purchase Receipt": {
         "before_save": "autowings_app.custom_scripts.purchase_receipt.before_save",
         "before_submit": "autowings_app.custom_scripts.purchase_receipt.before_submit",

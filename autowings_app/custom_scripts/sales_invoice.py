@@ -1287,7 +1287,7 @@ def create_or_update_vehicle_insurance(doc, vsm_doc_name):
                 "insurance_provider": doc.custom_insurance_provider,
                 "policy_name": doc.custom_insurance_policy,
                 "insurance_amount": doc.custom_insurance_amount,
-                "insurance_status": "Applied"
+                "insurance_status": "Pending"
             })
             insurance_doc.save()
         else:
@@ -1300,7 +1300,7 @@ def create_or_update_vehicle_insurance(doc, vsm_doc_name):
                 "insurance_provider": doc.custom_insurance_provider,
                 "policy_name": doc.custom_insurance_policy,
                 "insurance_amount": doc.custom_insurance_amount,
-                "insurance_status": "Applied"
+                "insurance_status": "Pending"
             })
             insurance_doc.insert()
             insurance_doc_name = insurance_doc.name
@@ -1324,7 +1324,7 @@ def create_or_update_vehicle_finance(doc, vsm_doc_name):
                 "vsm_id": vsm_doc_name,
                 "finance_provider": doc.custom_finance_provider,
                 "loan_amount": doc.custom_finance_amount,
-                "finance_status": "Pending"
+                "loan_status": "Pending"
             })
             finance_doc.save()
         else:
@@ -1336,7 +1336,7 @@ def create_or_update_vehicle_finance(doc, vsm_doc_name):
                 "vsm_id": vsm_doc_name,
                 "finance_provider": doc.custom_finance_provider,
                 "loan_amount": doc.custom_finance_amount,
-                "finance_status": "Pending"
+                "loan_status": "Pending"
             })
             finance_doc.insert()
             finance_doc_name = finance_doc.name

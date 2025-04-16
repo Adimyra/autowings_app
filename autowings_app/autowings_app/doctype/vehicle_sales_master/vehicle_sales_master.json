@@ -339,27 +339,27 @@
  "index_web_pages_for_search": 1,
  "links": [
   {
-   "group": "Vehicle",
+   "group": "RTO Registration",
    "link_doctype": "RTO Registration",
    "link_fieldname": "vsm_id"
   },
   {
-   "group": "Vehicle",
+   "group": "Insurance",
    "link_doctype": "Vehicle Insurance",
    "link_fieldname": "vsm_id"
   },
   {
-   "group": "Vehicle",
+   "group": "Finance",
    "link_doctype": "Vehicle Finance",
    "link_fieldname": "vsm_id"
   },
   {
-   "group": "Vehicle",
+   "group": "Misc",
    "link_doctype": "Vehicle Misc Sales",
    "link_fieldname": "vsm_id"
   }
  ],
- "modified": "2025-04-16 02:56:39.550412",
+ "modified": "2025-04-16 14:48:23.812296",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",

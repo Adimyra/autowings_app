@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "customer",
+  "status",
   "column_break_pgff",
   "vsm_id",
   "sales_invoice",
@@ -51,11 +52,18 @@
   {
    "fieldname": "column_break_pgff",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nPending\nComplete"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-16 02:57:31.438151",
+ "modified": "2025-04-16 13:03:35.225890",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Misc Sales",
