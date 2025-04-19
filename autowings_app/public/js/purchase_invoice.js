@@ -404,3 +404,58 @@ frappe.ui.form.on("Purchase Invoice", {
         }
     }
 });
+
+
+frappe.ui.form.on('Purchase Invoice', {
+    refresh: function(frm) {
+        // Add custom button "Update Items" if form is not submitted and purchase_type is not "Vehicle"
+        function addUpdateButton() {
+            if (frm.doc.docstatus === 0 && frm.doc.purchase_type !== 'Vehicle') {
+                if (!frm.custom_buttons['Update Items']) {
+                    frm.add_custom_button(__('Update Items'), function() {
+                        frm.doc.items.forEach(function(item, index) {
+                            if (item.item_code) {
+                                frappe.call({
+                                    method: 'frappe.client.get',
+                                    args: { doctype: 'Item', name: item.item_code },
+                                    callback: function(response) {
+                                        if (response.message) {
+                                            let item_doc = response.message;
+                                            let row = frm.doc.items[index];
+                                            row.item_name = item_doc.item_name || row.item_code;
+                                            row.uom = item_doc.stock_uom || 'Nos';
+                                            row.stock_uom = item_doc.stock_uom || 'Nos';
+                                            row.conversion_factor = 1;
+                                            frm.refresh_field('items', row.name, row.parentfield);
+                                        } else {
+                                            frappe.msgprint(__('Item {0} not found.', [item.item_code]));
+                                        }
+                                    },
+                                    error: function(err) {
+                                        frappe.msgprint(__('Error fetching details for item {0}.', [item.item_code]));
+                                    }
+                                });
+                            }
+                        });
+                        frappe.msgprint(__('Item details updated successfully.'));
+                    }).addClass('btn btn-primary btn-sm primary-action');
+                }
+            } else if (frm.custom_buttons['Update Items']) {
+                frm.remove_custom_button('Update Items');
+                console.log("Removed Update Items button due to purchase_type being Vehicle or docstatus changed");
+            }
+        }
+
+        // Initial check with delay
+        setTimeout(() => {
+            console.log("Initial purchase_type value:", frm.doc.purchase_type);
+            addUpdateButton();
+        }, 500);
+
+        // Real-time check when purchase_type changes
+        frm.set_df_property('purchase_type', 'change', function() {
+            console.log("purchase_type changed to:", frm.doc.purchase_type);
+            addUpdateButton();
+        });
+    }
+});

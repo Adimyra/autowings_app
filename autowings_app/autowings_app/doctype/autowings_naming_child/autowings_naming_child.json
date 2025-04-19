@@ -6,36 +6,54 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "enable",
   "sales_type",
   "sub_sales_type",
-  "sales_naming_series"
+  "sales_naming_series",
+  "misc_account"
  ],
  "fields": [
   {
    "fieldname": "sales_type",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Sales Type",
-   "options": "\nVehicle\nSpare\nService\nOther"
+   "options": "Sale Type"
   },
   {
    "fieldname": "sub_sales_type",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Sub Sales Type",
-   "options": "\nVehicles Sales\nVehicles Sales Sub Dealer\nVehicles Sales Khunti\nVehicles Sales DLR\nAccessories Sales\nSpare Sales\nJob Card\nJob Card Insurance\nJob Card Khunti\nSupply\nWnty"
+   "options": "Sub Sale Type"
   },
   {
+   "description": "Add more using Naming Series Document",
    "fieldname": "sales_naming_series",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Sales Naming Series"
+  },
+  {
+   "description": "Add multiple by pressing Enter",
+   "fieldname": "misc_account",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Misc Account",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enable"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-15 17:18:02.176238",
+ "modified": "2025-04-20 02:59:26.599508",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings Naming Child",

@@ -10,13 +10,24 @@
   "customer",
   "sales_invoice",
   "journal_entry_id",
+  "journal_status",
   "chassis_number",
   "column_break_vdgb",
   "registration_status",
-  "registration_date",
   "rto_office",
+  "application_entry_date",
   "registration_charge",
-  "registration_number"
+  "application_number",
+  "payment_info_section",
+  "payment_date",
+  "payment_reference",
+  "column_break_mwju",
+  "payment_status",
+  "section_break_driw",
+  "registration_number",
+  "column_break_qqpc",
+  "section_break_rqag",
+  "rto_activity"
  ],
  "fields": [
   {
@@ -36,11 +47,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "registration_number",
-   "fieldtype": "Data",
-   "label": "Registration Number"
-  },
-  {
    "fieldname": "rto_office",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -55,12 +61,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Registration Status",
-   "options": "\nPending\nIn Progress\nCompleted"
-  },
-  {
-   "fieldname": "registration_date",
-   "fieldtype": "Date",
-   "label": "Registration Date"
+   "options": "\nPending\nApplied\nPayment Due\nPaid"
   },
   {
    "fieldname": "registration_charge",
@@ -94,11 +95,74 @@
   {
    "fieldname": "column_break_vdgb",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "application_entry_date",
+   "fieldtype": "Date",
+   "label": "Application Entry Date"
+  },
+  {
+   "fieldname": "application_number",
+   "fieldtype": "Data",
+   "label": "Application Number"
+  },
+  {
+   "fieldname": "payment_info_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Info"
+  },
+  {
+   "fieldname": "payment_date",
+   "fieldtype": "Date",
+   "label": "Payment Date"
+  },
+  {
+   "fieldname": "payment_reference",
+   "fieldtype": "Data",
+   "label": "Payment Reference"
+  },
+  {
+   "fieldname": "column_break_mwju",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "payment_status",
+   "fieldtype": "Data",
+   "label": "Payment Status"
+  },
+  {
+   "fieldname": "section_break_driw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "registration_number",
+   "fieldtype": "Data",
+   "label": "Registration Number"
+  },
+  {
+   "fieldname": "column_break_qqpc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_rqag",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "rto_activity",
+   "fieldtype": "Table",
+   "label": "RTO Activity",
+   "options": "RTO Activity Log"
+  },
+  {
+   "fieldname": "journal_status",
+   "fieldtype": "Select",
+   "label": "Journal Status",
+   "options": "\nDraft\nSubmitted"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-16 02:58:25.932929",
+ "modified": "2025-04-18 16:08:35.924244",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

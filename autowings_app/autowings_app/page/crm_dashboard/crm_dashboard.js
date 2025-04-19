@@ -1,18 +1,11 @@
-frappe.pages['test-page'].on_page_load = function(wrapper) {
-	var page = frappe.ui.make_app_page({
-		parent: wrapper,
-		title: 'TEST PAGE',
-		single_column: true
-	});
-
-	// autowings_app/autowings_app/page/crm_dashboard/crm_dashboard.js
-// frappe.pages['crm_dashboard'].on_page_load = function(wrapper) {
-//     console.log("Loading CRM Dashboard page...");
-//     var page = frappe.ui.make_app_page({
-//         parent: wrapper,
-//         title: 'CRM Dashboard',
-//         single_column: true
-//     });
+// autowings_app/autowings_app/page/crm_dashboard/crm_dashboard.js
+frappe.pages['crm_dashboard'].on_page_load = function(wrapper) {
+    console.log("Loading CRM Dashboard page...");
+    var page = frappe.ui.make_app_page({
+        parent: wrapper,
+        title: 'CRM Dashboard',
+        single_column: true
+    });
 
     // Define HTML and CSS
     const page_content = `

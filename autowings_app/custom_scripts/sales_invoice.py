@@ -837,6 +837,7 @@
 #     except Exception as e:
 #         frappe.log_error(f"Error creating Vehicle Finance: {str(e)}")
 #         raise
+
 import frappe
 from frappe import _
 from frappe.utils import getdate
@@ -887,24 +888,64 @@ def before_submit(doc, method):
     update_items_with_chassis_numbers(doc)
 
 
+# def after_insert_sales_invoice(doc, method):
+#     """Add suppliers with custom_show_in_sales_invoice = 1 and supplier_group = 'Misc Group' to custom_miscellaneous child table on Sales Invoice creation."""
+#     suppliers = frappe.get_all(
+#         "Supplier",
+#         filters={
+#             "custom_show_in_sales_invoice": 1,
+#             "supplier_group": "Misc Group"
+#         },
+#         fields=["supplier_name"]
+#     )
+
+#     # Only add suppliers if custom_miscellaneous is empty
+#     if not doc.custom_miscellaneous:
+#         for supplier in suppliers:
+#             doc.append("custom_miscellaneous", {
+#                 "misc_account": supplier.supplier_name,
+#                 "amount": 0
+#             })
+#         doc.save()
+
+import frappe
+
 def after_insert_sales_invoice(doc, method):
-    """Add suppliers with custom_show_in_sales_invoice = 1 and supplier_group = 'Misc Group' to custom_miscellaneous child table on Sales Invoice creation."""
-    suppliers = frappe.get_all(
-        "Supplier",
-        filters={
-            "custom_show_in_sales_invoice": 1,
-            "supplier_group": "Misc Group"
-        },
-        fields=["supplier_name"]
-    )
+    """Add suppliers to custom_miscellaneous child table based on custom_sub_sales_type's misc_accounts."""
+    if not doc.custom_sub_sales_type:
+        return
+
+    # Fetch Sub Sale Type document where sub_sale_type matches custom_sub_sales_type and enabled = 1
+    try:
+        sub_sale_type_doc = frappe.get_doc("Sub Sale Type", {"sub_sale_type": doc.custom_sub_sales_type, "enabled": 1})
+    except frappe.DoesNotExistError:
+        return
+
+    # Get misc_account values from Sub Sale Type's misc_accounts child table
+    misc_accounts = [account.misc_account for account in sub_sale_type_doc.get("misc_accounts", [])]
+    if not misc_accounts:
+        return
 
     # Only add suppliers if custom_miscellaneous is empty
     if not doc.custom_miscellaneous:
+        # Fetch suppliers where supplier_name matches misc_account and custom_show_in_sales_invoice = 1
+        suppliers = frappe.get_all(
+            "Supplier",
+            filters={
+                "supplier_name": ["in", misc_accounts],
+                "custom_show_in_sales_invoice": 1
+            },
+            fields=["supplier_name"]
+        )
+
+        # Add matching suppliers to custom_miscellaneous child table
         for supplier in suppliers:
             doc.append("custom_miscellaneous", {
                 "misc_account": supplier.supplier_name,
                 "amount": 0
             })
+
+        # Save the document to persist changes
         doc.save()
 
 

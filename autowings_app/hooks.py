@@ -14,7 +14,7 @@ app_include_js = [
     # "/assets/autowings_app/js/payment_entry.js"
 ]
 app_include_css = [
-    "/assets/autowings_app/css/custom.css",
+    "/assets/autowings_app/css/custom.css"
 ]
 
 doc_events = {

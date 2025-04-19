@@ -1,0 +1,136 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-17 14:57:27.442089",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "task_title",
+  "description",
+  "column_break_frnw",
+  "assigned_to",
+  "assigned_date",
+  "due_date",
+  "section_break_etsy",
+  "client_feedback",
+  "column_break_svxv",
+  "next_steps",
+  "status",
+  "section_break_kkgi",
+  "lead",
+  "column_break_vdkh",
+  "opportunity",
+  "section_break_bqsz",
+  "activity_log"
+ ],
+ "fields": [
+  {
+   "fieldname": "task_title",
+   "fieldtype": "Data",
+   "label": "Task Title"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_frnw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "label": "Assigned To",
+   "options": "User"
+  },
+  {
+   "fieldname": "assigned_date",
+   "fieldtype": "Date",
+   "label": "Assigned Date"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "Due Date"
+  },
+  {
+   "fieldname": "section_break_etsy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client_feedback",
+   "fieldtype": "Text",
+   "label": "Client Feedback"
+  },
+  {
+   "fieldname": "column_break_svxv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "next_steps",
+   "fieldtype": "Small Text",
+   "label": "Next Steps"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nOpen\nIn Progress\nCompleted\nCancelled"
+  },
+  {
+   "fieldname": "section_break_kkgi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "lead",
+   "fieldtype": "Link",
+   "label": "Lead",
+   "options": "Lead"
+  },
+  {
+   "fieldname": "column_break_vdkh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "opportunity",
+   "fieldtype": "Link",
+   "label": "Opportunity",
+   "options": "Opportunity"
+  },
+  {
+   "fieldname": "section_break_bqsz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "activity_log",
+   "fieldtype": "Table",
+   "label": "Activity Log",
+   "options": "Task Activity Log"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-17 15:04:49.942550",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Custom Task",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

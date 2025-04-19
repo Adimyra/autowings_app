@@ -410,3 +410,5 @@ def update_chassis_details(docname):
 
     frappe.db.commit()
     return {"message": "Chassis details updated successfully!"}
+
+

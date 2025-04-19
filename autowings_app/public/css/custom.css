@@ -27,3 +27,9 @@
     position: relative;
     z-index: 1;
 }
+
+/* hide */
+.vehicle-type .grid-footer,
+.vehicle-type .grid-custom-buttons {
+    display: none !important;
+}

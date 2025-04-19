@@ -9,6 +9,7 @@
   "vsm_id",
   "sales_invoice",
   "journal_entry_id",
+  "journal_status",
   "customer",
   "policy_term_years",
   "column_break_sdit",
@@ -18,11 +19,10 @@
   "insurance_amount",
   "insurance_policy_number",
   "section_break_onuq",
-  "coverage_details",
-  "premium_amount",
-  "column_break_wkph",
   "insurance_start_date",
-  "insurance_end_date"
+  "column_break_wkph",
+  "od_end_date",
+  "tp_end_date"
  ],
  "fields": [
   {
@@ -60,17 +60,12 @@
    "label": "Insurance Start Date"
   },
   {
-   "fieldname": "insurance_end_date",
-   "fieldtype": "Date",
-   "label": "Insurance End Date"
-  },
-  {
    "fieldname": "insurance_status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Insurance Status",
-   "options": "\nApplied\nPending\nActive\nExpired\nCancelled"
+   "options": "\nPending\nApplied\nPayment Due\nPaid\nActive\nExpired"
   },
   {
    "fieldname": "vsm_id",
@@ -87,17 +82,6 @@
    "fieldname": "policy_name",
    "fieldtype": "Data",
    "label": "Policy Name"
-  },
-  {
-   "fieldname": "coverage_details",
-   "fieldtype": "Data",
-   "label": "Coverage Details",
-   "read_only": 1
-  },
-  {
-   "fieldname": "premium_amount",
-   "fieldtype": "Currency",
-   "label": "Premium Amount"
   },
   {
    "fieldname": "policy_term_years",
@@ -127,6 +111,22 @@
   {
    "fieldname": "column_break_wkph",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "journal_status",
+   "fieldtype": "Select",
+   "label": "Journal Status",
+   "options": "\nDraft\nSubmitted"
+  },
+  {
+   "fieldname": "od_end_date",
+   "fieldtype": "Date",
+   "label": "OD End Date"
+  },
+  {
+   "fieldname": "tp_end_date",
+   "fieldtype": "Date",
+   "label": "TP End Date"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -136,7 +136,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-04-16 03:00:13.613558",
+ "modified": "2025-04-18 16:08:49.642888",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",
