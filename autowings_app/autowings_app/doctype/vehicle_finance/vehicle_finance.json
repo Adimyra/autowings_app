@@ -9,18 +9,18 @@
   "vsm_id",
   "sales_invoice",
   "journal_entry_id",
+  "journal_status",
   "customer",
+  "loan_type",
   "column_break_hrsx",
   "loan_status",
   "finance_provider",
   "loan_amount",
-  "section_break_ffkz",
-  "loan_type",
-  "down_payment",
-  "loan_tenure_months",
+  "payment_info",
+  "payment_received_date",
+  "payment_reference",
   "column_break_dnwj",
-  "interest_rate",
-  "emi_amount"
+  "payment_status"
  ],
  "fields": [
   {
@@ -37,30 +37,10 @@
    "label": "Loan Amount"
   },
   {
-   "fieldname": "down_payment",
-   "fieldtype": "Currency",
-   "label": "Down Payment"
-  },
-  {
-   "fieldname": "emi_amount",
-   "fieldtype": "Currency",
-   "label": "EMI Amount"
-  },
-  {
-   "fieldname": "loan_tenure_months",
-   "fieldtype": "Int",
-   "label": "Loan Tenure Months"
-  },
-  {
    "fieldname": "loan_type",
    "fieldtype": "Select",
    "label": "Loan Type",
    "options": "\nNew Vehicle\nUsed Vehicle\nRefinance"
-  },
-  {
-   "fieldname": "interest_rate",
-   "fieldtype": "Percent",
-   "label": "Interest Rate"
   },
   {
    "fieldname": "loan_status",
@@ -107,17 +87,39 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_ffkz",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "column_break_dnwj",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "journal_status",
+   "fieldtype": "Select",
+   "label": "Journal Status",
+   "options": "\nDraft\nSubmitted"
+  },
+  {
+   "fieldname": "payment_info",
+   "fieldtype": "Section Break",
+   "label": "Payment Info"
+  },
+  {
+   "fieldname": "payment_received_date",
+   "fieldtype": "Date",
+   "label": "Payment Received Date"
+  },
+  {
+   "fieldname": "payment_reference",
+   "fieldtype": "Data",
+   "label": "Payment Reference"
+  },
+  {
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "label": "Payment Status"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-16 14:41:18.869198",
+ "modified": "2025-04-21 00:25:47.417861",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Finance",

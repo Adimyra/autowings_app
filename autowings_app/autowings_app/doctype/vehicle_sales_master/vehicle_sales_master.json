@@ -19,6 +19,8 @@
   "rto_registration",
   "is_finance",
   "is_insurance",
+  "is_rsa",
+  "is_extended_warranty",
   "vehicle_info_section",
   "chassis_number",
   "engine_number",
@@ -32,7 +34,6 @@
   "column_break_vktw",
   "registration_status",
   "registration_date",
-  "remarks",
   "insurance_details_section",
   "insurance_id",
   "insurance_provider",
@@ -40,12 +41,21 @@
   "column_break_coab",
   "policy_number",
   "insurance_status",
+  "road_side_assistance_details_section",
+  "rsa_id",
+  "rsa_provider",
+  "column_break_raxd",
+  "rsa_status",
+  "extended_warranty_details_section",
+  "extended_warranty_id",
+  "warranty_provider",
+  "column_break_yjkr",
+  "warranty_status",
   "finance_details_section",
   "finance_id",
   "finance_provider",
-  "loan_amount",
   "column_break_ilgx",
-  "down_payment",
+  "loan_amount",
   "loan_status",
   "misc_accounts_section",
   "vehicle_misc_sales_id"
@@ -89,7 +99,8 @@
    "default": "0",
    "fieldname": "is_delivered",
    "fieldtype": "Check",
-   "label": "Is Delivered"
+   "label": "Is Delivered",
+   "read_only": 1
   },
   {
    "fieldname": "delivery_note",
@@ -102,19 +113,22 @@
    "default": "0",
    "fieldname": "rto_registration",
    "fieldtype": "Check",
-   "label": "RTO Registration"
+   "label": "RTO Registration",
+   "read_only": 1
   },
   {
    "default": "0",
    "fieldname": "is_finance",
    "fieldtype": "Check",
-   "label": "Is Finance"
+   "label": "Is Finance",
+   "read_only": 1
   },
   {
    "default": "0",
    "fieldname": "is_insurance",
    "fieldtype": "Check",
-   "label": "Is Insurance"
+   "label": "Is Insurance",
+   "read_only": 1
   },
   {
    "fieldname": "rto_details_section",
@@ -155,11 +169,6 @@
    "fieldtype": "Date",
    "label": "Registration Date",
    "read_only": 1
-  },
-  {
-   "fieldname": "remarks",
-   "fieldtype": "Data",
-   "label": "Remarks"
   },
   {
    "fieldname": "insurance_details_section",
@@ -212,14 +221,6 @@
    "label": "Finance Provider",
    "link_filters": "[[\"Customer\",\"customer_group\",\"=\",\"Financer\"]]",
    "options": "Customer",
-   "read_only": 1
-  },
-  {
-   "fieldname": "down_payment",
-   "fieldtype": "Currency",
-   "label": "Down Payment",
-   "precision": "2",
-   "print_hide_if_no_value": 1,
    "read_only": 1
   },
   {
@@ -334,6 +335,84 @@
    "fieldtype": "Link",
    "label": "Vehicle Misc Sales Id",
    "options": "Vehicle Misc Sales"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_rsa",
+   "fieldtype": "Check",
+   "label": "Is RSA",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_extended_warranty",
+   "fieldtype": "Check",
+   "label": "Is Extended Warranty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "road_side_assistance_details_section",
+   "fieldtype": "Section Break",
+   "label": "Road Side Assistance Details"
+  },
+  {
+   "fieldname": "rsa_id",
+   "fieldtype": "Link",
+   "label": "RSA ID",
+   "options": "Vehicle RSA",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "rsa_id.rsa_provider",
+   "fieldname": "rsa_provider",
+   "fieldtype": "Link",
+   "label": "RSA Provider",
+   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"RSA Group\"]]",
+   "options": "Supplier",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_raxd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "rsa_id.rsa_status",
+   "fieldname": "rsa_status",
+   "fieldtype": "Data",
+   "label": "RSA Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "extended_warranty_details_section",
+   "fieldtype": "Section Break",
+   "label": "Extended Warranty Details"
+  },
+  {
+   "fieldname": "extended_warranty_id",
+   "fieldtype": "Link",
+   "label": "Extended Warranty ID",
+   "options": "Vehicle Extended Warranty",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "extended_warranty_id.extended_warranty_provider",
+   "fieldname": "warranty_provider",
+   "fieldtype": "Link",
+   "label": "Warranty Provider",
+   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"Extended Warranty Group\"]]",
+   "options": "Supplier",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_yjkr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "extended_warranty_id.warranty_status",
+   "fieldname": "warranty_status",
+   "fieldtype": "Data",
+   "label": "Warranty Status",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -357,9 +436,19 @@
    "group": "Misc",
    "link_doctype": "Vehicle Misc Sales",
    "link_fieldname": "vsm_id"
+  },
+  {
+   "group": "Road Side Assistance",
+   "link_doctype": "Vehicle RSA",
+   "link_fieldname": "vsm_id"
+  },
+  {
+   "group": "Extended Warranty",
+   "link_doctype": "Vehicle Extended Warranty",
+   "link_fieldname": "vsm_id"
   }
  ],
- "modified": "2025-04-16 14:48:23.812296",
+ "modified": "2025-04-21 01:36:27.692371",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",

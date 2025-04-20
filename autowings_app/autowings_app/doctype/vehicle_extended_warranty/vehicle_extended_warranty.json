@@ -1,0 +1,144 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:INS-{YYYY}-{MM}-{#####}",
+ "creation": "2025-04-21 00:31:22.602544",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vsm_id",
+  "sales_invoice",
+  "journal_entry_id",
+  "journal_status",
+  "customer",
+  "column_break_sdit",
+  "warranty_status",
+  "extended_warranty_provider",
+  "extended_warranty_amount",
+  "warranty_policy_number",
+  "section_break_onuq",
+  "istart_date",
+  "column_break_wkph",
+  "end_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "vsm_id",
+   "fieldtype": "Link",
+   "label": "Vehicle Sales Master",
+   "options": "Vehicle Sales Master",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "journal_entry_id",
+   "fieldtype": "Link",
+   "label": "Journal Entry ID",
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "journal_status",
+   "fieldtype": "Select",
+   "label": "Journal Status",
+   "options": "\nDraft\nSubmitted"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_sdit",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_onuq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_wkph",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "warranty_policy_number",
+   "fieldtype": "Data",
+   "label": "Warranty Policy Number",
+   "unique": 1
+  },
+  {
+   "fieldname": "istart_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date"
+  },
+  {
+   "fieldname": "extended_warranty_provider",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Extended Warranty Provider",
+   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"Insurance\"]]",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "warranty_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Warranty Status",
+   "options": "\nPending\nApplied\nPayment Due\nPaid\nActive\nExpired"
+  },
+  {
+   "fieldname": "extended_warranty_amount",
+   "fieldtype": "Currency",
+   "label": "Extended Warranty Amount"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Customer",
+   "link_fieldname": "name"
+  }
+ ],
+ "modified": "2025-04-21 00:33:18.479771",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Vehicle Extended Warranty",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

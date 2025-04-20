@@ -15,19 +15,21 @@
   "column_break_vdgb",
   "registration_status",
   "rto_office",
-  "application_entry_date",
   "registration_charge",
+  "application_entry_date",
   "application_number",
   "payment_info_section",
   "payment_date",
   "payment_reference",
   "column_break_mwju",
   "payment_status",
+  "payment_entry_id",
   "section_break_driw",
   "registration_number",
   "column_break_qqpc",
   "section_break_rqag",
-  "rto_activity"
+  "rto_activity",
+  "amended_from"
  ],
  "fields": [
   {
@@ -66,7 +68,7 @@
   {
    "fieldname": "registration_charge",
    "fieldtype": "Currency",
-   "label": "Registration Charge",
+   "label": "Registration Charge \u20b9",
    "precision": "2"
   },
   {
@@ -158,11 +160,29 @@
    "fieldtype": "Select",
    "label": "Journal Status",
    "options": "\nDraft\nSubmitted"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "RTO Registration",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "payment_entry_id",
+   "fieldtype": "Link",
+   "label": "Payment Entry Id",
+   "options": "Payment Entry",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-04-18 16:08:35.924244",
+ "modified": "2025-04-21 03:02:47.228074",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

@@ -913,30 +913,37 @@ import frappe
 def after_insert_sales_invoice(doc, method):
     """Add suppliers to custom_miscellaneous child table based on custom_sub_sales_type's misc_accounts."""
     if not doc.custom_sub_sales_type:
+        frappe.log_error(f"No custom_sub_sales_type found for Sales Invoice {doc.name}", "after_insert_sales_invoice")
         return
 
     # Fetch Sub Sale Type document where sub_sale_type matches custom_sub_sales_type and enabled = 1
     try:
         sub_sale_type_doc = frappe.get_doc("Sub Sale Type", {"sub_sale_type": doc.custom_sub_sales_type, "enabled": 1})
     except frappe.DoesNotExistError:
+        frappe.log_error(f"Sub Sale Type {doc.custom_sub_sales_type} not found or not enabled for Sales Invoice {doc.name}", "after_insert_sales_invoice")
         return
 
     # Get misc_account values from Sub Sale Type's misc_accounts child table
     misc_accounts = [account.misc_account for account in sub_sale_type_doc.get("misc_accounts", [])]
     if not misc_accounts:
+        frappe.log_error(f"No misc_accounts found in Sub Sale Type {doc.custom_sub_sales_type} for Sales Invoice {doc.name}", "after_insert_sales_invoice")
         return
 
     # Only add suppliers if custom_miscellaneous is empty
     if not doc.custom_miscellaneous:
-        # Fetch suppliers where supplier_name matches misc_account and custom_show_in_sales_invoice = 1
+        # Fetch suppliers where supplier_name matches misc_account and supplier_group is 'Misc Group'
         suppliers = frappe.get_all(
             "Supplier",
             filters={
                 "supplier_name": ["in", misc_accounts],
-                "custom_show_in_sales_invoice": 1
+                "supplier_group": "Misc Group"
             },
             fields=["supplier_name"]
         )
+
+        if not suppliers:
+            frappe.log_error(f"No suppliers found in 'Misc Group' for misc_accounts {misc_accounts} in Sales Invoice {doc.name}", "after_insert_sales_invoice")
+            return
 
         # Add matching suppliers to custom_miscellaneous child table
         for supplier in suppliers:
@@ -946,224 +953,799 @@ def after_insert_sales_invoice(doc, method):
             })
 
         # Save the document to persist changes
-        doc.save()
+        try:
+            doc.save()
+            frappe.log_error(f"Successfully added suppliers {', '.join([s.supplier_name for s in suppliers])} to custom_miscellaneous for Sales Invoice {doc.name}", "after_insert_sales_invoice")
+        except Exception as e:
+            frappe.log_error(f"Failed to save Sales Invoice {doc.name}: {str(e)}", "after_insert_sales_invoice")
+    else:
+        frappe.log_error(f"custom_miscellaneous already populated for Sales Invoice {doc.name}, skipping supplier addition", "after_insert_sales_invoice")
 
+
+
+# def on_submit_sales_invoice(doc, method):
+#     """
+#     On Submit Hook for Sales Invoice:
+#     - Create or update VSM, RTO, Insurance, Finance, and Misc Sales documents.
+#     - Create draft Journal Entries for RTO, Insurance, Finance, and Miscellaneous charges.
+#     - Update journal_entry_id in respective documents.
+#     - Update Serial No and Customer doctypes with VSM ID.
+#     """
+#     if doc.custom_sale_type in ["Spare", "Other"]:
+#         return
+
+#     # Create or update Vehicle Sales Master (VSM)
+#     vsm_doc_name = create_or_update_vehicle_sales_master(doc)
+
+#     # Create or update RTO Registration if applicable
+#     rto_doc_name = None
+#     if doc.custom_rto_office and doc.custom_registration_charge:
+#         rto_doc_name = create_or_update_rto_registration(doc, vsm_doc_name)
+
+#     # Create or update Vehicle Insurance if applicable
+#     insurance_doc_name = None
+#     if doc.custom_insurance_provider and doc.custom_insurance_amount and doc.custom_insurance_policy:
+#         insurance_doc_name = create_or_update_vehicle_insurance(doc, vsm_doc_name)
+
+#     # Create or update Vehicle Finance if applicable
+#     finance_doc_name = None
+#     if doc.custom_finance_provider and doc.custom_finance_amount:
+#         finance_doc_name = create_or_update_vehicle_finance(doc, vsm_doc_name)
+
+#     # Create or update Vehicle Misc Sales if applicable
+#     misc_sales_doc_name = None
+#     misc_entries = [misc for misc in doc.custom_miscellaneous if misc.amount > 0]
+#     if misc_entries:
+#         misc_sales_doc_name = create_or_update_vehicle_misc_sales(doc, vsm_doc_name)
+
+#     # Update Serial No and Customer doctypes with VSM ID
+#     if doc.update_stock:
+#         update_serial_no_with_vsm(doc, vsm_doc_name)
+#         update_customer_vsm(doc, vsm_doc_name)
+
+#     # Update VSM with RTO, Insurance, Finance, and Misc Sales IDs
+#     vsm_doc = frappe.get_doc("Vehicle Sales Master", vsm_doc_name)
+#     vsm_doc.is_delivered = 1 if doc.update_stock else 0
+
+#     if rto_doc_name:
+#         vsm_doc.rto_registration = 1
+#         vsm_doc.rto_registration_id = rto_doc_name
+#         vsm_doc.rto_office = doc.custom_rto_office
+#         vsm_doc.registration_status = "Pending"
+
+#     if insurance_doc_name:
+#         vsm_doc.is_insurance = 1
+#         vsm_doc.insurance_id = insurance_doc_name
+#         vsm_doc.insurance_provider = doc.custom_insurance_provider
+#         vsm_doc.insurance_status = "Applied"
+
+#     if finance_doc_name:
+#         vsm_doc.is_finance = 1
+#         vsm_doc.finance_id = finance_doc_name
+#         vsm_doc.finance_provider = doc.custom_finance_provider
+#         vsm_doc.loan_amount = doc.custom_finance_amount
+#         vsm_doc.loan_status = "Pending"
+
+#     if misc_sales_doc_name:
+#         vsm_doc.vehicle_misc_sales_id = misc_sales_doc_name
+
+#     vsm_doc.save()
+#     frappe.db.commit()
+
+#     # Create Journal Entries and update journal_entry_id
+#     # RTO Journal Entry
+#     if rto_doc_name:
+#         je_rto = frappe.new_doc("Journal Entry")
+#         je_rto.voucher_type = "Journal Entry"
+#         je_rto.company = doc.company
+#         je_rto.posting_date = getdate()
+#         je_rto.title = f"RTO Charge - {doc.customer}"
+#         je_rto.remark = f"RTO charge of ₹{doc.custom_registration_charge} for Sales Invoice {doc.name} paid to {doc.custom_rto_office}."
+#         je_rto.append("accounts", {
+#             "account": "Debtors - A",
+#             "party_type": "Customer",
+#             "party": doc.customer,
+#             "debit_in_account_currency": doc.custom_registration_charge,
+#             "credit_in_account_currency": 0,
+#             "cost_center": "Main - A",
+#             "against_account": doc.custom_rto_office
+#         })
+#         je_rto.append("accounts", {
+#             "account": "RTO Charges Payable - A",
+#             "party_type": "Supplier",
+#             "party": doc.custom_rto_office,
+#             "debit_in_account_currency": 0,
+#             "credit_in_account_currency": doc.custom_registration_charge,
+#             "cost_center": "Main - A",
+#             "against_account": "Debtors - A"
+#         })
+#         je_rto.save()
+#         frappe.msgprint(_("Draft RTO Journal Entry {0} created.").format(je_rto.name))
+
+#         # Update journal_entry_id in RTO Registration
+#         rto_doc = frappe.get_doc("RTO Registration", rto_doc_name)
+#         rto_doc.journal_entry_id = je_rto.name
+#         rto_doc.save()
+#         frappe.db.commit()
+
+#     # Insurance Journal Entry
+#     if insurance_doc_name:
+#         je_insurance = frappe.new_doc("Journal Entry")
+#         je_insurance.voucher_type = "Journal Entry"
+#         je_insurance.company = doc.company
+#         je_insurance.posting_date = getdate()
+#         je_insurance.title = f"Insurance Charge - {doc.customer}"
+#         je_insurance.remark = f"Insurance charge of ₹{doc.custom_insurance_amount} for Sales Invoice {doc.name} paid to {doc.custom_insurance_provider}."
+#         je_insurance.append("accounts", {
+#             "account": "Debtors - A",
+#             "party_type": "Customer",
+#             "party": doc.customer,
+#             "debit_in_account_currency": doc.custom_insurance_amount,
+#             "credit_in_account_currency": 0,
+#             "cost_center": "Main - A",
+#             "against_account": doc.custom_insurance_provider
+#         })
+#         je_insurance.append("accounts", {
+#             "account": "Insurance Charges Payable - A",
+#             "party_type": "Supplier",
+#             "party": doc.custom_insurance_provider,
+#             "debit_in_account_currency": 0,
+#             "credit_in_account_currency": doc.custom_insurance_amount,
+#             "cost_center": "Main - A",
+#             "against_account": "Debtors - A"
+#         })
+#         je_insurance.save()
+#         frappe.msgprint(_("Draft Insurance Journal Entry {0} created.").format(je_insurance.name))
+
+#         # Update journal_entry_id in Vehicle Insurance
+#         insurance_doc = frappe.get_doc("Vehicle Insurance", insurance_doc_name)
+#         insurance_doc.journal_entry_id = je_insurance.name
+#         insurance_doc.save()
+#         frappe.db.commit()
+
+#     # Finance Journal Entry
+#     if finance_doc_name:
+#         je_finance = frappe.new_doc("Journal Entry")
+#         je_finance.voucher_type = "Journal Entry"
+#         je_finance.company = doc.company
+#         je_finance.posting_date = getdate()
+#         je_finance.title = doc.custom_finance_provider
+#         je_finance.remark = f"Received ₹{doc.custom_finance_amount} from {doc.custom_finance_provider} for {doc.customer}’s vehicle purchase under Sales Invoice {doc.name}."
+#         je_finance.append("accounts", {
+#             "account": "Finance Receivable - A",
+#             "party_type": "Customer",
+#             "party": doc.custom_finance_provider,
+#             "debit_in_account_currency": doc.custom_finance_amount,
+#             "credit_in_account_currency": 0,
+#             "cost_center": "Main - A",
+#             "against_account": doc.customer
+#         })
+#         je_finance.append("accounts", {
+#             "account": "Debtors - A",
+#             "party_type": "Customer",
+#             "party": doc.customer,
+#             "debit_in_account_currency": 0,
+#             "credit_in_account_currency": doc.custom_finance_amount,
+#             "cost_center": "Main - A",
+#             "against_account": doc.custom_finance_provider
+#         })
+#         je_finance.save()
+#         frappe.msgprint(_("Draft Finance Journal Entry {0} created.").format(je_finance.name))
+
+#         # Update journal_entry_id in Vehicle Finance
+#         finance_doc = frappe.get_doc("Vehicle Finance", finance_doc_name)
+#         finance_doc.journal_entry_id = je_finance.name
+#         finance_doc.save()
+#         frappe.db.commit()
+
+#     # Miscellaneous Journal Entries
+#     if misc_sales_doc_name:
+#         misc_sales_doc = frappe.get_doc("Vehicle Misc Sales", misc_sales_doc_name)
+#         for misc in doc.custom_miscellaneous:
+#             if misc.amount > 0:
+#                 je_misc = frappe.new_doc("Journal Entry")
+#                 je_misc.voucher_type = "Journal Entry"
+#                 je_misc.company = doc.company
+#                 je_misc.posting_date = getdate()
+#                 je_misc.title = f"{misc.misc_account} - {doc.customer}"
+#                 je_misc.remark = f"Miscellaneous charge of ₹{misc.amount} for Sales Invoice {doc.name} paid to {misc.misc_account}."
+#                 je_misc.append("accounts", {
+#                     "account": "Debtors - A",
+#                     "party_type": "Customer",
+#                     "party": doc.customer,
+#                     "debit_in_account_currency": misc.amount,
+#                     "credit_in_account_currency": 0,
+#                     "cost_center": "Main - A",
+#                     "against_account": misc.misc_account
+#                 })
+#                 je_misc.append("accounts", {
+#                     "account": f"{misc.misc_account} Payable - A",
+#                     "party_type": "Supplier",
+#                     "party": misc.misc_account,
+#                     "debit_in_account_currency": 0,
+#                     "credit_in_account_currency": misc.amount,
+#                     "cost_center": "Main - A",
+#                     "against_account": "Debtors - A"
+#                 })
+#                 je_misc.save()
+#                 frappe.msgprint(_("Draft Miscellaneous Journal Entry {0} created for {1}.").format(je_misc.name, misc.misc_account))
+
+#                 # Update journal_entry_id in Vehicle Misc Sales
+#                 for misc_account in misc_sales_doc.misc_accounts:
+#                     if misc_account.misc_account == misc.misc_account and not misc_account.journal_entry_id:
+#                         misc_account.journal_entry_id = je_misc.name
+#                         break
+#                 misc_sales_doc.save()
+#                 frappe.db.commit()
+
+
+# @frappe.whitelist()
+# def get_insurance_policies(provider):
+#     """Fetch insurance policies from the custom_under_insurer child table of the Supplier doctype."""
+#     policies = frappe.get_all(
+#         "Insurance Policy",
+#         filters={
+#             "parent": provider,
+#             "parenttype": "Supplier",
+#             "parentfield": "custom_under_insurer"
+#         },
+#         fields=["policy_name"]
+#     )
+#     return policies
+
+
+# def update_items_with_chassis_numbers(doc):
+#     """Update the `serial_no` field in the `items` table based on `custom_vin` chassis numbers."""
+#     item_chassis_map = {}
+
+#     # Group chassis numbers by item code
+#     for vin in doc.custom_vin:
+#         if vin.item not in item_chassis_map:
+#             item_chassis_map[vin.item] = []
+#         item_chassis_map[vin.item].append(vin.chassis_number)
+
+#     # Update items table
+#     for item in doc.items:
+#         if item.item_code in item_chassis_map:
+#             item.serial_no = "\n".join(item_chassis_map[item.item_code])
+
+
+# def update_serial_no_with_vsm(doc, vsm_doc_name):
+#     """Update Serial No doctype with VSM ID when `update_stock` is checked."""
+#     for vin in doc.get("custom_vin"):
+#         if frappe.db.exists("Serial No", vin.chassis_number):
+#             serial_no_doc = frappe.get_doc("Serial No", vin.chassis_number)
+#             serial_no_doc.custom_vsm_id = vsm_doc_name
+#             serial_no_doc.save()
+
+
+# def update_customer_vsm(doc, vsm_doc_name):
+#     """
+#     Update the Customer doctype's `custom_vin` child table with VSM ID.
+#     - If chassis number exists, update the `vsm_id`.
+#     - If chassis number does not exist, append a new row.
+#     """
+#     if not doc.customer:
+#         frappe.throw("Customer is required to update VSM ID in Customer doctype.")
+
+#     customer_doc = frappe.get_doc("Customer", doc.customer)
+
+#     for vin in doc.get("custom_vin"):
+#         existing_vin = next((cv for cv in customer_doc.get("custom_vin") if cv.chassis_number == vin.chassis_number), None)
+
+#         if existing_vin:
+#             existing_vin.vsm_id = vsm_doc_name
+#         else:
+#             customer_doc.append("custom_vin", {
+#                 "chassis_number": vin.chassis_number,
+#                 "vsm_id": vsm_doc_name
+#             })
+
+#     customer_doc.save(ignore_permissions=True)
+
+
+# def create_or_update_vehicle_sales_master(doc):
+#     """Creates or updates a Vehicle Sales Master (VSM) for the Vehicle in the Sales Invoice."""
+#     if not doc.custom_vin:
+#         frappe.throw("Chassis Number details are required in VIN table.")
+#     vin = doc.custom_vin[0]
+
+#     # Check for existing VSM
+#     vsm_doc_name = frappe.db.get_value("Vehicle Sales Master", {"sales_invoice": doc.name, "docstatus": ["!=", 2]}, "name")
+#     try:
+#         if vsm_doc_name:
+#             # Update existing VSM
+#             vsm_doc = frappe.get_doc("Vehicle Sales Master", vsm_doc_name)
+#             vsm_doc.update({
+#                 "customer": doc.customer,
+#                 "chassis_number": vin.chassis_number,
+#                 "engine_number": vin.engine_number,
+#                 "vehicle_color": vin.vehicle_color,
+#                 "manufacturing_date": vin.manufacturing_date,
+#                 "is_delivered": 1 if doc.update_stock else 0
+#             })
+#             vsm_doc.save()
+#         else:
+#             # Create new VSM
+#             vsm_doc = frappe.get_doc({
+#                 "doctype": "Vehicle Sales Master",
+#                 "customer": doc.customer,
+#                 "sales_invoice": doc.name,
+#                 "chassis_number": vin.chassis_number,
+#                 "engine_number": vin.engine_number,
+#                 "vehicle_color": vin.vehicle_color,
+#                 "manufacturing_date": vin.manufacturing_date,
+#                 "is_delivered": 1 if doc.update_stock else 0
+#             })
+#             vsm_doc.insert()
+#             vsm_doc_name = vsm_doc.name
+#         frappe.db.commit()
+#         return vsm_doc_name
+#     except frappe.DuplicateEntryError:
+#         frappe.throw(f"VSM already exists for chassis number {vin.chassis_number}.")
+#     except Exception as e:
+#         frappe.log_error(f"Error creating/updating VSM: {str(e)}")
+#         raise
+
+
+# def create_or_update_rto_registration(doc, vsm_doc_name):
+#     """Creates or updates an RTO Registration document if applicable."""
+#     # Check for existing RTO Registration
+#     rto_doc_name = frappe.db.get_value("RTO Registration", {"sales_invoice": doc.name, "docstatus": ["!=", 2]}, "name")
+#     try:
+#         if rto_doc_name:
+#             # Update existing RTO Registration
+#             rto_doc = frappe.get_doc("RTO Registration", rto_doc_name)
+#             rto_doc.update({
+#                 "customer": doc.customer,
+#                 "vsm_id": vsm_doc_name,
+#                 "rto_office": doc.custom_rto_office,
+#                 "registration_charge": doc.custom_registration_charge,
+#                 "registration_status": "Pending"
+#             })
+#             rto_doc.save()
+#         else:
+#             # Create new RTO Registration
+#             rto_doc = frappe.get_doc({
+#                 "doctype": "RTO Registration",
+#                 "customer": doc.customer,
+#                 "sales_invoice": doc.name,
+#                 "vsm_id": vsm_doc_name,
+#                 "rto_office": doc.custom_rto_office,
+#                 "registration_charge": doc.custom_registration_charge,
+#                 "registration_status": "Pending"
+#             })
+#             rto_doc.insert()
+#             rto_doc_name = rto_doc.name
+#         frappe.db.commit()
+#         return rto_doc_name
+#     except Exception as e:
+#         frappe.log_error(f"Error creating/updating RTO Registration: {str(e)}")
+#         raise
+
+
+# def create_or_update_vehicle_insurance(doc, vsm_doc_name):
+#     """Creates or updates a Vehicle Insurance document if applicable."""
+#     # Check for existing Vehicle Insurance
+#     insurance_doc_name = frappe.db.get_value("Vehicle Insurance", {"sales_invoice": doc.name, "docstatus": ["!=", 2]}, "name")
+#     try:
+#         policies = get_insurance_policies(doc.custom_insurance_provider)
+#         if not policies or doc.custom_insurance_policy not in [p.policy_name for p in policies]:
+#             frappe.throw(f"Invalid policy {doc.custom_insurance_policy} for provider {doc.custom_insurance_provider}. Available policies: {[p.policy_name for p in policies]}")
+        
+#         if insurance_doc_name:
+#             # Update existing Vehicle Insurance
+#             insurance_doc = frappe.get_doc("Vehicle Insurance", insurance_doc_name)
+#             insurance_doc.update({
+#                 "customer": doc.customer,
+#                 "vsm_id": vsm_doc_name,
+#                 "insurance_provider": doc.custom_insurance_provider,
+#                 "policy_name": doc.custom_insurance_policy,
+#                 "insurance_amount": doc.custom_insurance_amount,
+#                 "insurance_status": "Pending"
+#             })
+#             insurance_doc.save()
+#         else:
+#             # Create new Vehicle Insurance
+#             insurance_doc = frappe.get_doc({
+#                 "doctype": "Vehicle Insurance",
+#                 "customer": doc.customer,
+#                 "sales_invoice": doc.name,
+#                 "vsm_id": vsm_doc_name,
+#                 "insurance_provider": doc.custom_insurance_provider,
+#                 "policy_name": doc.custom_insurance_policy,
+#                 "insurance_amount": doc.custom_insurance_amount,
+#                 "insurance_status": "Pending"
+#             })
+#             insurance_doc.insert()
+#             insurance_doc_name = insurance_doc.name
+#         frappe.db.commit()
+#         return insurance_doc_name
+#     except Exception as e:
+#         frappe.log_error(f"Error creating/updating Vehicle Insurance: {str(e)}")
+#         raise
+
+
+# def create_or_update_vehicle_finance(doc, vsm_doc_name):
+#     """Creates or updates a Vehicle Finance document if applicable."""
+#     # Check for existing Vehicle Finance
+#     finance_doc_name = frappe.db.get_value("Vehicle Finance", {"sales_invoice": doc.name, "docstatus": ["!=", 2]}, "name")
+#     try:
+#         if finance_doc_name:
+#             # Update existing Vehicle Finance
+#             finance_doc = frappe.get_doc("Vehicle Finance", finance_doc_name)
+#             finance_doc.update({
+#                 "customer": doc.customer,
+#                 "vsm_id": vsm_doc_name,
+#                 "finance_provider": doc.custom_finance_provider,
+#                 "loan_amount": doc.custom_finance_amount,
+#                 "loan_status": "Pending"
+#             })
+#             finance_doc.save()
+#         else:
+#             # Create new Vehicle Finance
+#             finance_doc = frappe.get_doc({
+#                 "doctype": "Vehicle Finance",
+#                 "customer": doc.customer,
+#                 "sales_invoice": doc.name,
+#                 "vsm_id": vsm_doc_name,
+#                 "finance_provider": doc.custom_finance_provider,
+#                 "loan_amount": doc.custom_finance_amount,
+#                 "loan_status": "Pending"
+#             })
+#             finance_doc.insert()
+#             finance_doc_name = finance_doc.name
+#         frappe.db.commit()
+#         return finance_doc_name
+#     except Exception as e:
+#         frappe.log_error(f"Error creating/updating Vehicle Finance: {str(e)}")
+#         raise
+
+# # for msicellaneous account
+# def create_or_update_vehicle_misc_sales(doc, vsm_doc_name):
+#     """Creates or updates a Vehicle Misc Sales document if applicable."""
+#     # Check for existing Vehicle Misc Sales
+#     misc_sales_doc_name = frappe.db.get_value("Vehicle Misc Sales", {"sales_invoice": doc.name, "docstatus": ["!=", 2]}, "name")
+#     try:
+#         misc_accounts = [
+#             {
+#                 "misc_account": misc.misc_account,
+#                 "amount": misc.amount
+#             }
+#             for misc in doc.custom_miscellaneous if misc.amount > 0
+#         ]
+        
+#         if misc_sales_doc_name:
+#             # Update existing Vehicle Misc Sales
+#             misc_sales_doc = frappe.get_doc("Vehicle Misc Sales", misc_sales_doc_name)
+#             misc_sales_doc.update({
+#                 "customer": doc.customer,
+#                 "vsm_id": vsm_doc_name,
+#                 "misc_accounts": misc_accounts
+#             })
+#             misc_sales_doc.save()
+#         else:
+#             # Create new Vehicle Misc Sales
+#             misc_sales_doc = frappe.get_doc({
+#                 "doctype": "Vehicle Misc Sales",
+#                 "customer": doc.customer,
+#                 "sales_invoice": doc.name,
+#                 "vsm_id": vsm_doc_name,
+#                 "misc_accounts": misc_accounts
+#             })
+#             misc_sales_doc.insert()
+#             misc_sales_doc_name = misc_sales_doc.name
+#         frappe.db.commit()
+#         return misc_sales_doc_name
+#     except Exception as e:
+#         frappe.log_error(f"Error creating/updating Vehicle Misc Sales: {str(e)}")
+#         raise
+
+import frappe
+from frappe.utils import getdate
 
 def on_submit_sales_invoice(doc, method):
     """
     On Submit Hook for Sales Invoice:
-    - Create or update VSM, RTO, Insurance, Finance, and Misc Sales documents.
-    - Create draft Journal Entries for RTO, Insurance, Finance, and Miscellaneous charges.
+    - Create or update VSM, RTO, Insurance, Finance, RSA, Extended Warranty, and Misc Sales documents.
+    - Create draft Journal Entries for RTO, Insurance, Finance, RSA, Extended Warranty, and Miscellaneous charges.
     - Update journal_entry_id in respective documents.
     - Update Serial No and Customer doctypes with VSM ID.
+    - If any document or journal entry creation fails, rollback all changes and prevent Sales Invoice submission.
     """
-    if doc.custom_sale_type in ["Spare", "Other"]:
+    if doc.custom_sale_type != "Vehicle":
         return
 
-    # Create or update Vehicle Sales Master (VSM)
-    vsm_doc_name = create_or_update_vehicle_sales_master(doc)
+    try:
+        # Create or update Vehicle Sales Master (VSM)
+        vsm_doc_name = create_or_update_vehicle_sales_master(doc)
 
-    # Create or update RTO Registration if applicable
-    rto_doc_name = None
-    if doc.custom_rto_office and doc.custom_registration_charge:
-        rto_doc_name = create_or_update_rto_registration(doc, vsm_doc_name)
+        # Initialize document names
+        rto_doc_name = None
+        insurance_doc_name = None
+        finance_doc_name = None
+        rsa_doc_name = None
+        extended_warranty_doc_name = None
+        misc_sales_doc_name = None
 
-    # Create or update Vehicle Insurance if applicable
-    insurance_doc_name = None
-    if doc.custom_insurance_provider and doc.custom_insurance_amount and doc.custom_insurance_policy:
-        insurance_doc_name = create_or_update_vehicle_insurance(doc, vsm_doc_name)
+        # Create or update RTO Registration if applicable
+        if doc.custom_rto_office and doc.custom_registration_charge:
+            rto_doc_name = create_or_update_rto_registration(doc, vsm_doc_name)
 
-    # Create or update Vehicle Finance if applicable
-    finance_doc_name = None
-    if doc.custom_finance_provider and doc.custom_finance_amount:
-        finance_doc_name = create_or_update_vehicle_finance(doc, vsm_doc_name)
+        # Create or update Vehicle Insurance if applicable
+        if doc.custom_insurance_provider and doc.custom_insurance_amount and doc.custom_insurance_policy:
+            insurance_doc_name = create_or_update_vehicle_insurance(doc, vsm_doc_name)
 
-    # Create or update Vehicle Misc Sales if applicable
-    misc_sales_doc_name = None
-    misc_entries = [misc for misc in doc.custom_miscellaneous if misc.amount > 0]
-    if misc_entries:
-        misc_sales_doc_name = create_or_update_vehicle_misc_sales(doc, vsm_doc_name)
+        # Create or update Vehicle Finance if applicable
+        if doc.custom_finance_provider and doc.custom_finance_amount:
+            finance_doc_name = create_or_update_vehicle_finance(doc, vsm_doc_name)
 
-    # Update Serial No and Customer doctypes with VSM ID
-    if doc.update_stock:
-        update_serial_no_with_vsm(doc, vsm_doc_name)
-        update_customer_vsm(doc, vsm_doc_name)
+        # Create or update Vehicle RSA if applicable
+        if doc.custom_rsa_provider and doc.custom_rsa_amount > 0:
+            rsa_doc_name = create_or_update_vehicle_rsa(doc, vsm_doc_name)
 
-    # Update VSM with RTO, Insurance, Finance, and Misc Sales IDs
-    vsm_doc = frappe.get_doc("Vehicle Sales Master", vsm_doc_name)
-    vsm_doc.is_delivered = 1 if doc.update_stock else 0
+        # Create or update Vehicle Extended Warranty if applicable
+        if doc.custom_extended_warranty_provider and doc.custom_extended_warranty_amount > 0:
+            extended_warranty_doc_name = create_or_update_vehicle_extended_warranty(doc, vsm_doc_name)
 
-    if rto_doc_name:
-        vsm_doc.rto_registration = 1
-        vsm_doc.rto_registration_id = rto_doc_name
-        vsm_doc.rto_office = doc.custom_rto_office
-        vsm_doc.registration_status = "Pending"
+        # Create or update Vehicle Misc Sales if applicable
+        misc_entries = [misc for misc in doc.custom_miscellaneous if misc.amount > 0]
+        if misc_entries:
+            misc_sales_doc_name = create_or_update_vehicle_misc_sales(doc, vsm_doc_name)
 
-    if insurance_doc_name:
-        vsm_doc.is_insurance = 1
-        vsm_doc.insurance_id = insurance_doc_name
-        vsm_doc.insurance_provider = doc.custom_insurance_provider
-        vsm_doc.insurance_status = "Applied"
+        # Update Serial No and Customer doctypes with VSM ID
+        if doc.update_stock:
+            update_serial_no_with_vsm(doc, vsm_doc_name)
+            update_customer_vsm(doc, vsm_doc_name)
 
-    if finance_doc_name:
-        vsm_doc.is_finance = 1
-        vsm_doc.finance_id = finance_doc_name
-        vsm_doc.finance_provider = doc.custom_finance_provider
-        vsm_doc.loan_amount = doc.custom_finance_amount
-        vsm_doc.loan_status = "Pending"
+        # Update VSM with all relevant IDs and statuses
+        vsm_doc = frappe.get_doc("Vehicle Sales Master", vsm_doc_name)
+        vsm_doc.is_delivered = 1 if doc.update_stock else 0
 
-    if misc_sales_doc_name:
-        vsm_doc.vehicle_misc_sales_id = misc_sales_doc_name
+        if rto_doc_name:
+            vsm_doc.rto_registration = 1
+            vsm_doc.rto_registration_id = rto_doc_name
 
-    vsm_doc.save()
-    frappe.db.commit()
+        if insurance_doc_name:
+            vsm_doc.is_insurance = 1
+            vsm_doc.insurance_id = insurance_doc_name
 
-    # Create Journal Entries and update journal_entry_id
-    # RTO Journal Entry
-    if rto_doc_name:
-        je_rto = frappe.new_doc("Journal Entry")
-        je_rto.voucher_type = "Journal Entry"
-        je_rto.company = doc.company
-        je_rto.posting_date = getdate()
-        je_rto.title = f"RTO Charge - {doc.customer}"
-        je_rto.remark = f"RTO charge of ₹{doc.custom_registration_charge} for Sales Invoice {doc.name} paid to {doc.custom_rto_office}."
-        je_rto.append("accounts", {
-            "account": "Debtors - A",
-            "party_type": "Customer",
-            "party": doc.customer,
-            "debit_in_account_currency": doc.custom_registration_charge,
-            "credit_in_account_currency": 0,
-            "cost_center": "Main - A",
-            "against_account": doc.custom_rto_office
-        })
-        je_rto.append("accounts", {
-            "account": "RTO Charges Payable - A",
-            "party_type": "Supplier",
-            "party": doc.custom_rto_office,
-            "debit_in_account_currency": 0,
-            "credit_in_account_currency": doc.custom_registration_charge,
-            "cost_center": "Main - A",
-            "against_account": "Debtors - A"
-        })
-        je_rto.save()
-        frappe.msgprint(_("Draft RTO Journal Entry {0} created.").format(je_rto.name))
+        if finance_doc_name:
+            vsm_doc.is_finance = 1
+            vsm_doc.finance_id = finance_doc_name
 
-        # Update journal_entry_id in RTO Registration
-        rto_doc = frappe.get_doc("RTO Registration", rto_doc_name)
-        rto_doc.journal_entry_id = je_rto.name
-        rto_doc.save()
+        if rsa_doc_name:
+            vsm_doc.is_rsa = 1
+            vsm_doc.rsa_id = rsa_doc_name
+
+        if extended_warranty_doc_name:
+            vsm_doc.is_extended_warranty = 1
+            vsm_doc.extended_warranty_id = extended_warranty_doc_name
+
+        if misc_sales_doc_name:
+            vsm_doc.vehicle_misc_sales_id = misc_sales_doc_name
+
+        # Save VSM updates
+        vsm_doc.save()
+
+        # Create Journal Entries and update journal_entry_id
+        # RTO Journal Entry
+        if rto_doc_name:
+            je_rto = frappe.new_doc("Journal Entry")
+            je_rto.voucher_type = "Journal Entry"
+            je_rto.company = doc.company
+            je_rto.posting_date = getdate()
+            je_rto.title = f"RTO Charge - {doc.customer}"
+            je_rto.remark = f"RTO charge of ₹{doc.custom_registration_charge} for Sales Invoice {doc.name} paid to {doc.custom_rto_office}."
+            je_rto.append("accounts", {
+                "account": "Debtors - A",
+                "party_type": "Customer",
+                "party": doc.customer,
+                "debit_in_account_currency": doc.custom_registration_charge,
+                "credit_in_account_currency": 0,
+                "cost_center": "Main - A",
+                "against_account": doc.custom_rto_office
+            })
+            je_rto.append("accounts", {
+                "account": "RTO Charges Payable - A",
+                "party_type": "Supplier",
+                "party": doc.custom_rto_office,
+                "debit_in_account_currency": 0,
+                "credit_in_account_currency": doc.custom_registration_charge,
+                "cost_center": "Main - A",
+                "against_account": "Debtors - A"
+            })
+            je_rto.save()
+            frappe.msgprint(_("Draft RTO Journal Entry {0} created.").format(je_rto.name))
+
+            # Update journal_entry_id in RTO Registration
+            rto_doc = frappe.get_doc("RTO Registration", rto_doc_name)
+            rto_doc.journal_entry_id = je_rto.name
+            rto_doc.save()
+
+        # Insurance Journal Entry
+        if insurance_doc_name:
+            je_insurance = frappe.new_doc("Journal Entry")
+            je_insurance.voucher_type = "Journal Entry"
+            je_insurance.company = doc.company
+            je_insurance.posting_date = getdate()
+            je_insurance.title = f"Insurance Charge - {doc.customer}"
+            je_insurance.remark = f"Insurance charge of ₹{doc.custom_insurance_amount} for Sales Invoice {doc.name} paid to {doc.custom_insurance_provider}."
+            je_insurance.append("accounts", {
+                "account": "Debtors - A",
+                "party_type": "Customer",
+                "party": doc.customer,
+                "debit_in_account_currency": doc.custom_insurance_amount,
+                "credit_in_account_currency": 0,
+                "cost_center": "Main - A",
+                "against_account": doc.custom_insurance_provider
+            })
+            je_insurance.append("accounts", {
+                "account": "Insurance Charges Payable - A",
+                "party_type": "Supplier",
+                "party": doc.custom_insurance_provider,
+                "debit_in_account_currency": 0,
+                "credit_in_account_currency": doc.custom_insurance_amount,
+                "cost_center": "Main - A",
+                "against_account": "Debtors - A"
+            })
+            je_insurance.save()
+            frappe.msgprint(_("Draft Insurance Journal Entry {0} created.").format(je_insurance.name))
+
+            # Update journal_entry_id in Vehicle Insurance
+            insurance_doc = frappe.get_doc("Vehicle Insurance", insurance_doc_name)
+            insurance_doc.journal_entry_id = je_insurance.name
+            insurance_doc.save()
+
+        # RSA Journal Entry
+        if rsa_doc_name:
+            je_rsa = frappe.new_doc("Journal Entry")
+            je_rsa.voucher_type = "Journal Entry"
+            je_rsa.company = doc.company
+            je_rsa.posting_date = getdate()
+            je_rsa.title = f"RSA Charge - {doc.customer}"
+            je_rsa.remark = f"RSA charge of ₹{doc.custom_rsa_amount} for Sales Invoice {doc.name} paid to {doc.custom_rsa_provider}."
+            je_rsa.append("accounts", {
+                "account": "Debtors - A",
+                "party_type": "Customer",
+                "party": doc.customer,
+                "debit_in_account_currency": doc.custom_rsa_amount,
+                "credit_in_account_currency": 0,
+                "cost_center": "Main - A",
+                "against_account": doc.custom_rsa_provider
+            })
+            je_rsa.append("accounts", {
+                "account": f"{doc.custom_rsa_provider} Payable - A",
+                "party_type": "Supplier",
+                "party": doc.custom_rsa_provider,
+                "debit_in_account_currency": 0,
+                "credit_in_account_currency": doc.custom_rsa_amount,
+                "cost_center": "Main - A",
+                "against_account": "Debtors - A"
+            })
+            je_rsa.save()
+            frappe.msgprint(_("Draft RSA Journal Entry {0} created.").format(je_rsa.name))
+
+            # Update journal_entry_id in Vehicle RSA
+            rsa_doc = frappe.get_doc("Vehicle RSA", rsa_doc_name)
+            rsa_doc.journal_entry_id = je_rsa.name
+            rsa_doc.save()
+
+        # Extended Warranty Journal Entry
+        if extended_warranty_doc_name:
+            je_warranty = frappe.new_doc("Journal Entry")
+            je_warranty.voucher_type = "Journal Entry"
+            je_warranty.company = doc.company
+            je_warranty.posting_date = getdate()
+            je_warranty.title = f"Extended Warranty Charge - {doc.customer}"
+            je_warranty.remark = f"Extended Warranty charge of ₹{doc.custom_extended_warranty_amount} for Sales Invoice {doc.name} paid to {doc.custom_extended_warranty_provider}."
+            je_warranty.append("accounts", {
+                "account": "Debtors - A",
+                "party_type": "Customer",
+                "party": doc.customer,
+                "debit_in_account_currency": doc.custom_extended_warranty_amount,
+                "credit_in_account_currency": 0,
+                "cost_center": "Main - A",
+                "against_account": doc.custom_extended_warranty_provider
+            })
+            je_warranty.append("accounts", {
+                "account": f"{doc.custom_extended_warranty_provider} Payable - A",
+                "party_type": "Supplier",
+                "party": doc.custom_extended_warranty_provider,
+                "debit_in_account_currency": 0,
+                "credit_in_account_currency": doc.custom_extended_warranty_amount,
+                "cost_center": "Main - A",
+                "against_account": "Debtors - A"
+            })
+            je_warranty.save()
+            frappe.msgprint(_("Draft Extended Warranty Journal Entry {0} created.").format(je_warranty.name))
+
+            # Update journal_entry_id in Vehicle Extended Warranty
+            warranty_doc = frappe.get_doc("Vehicle Extended Warranty", extended_warranty_doc_name)
+            warranty_doc.journal_entry_id = je_warranty.name
+            warranty_doc.save()
+
+        # Finance Journal Entry
+        if finance_doc_name:
+            je_finance = frappe.new_doc("Journal Entry")
+            je_finance.voucher_type = "Journal Entry"
+            je_finance.company = doc.company
+            je_finance.posting_date = getdate()
+            je_finance.title = f"{doc.custom_finance_provider} - {doc.customer}"
+            je_finance.remark = f"Received ₹{doc.custom_finance_amount} from {doc.custom_finance_provider} for {doc.customer}’s vehicle purchase under Sales Invoice {doc.name}."
+            je_finance.append("accounts", {
+                "account": "Finance Receivable - A",
+                "party_type": "Customer",
+                "party": doc.custom_finance_provider,
+                "debit_in_account_currency": doc.custom_finance_amount,
+                "credit_in_account_currency": 0,
+                "cost_center": "Main - A",
+                "against_account": doc.customer
+            })
+            je_finance.append("accounts", {
+                "account": "Debtors - A",
+                "party_type": "Customer",
+                "party": doc.customer,
+                "debit_in_account_currency": 0,
+                "credit_in_account_currency": doc.custom_finance_amount,
+                "cost_center": "Main - A",
+                "against_account": doc.custom_finance_provider
+            })
+            je_finance.save()
+            frappe.msgprint(_("Draft Finance Journal Entry {0} created.").format(je_finance.name))
+
+            # Update journal_entry_id in Vehicle Finance
+            finance_doc = frappe.get_doc("Vehicle Finance", finance_doc_name)
+            finance_doc.journal_entry_id = je_finance.name
+            finance_doc.save()
+
+        # Miscellaneous Journal Entries
+        if misc_sales_doc_name:
+            misc_sales_doc = frappe.get_doc("Vehicle Misc Sales", misc_sales_doc_name)
+            for misc in doc.custom_miscellaneous:
+                if misc.amount > 0:
+                    je_misc = frappe.new_doc("Journal Entry")
+                    je_misc.voucher_type = "Journal Entry"
+                    je_misc.company = doc.company
+                    je_misc.posting_date = getdate()
+                    je_misc.title = f"Misc - {misc.misc_account} - {doc.customer}"
+                    je_misc.remark = f"Miscellaneous charge of ₹{misc.amount} for Sales Invoice {doc.name} paid to {misc.misc_account}."
+                    je_misc.append("accounts", {
+                        "account": "Debtors - A",
+                        "party_type": "Customer",
+                        "party": doc.customer,
+                        "debit_in_account_currency": misc.amount,
+                        "credit_in_account_currency": 0,
+                        "cost_center": "Main - A",
+                        "against_account": misc.misc_account
+                    })
+                    je_misc.append("accounts", {
+                        "account": f"{misc.misc_account} Payable - A",
+                        "party_type": "Supplier",
+                        "party": misc.misc_account,
+                        "debit_in_account_currency": 0,
+                        "credit_in_account_currency": misc.amount,
+                        "cost_center": "Main - A",
+                        "against_account": "Debtors - A"
+                    })
+                    je_misc.save()
+                    frappe.msgprint(_("Draft Miscellaneous Journal Entry {0} created for {1}.").format(je_misc.name, misc.misc_account))
+
+                    # Update journal_entry_id in Vehicle Misc Sales
+                    for misc_account in misc_sales_doc.misc_accounts:
+                        if misc_account.misc_account == misc.misc_account and not misc_account.journal_entry_id:
+                            misc_account.journal_entry_id = je_misc.name
+                            break
+                    misc_sales_doc.save()
+
+        # Commit all changes if everything is successful
         frappe.db.commit()
 
-    # Insurance Journal Entry
-    if insurance_doc_name:
-        je_insurance = frappe.new_doc("Journal Entry")
-        je_insurance.voucher_type = "Journal Entry"
-        je_insurance.company = doc.company
-        je_insurance.posting_date = getdate()
-        je_insurance.title = f"Insurance Charge - {doc.customer}"
-        je_insurance.remark = f"Insurance charge of ₹{doc.custom_insurance_amount} for Sales Invoice {doc.name} paid to {doc.custom_insurance_provider}."
-        je_insurance.append("accounts", {
-            "account": "Debtors - A",
-            "party_type": "Customer",
-            "party": doc.customer,
-            "debit_in_account_currency": doc.custom_insurance_amount,
-            "credit_in_account_currency": 0,
-            "cost_center": "Main - A",
-            "against_account": doc.custom_insurance_provider
-        })
-        je_insurance.append("accounts", {
-            "account": "Insurance Charges Payable - A",
-            "party_type": "Supplier",
-            "party": doc.custom_insurance_provider,
-            "debit_in_account_currency": 0,
-            "credit_in_account_currency": doc.custom_insurance_amount,
-            "cost_center": "Main - A",
-            "against_account": "Debtors - A"
-        })
-        je_insurance.save()
-        frappe.msgprint(_("Draft Insurance Journal Entry {0} created.").format(je_insurance.name))
-
-        # Update journal_entry_id in Vehicle Insurance
-        insurance_doc = frappe.get_doc("Vehicle Insurance", insurance_doc_name)
-        insurance_doc.journal_entry_id = je_insurance.name
-        insurance_doc.save()
-        frappe.db.commit()
-
-    # Finance Journal Entry
-    if finance_doc_name:
-        je_finance = frappe.new_doc("Journal Entry")
-        je_finance.voucher_type = "Journal Entry"
-        je_finance.company = doc.company
-        je_finance.posting_date = getdate()
-        je_finance.title = doc.custom_finance_provider
-        je_finance.remark = f"Received ₹{doc.custom_finance_amount} from {doc.custom_finance_provider} for {doc.customer}’s vehicle purchase under Sales Invoice {doc.name}."
-        je_finance.append("accounts", {
-            "account": "Finance Receivable - A",
-            "party_type": "Customer",
-            "party": doc.custom_finance_provider,
-            "debit_in_account_currency": doc.custom_finance_amount,
-            "credit_in_account_currency": 0,
-            "cost_center": "Main - A",
-            "against_account": doc.customer
-        })
-        je_finance.append("accounts", {
-            "account": "Debtors - A",
-            "party_type": "Customer",
-            "party": doc.customer,
-            "debit_in_account_currency": 0,
-            "credit_in_account_currency": doc.custom_finance_amount,
-            "cost_center": "Main - A",
-            "against_account": doc.custom_finance_provider
-        })
-        je_finance.save()
-        frappe.msgprint(_("Draft Finance Journal Entry {0} created.").format(je_finance.name))
-
-        # Update journal_entry_id in Vehicle Finance
-        finance_doc = frappe.get_doc("Vehicle Finance", finance_doc_name)
-        finance_doc.journal_entry_id = je_finance.name
-        finance_doc.save()
-        frappe.db.commit()
-
-    # Miscellaneous Journal Entries
-    if misc_sales_doc_name:
-        misc_sales_doc = frappe.get_doc("Vehicle Misc Sales", misc_sales_doc_name)
-        for misc in doc.custom_miscellaneous:
-            if misc.amount > 0:
-                je_misc = frappe.new_doc("Journal Entry")
-                je_misc.voucher_type = "Journal Entry"
-                je_misc.company = doc.company
-                je_misc.posting_date = getdate()
-                je_misc.title = f"Miscellaneous Charge - {doc.customer}"
-                je_misc.remark = f"Miscellaneous charge of ₹{misc.amount} for Sales Invoice {doc.name} paid to {misc.misc_account}."
-                je_misc.append("accounts", {
-                    "account": "Debtors - A",
-                    "party_type": "Customer",
-                    "party": doc.customer,
-                    "debit_in_account_currency": misc.amount,
-                    "credit_in_account_currency": 0,
-                    "cost_center": "Main - A",
-                    "against_account": misc.misc_account
-                })
-                je_misc.append("accounts", {
-                    "account": f"{misc.misc_account} Payable - A",
-                    "party_type": "Supplier",
-                    "party": misc.misc_account,
-                    "debit_in_account_currency": 0,
-                    "credit_in_account_currency": misc.amount,
-                    "cost_center": "Main - A",
-                    "against_account": "Debtors - A"
-                })
-                je_misc.save()
-                frappe.msgprint(_("Draft Miscellaneous Journal Entry {0} created for {1}.").format(je_misc.name, misc.misc_account))
-
-                # Update journal_entry_id in Vehicle Misc Sales
-                for misc_account in misc_sales_doc.misc_accounts:
-                    if misc_account.misc_account == misc.misc_account and not misc_account.journal_entry_id:
-                        misc_account.journal_entry_id = je_misc.name
-                        break
-                misc_sales_doc.save()
-                frappe.db.commit()
-
+    except Exception as e:
+        # Rollback all changes
+        frappe.db.rollback()
+        frappe.log_error(f"Error in Sales Invoice submission: {str(e)}")
+        frappe.throw(f"Failed to process Sales Invoice due to: {str(e)}. No documents or journal entries were created.")
 
 @frappe.whitelist()
 def get_insurance_policies(provider):
@@ -1265,7 +1847,6 @@ def create_or_update_vehicle_sales_master(doc):
             })
             vsm_doc.insert()
             vsm_doc_name = vsm_doc.name
-        frappe.db.commit()
         return vsm_doc_name
     except frappe.DuplicateEntryError:
         frappe.throw(f"VSM already exists for chassis number {vin.chassis_number}.")
@@ -1287,7 +1868,8 @@ def create_or_update_rto_registration(doc, vsm_doc_name):
                 "vsm_id": vsm_doc_name,
                 "rto_office": doc.custom_rto_office,
                 "registration_charge": doc.custom_registration_charge,
-                "registration_status": "Pending"
+                "registration_status": "Pending",
+                "journal_status": "Draft"
             })
             rto_doc.save()
         else:
@@ -1299,11 +1881,11 @@ def create_or_update_rto_registration(doc, vsm_doc_name):
                 "vsm_id": vsm_doc_name,
                 "rto_office": doc.custom_rto_office,
                 "registration_charge": doc.custom_registration_charge,
-                "registration_status": "Pending"
+                "registration_status": "Pending",
+                "journal_status": "Draft"
             })
             rto_doc.insert()
             rto_doc_name = rto_doc.name
-        frappe.db.commit()
         return rto_doc_name
     except Exception as e:
         frappe.log_error(f"Error creating/updating RTO Registration: {str(e)}")
@@ -1328,7 +1910,8 @@ def create_or_update_vehicle_insurance(doc, vsm_doc_name):
                 "insurance_provider": doc.custom_insurance_provider,
                 "policy_name": doc.custom_insurance_policy,
                 "insurance_amount": doc.custom_insurance_amount,
-                "insurance_status": "Pending"
+                "insurance_status": "Pending",
+                "journal_status": "Draft"
             })
             insurance_doc.save()
         else:
@@ -1341,11 +1924,11 @@ def create_or_update_vehicle_insurance(doc, vsm_doc_name):
                 "insurance_provider": doc.custom_insurance_provider,
                 "policy_name": doc.custom_insurance_policy,
                 "insurance_amount": doc.custom_insurance_amount,
-                "insurance_status": "Pending"
+                "insurance_status": "Pending",
+                "journal_status": "Draft"
             })
             insurance_doc.insert()
             insurance_doc_name = insurance_doc.name
-        frappe.db.commit()
         return insurance_doc_name
     except Exception as e:
         frappe.log_error(f"Error creating/updating Vehicle Insurance: {str(e)}")
@@ -1365,7 +1948,9 @@ def create_or_update_vehicle_finance(doc, vsm_doc_name):
                 "vsm_id": vsm_doc_name,
                 "finance_provider": doc.custom_finance_provider,
                 "loan_amount": doc.custom_finance_amount,
-                "loan_status": "Pending"
+                "loan_status": "Pending",
+                "journal_status": "Draft",
+                "loan_type": "New Vehicle"
             })
             finance_doc.save()
         else:
@@ -1377,14 +1962,89 @@ def create_or_update_vehicle_finance(doc, vsm_doc_name):
                 "vsm_id": vsm_doc_name,
                 "finance_provider": doc.custom_finance_provider,
                 "loan_amount": doc.custom_finance_amount,
-                "loan_status": "Pending"
+                "loan_status": "Pending",
+                "journal_status": "Draft",
+                "loan_type": "New Vehicle"
             })
             finance_doc.insert()
             finance_doc_name = finance_doc.name
-        frappe.db.commit()
         return finance_doc_name
     except Exception as e:
         frappe.log_error(f"Error creating/updating Vehicle Finance: {str(e)}")
+        raise
+
+
+def create_or_update_vehicle_rsa(doc, vsm_doc_name):
+    """Creates or updates a Vehicle RSA document if applicable."""
+    # Check for existing Vehicle RSA
+    rsa_doc_name = frappe.db.get_value("Vehicle RSA", {"sales_invoice": doc.name, "docstatus": ["!=", 2]}, "name")
+    try:
+        if rsa_doc_name:
+            # Update existing Vehicle RSA
+            rsa_doc = frappe.get_doc("Vehicle RSA", rsa_doc_name)
+            rsa_doc.update({
+                "customer": doc.customer,
+                "vsm_id": vsm_doc_name,
+                "rsa_provider": doc.custom_rsa_provider,
+                "rsa_amount": doc.custom_rsa_amount,
+                "rsa_status": "Pending",
+                "journal_status": "Draft"
+            })
+            rsa_doc.save()
+        else:
+            # Create new Vehicle RSA
+            rsa_doc = frappe.get_doc({
+                "doctype": "Vehicle RSA",
+                "customer": doc.customer,
+                "sales_invoice": doc.name,
+                "vsm_id": vsm_doc_name,
+                "rsa_provider": doc.custom_rsa_provider,
+                "rsa_amount": doc.custom_rsa_amount,
+                "rsa_status": "Pending",
+                "journal_status": "Draft"
+            })
+            rsa_doc.insert()
+            rsa_doc_name = rsa_doc.name
+        return rsa_doc_name
+    except Exception as e:
+        frappe.log_error(f"Error creating/updating Vehicle RSA: {str(e)}")
+        raise
+
+
+def create_or_update_vehicle_extended_warranty(doc, vsm_doc_name):
+    """Creates or updates a Vehicle Extended Warranty document if applicable."""
+    # Check for existing Vehicle Extended Warranty
+    warranty_doc_name = frappe.db.get_value("Vehicle Extended Warranty", {"sales_invoice": doc.name, "docstatus": ["!=", 2]}, "name")
+    try:
+        if warranty_doc_name:
+            # Update existing Vehicle Extended Warranty
+            warranty_doc = frappe.get_doc("Vehicle Extended Warranty", warranty_doc_name)
+            warranty_doc.update({
+                "customer": doc.customer,
+                "vsm_id": vsm_doc_name,
+                "extended_warranty_provider": doc.custom_extended_warranty_provider,
+                "extended_warranty_amount": doc.custom_extended_warranty_amount,
+                "warranty_status": "Pending",
+                "journal_status": "Draft"
+            })
+            warranty_doc.save()
+        else:
+            # Create new Vehicle Extended Warranty
+            warranty_doc = frappe.get_doc({
+                "doctype": "Vehicle Extended Warranty",
+                "customer": doc.customer,
+                "sales_invoice": doc.name,
+                "vsm_id": vsm_doc_name,
+                "extended_warranty_provider": doc.custom_extended_warranty_provider,
+                "extended_warranty_amount": doc.custom_extended_warranty_amount,
+                "warranty_status": "Pending",
+                "journal_status": "Draft"
+            })
+            warranty_doc.insert()
+            warranty_doc_name = warranty_doc.name
+        return warranty_doc_name
+    except Exception as e:
+        frappe.log_error(f"Error creating/updating Vehicle Extended Warranty: {str(e)}")
         raise
 
 
@@ -1421,7 +2081,6 @@ def create_or_update_vehicle_misc_sales(doc, vsm_doc_name):
             })
             misc_sales_doc.insert()
             misc_sales_doc_name = misc_sales_doc.name
-        frappe.db.commit()
         return misc_sales_doc_name
     except Exception as e:
         frappe.log_error(f"Error creating/updating Vehicle Misc Sales: {str(e)}")

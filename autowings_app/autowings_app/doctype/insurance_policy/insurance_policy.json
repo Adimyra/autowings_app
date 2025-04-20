@@ -8,9 +8,9 @@
  "engine": "InnoDB",
  "field_order": [
   "policy_name",
-  "coverage_details",
-  "premium_amount",
-  "policy_term_years"
+  "tp_validity_period",
+  "od_validity_period",
+  "coverage_details"
  ],
  "fields": [
   {
@@ -27,22 +27,22 @@
    "label": "Coverage Details"
   },
   {
-   "fieldname": "premium_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Premium Amount"
-  },
-  {
-   "fieldname": "policy_term_years",
+   "fieldname": "tp_validity_period",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Policy Term Years"
+   "label": "TP Validity Period (In Years)"
+  },
+  {
+   "fieldname": "od_validity_period",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "OD Validity Period (In Years)"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-15 12:57:59.342756",
+ "modified": "2025-04-20 04:47:33.225590",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Insurance Policy",

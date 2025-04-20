@@ -11,7 +11,6 @@
   "journal_entry_id",
   "journal_status",
   "customer",
-  "policy_term_years",
   "column_break_sdit",
   "insurance_status",
   "insurance_provider",
@@ -84,11 +83,6 @@
    "label": "Policy Name"
   },
   {
-   "fieldname": "policy_term_years",
-   "fieldtype": "Data",
-   "label": "Policy Term (Years)"
-  },
-  {
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -136,7 +130,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-04-18 16:08:49.642888",
+ "modified": "2025-04-21 01:14:17.535844",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",

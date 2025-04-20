@@ -44,79 +44,187 @@ function check_and_show_purchase_type_modal(frm) {
 }
 
 // **Enforce Purchase Type Selection Modal**
+// function enforce_purchase_type_selection(frm) {
+//     if (window.purchaseTypeDialogActive) return; // Prevent multiple popups
+//     window.purchaseTypeDialogActive = true;
+
+//     let wrapper = document.createElement("div");
+//     wrapper.id = "purchase-type-overlay";
+//     wrapper.innerHTML = `
+//         <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; 
+//             position: fixed; top: 0; left: 0; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
+            
+//             <div id="purchase-type-modal" style="background: white; padding: 30px; border-radius: 10px; 
+//                 text-align: center; box-shadow: 0px 0px 20px rgba(0,0,0,0.2);">
+                
+//               <h4 style="margin-bottom: 20px;">What do you want to purchase?</h4>
+//                 <div style="display: flex; justify-content: center; gap: 40px; padding-top: 10px; padding-bottom: 10px;">
+//                     <button id="purchase_spare" class="custom-button"
+//                         style="background: #6c757d; color: white; padding: 8px 20px; font-size: 18px; 
+//                         border: none; border-radius: 10px; cursor: pointer;">
+//                         Spare
+//                     </button>
+//                     <button id="purchase_other" class="custom-button"
+//                         style="background: #6c757d; color: white; padding: 8px 20px; font-size: 18px; 
+//                         border: none; border-radius: 10px; cursor: pointer;">
+//                         Other
+//                     </button>
+//                     <button id="purchase_vehicle" class="custom-button"
+//                         style="background: #000; color: white; padding: 8px 20px; font-size: 18px; 
+//                         border: none; border-radius: 10px; cursor: pointer;">
+//                         Vehicle
+//                     </button>
+//                 </div>
+
+
+//             </div>
+//         </div>
+//     `;
+
+//     document.body.appendChild(wrapper);
+
+//     document.getElementById("purchase_spare").addEventListener("click", function() {
+//         frm.set_value("custom_purchase_type", "Spare");
+//         toggle_purchase_vehicle_fields(frm);
+//         fadeOutAndClosePurchaseModal();
+//     });
+//     document.getElementById("purchase_other").addEventListener("click", function() {
+//         frm.set_value("custom_purchase_type", "Other");
+//         toggle_purchase_vehicle_fields(frm);
+//         fadeOutAndClosePurchaseModal();
+//     });
+
+//     document.getElementById("purchase_vehicle").addEventListener("click", function() {
+//         frm.set_value("custom_purchase_type", "Vehicle");
+//         toggle_purchase_vehicle_fields(frm);
+//         fadeOutAndClosePurchaseModal();
+//     });
+// }
+
 function enforce_purchase_type_selection(frm) {
     if (window.purchaseTypeDialogActive) return; // Prevent multiple popups
     window.purchaseTypeDialogActive = true;
 
-    let wrapper = document.createElement("div");
-    wrapper.id = "purchase-type-overlay";
-    wrapper.innerHTML = `
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; 
-            position: fixed; top: 0; left: 0; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
-            
-            <div id="purchase-type-modal" style="background: white; padding: 30px; border-radius: 10px; 
-                text-align: center; box-shadow: 0px 0px 20px rgba(0,0,0,0.2);">
-                
-              <h4 style="margin-bottom: 20px;">What do you want to purchase?</h4>
-                <div style="display: flex; justify-content: center; gap: 40px; padding-top: 10px; padding-bottom: 10px;">
-                    <button id="purchase_spare" class="custom-button"
-                        style="background: #6c757d; color: white; padding: 8px 20px; font-size: 18px; 
-                        border: none; border-radius: 10px; cursor: pointer;">
-                        Spare
-                    </button>
-                    <button id="purchase_other" class="custom-button"
-                        style="background: #6c757d; color: white; padding: 8px 20px; font-size: 18px; 
-                        border: none; border-radius: 10px; cursor: pointer;">
-                        Other
-                    </button>
-                    <button id="purchase_vehicle" class="custom-button"
-                        style="background: #000; color: white; padding: 8px 20px; font-size: 18px; 
-                        border: none; border-radius: 10px; cursor: pointer;">
-                        Vehicle
-                    </button>
+    // Fetch enabled purchase types from the Purchase Type doctype
+    frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+            doctype: "Purchase Type",
+            fields: ["name", "purchase_type"],
+            filters: {
+                enabled: 1
+            },
+            limit_page_length: 100
+        },
+        callback: function(response) {
+            if (!response.message || response.message.length === 0) {
+                frappe.msgprint(__("No enabled purchase types found."));
+                window.purchaseTypeDialogActive = false;
+                return;
+            }
+
+            // Create the modal overlay
+            let wrapper = document.createElement("div");
+            wrapper.id = "purchase-type-overlay";
+            wrapper.style.opacity = "0";
+            wrapper.style.transition = "opacity 0.3s ease-in-out";
+            wrapper.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; 
+                    position: fixed; top: 0; left: 0; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
+                    <div id="purchase-type-modal" style="background: white; padding: 30px; border-radius: 10px; 
+                        text-align: center; box-shadow: 0px 0px 20px rgba(0,0,0,0.2);">
+                        <h4 style="margin-bottom: 20px;">What do you want to purchase?</h4>
+                        <div id="purchase-type-buttons" style="display: flex; justify-content: center; gap: 40px; 
+                            padding-top: 10px; padding-bottom: 10px;">
+                        </div>
+                    </div>
                 </div>
+            `;
 
+            document.body.appendChild(wrapper);
 
-            </div>
-        </div>
-    `;
+            // Fade in the modal
+            setTimeout(() => {
+                wrapper.style.opacity = "1";
+            }, 10);
 
-    document.body.appendChild(wrapper);
+            // Get the button container
+            let buttonContainer = document.getElementById("purchase-type-buttons");
 
-    document.getElementById("purchase_spare").addEventListener("click", function() {
-        frm.set_value("custom_purchase_type", "Spare");
-        toggle_purchase_vehicle_fields(frm);
-        fadeOutAndClosePurchaseModal();
-    });
-    document.getElementById("purchase_other").addEventListener("click", function() {
-        frm.set_value("custom_purchase_type", "Other");
-        toggle_purchase_vehicle_fields(frm);
-        fadeOutAndClosePurchaseModal();
-    });
+            // Dynamically create buttons for each enabled purchase type
+            response.message.forEach(function(purchaseType) {
+                let button = document.createElement("button");
+                button.id = `purchase_${purchaseType.name.toLowerCase().replace(/\s+/g, "_")}`;
+                button.className = "custom-button";
+                button.innerText = purchaseType.purchase_type;
+                button.style = `
+                    background: ${purchaseType.purchase_type === "Vehicle" ? "#000" : "#6c757d"}; 
+                    color: white; 
+                    padding: 8px 20px; 
+                    font-size: 18px; 
+                    border: none; 
+                    border-radius: 10px; 
+                    cursor: pointer;
+                `;
 
-    document.getElementById("purchase_vehicle").addEventListener("click", function() {
-        frm.set_value("custom_purchase_type", "Vehicle");
-        toggle_purchase_vehicle_fields(frm);
-        fadeOutAndClosePurchaseModal();
+                // Add click event listener for each button
+                button.addEventListener("click", function() {
+                    frm.set_value("custom_purchase_type", purchaseType.purchase_type);
+                    toggle_purchase_vehicle_fields(frm);
+                    fadeOutAndClosePurchaseModal();
+                });
+
+                buttonContainer.appendChild(button);
+            });
+        },
+        error: function() {
+            frappe.msgprint(__("Error fetching purchase types."));
+            window.purchaseTypeDialogActive = false;
+        }
     });
 }
 
-// **Smooth Fade-out Effect Before Closing Modal**
+// Smooth Fade-out Effect Before Closing Modal
 function fadeOutAndClosePurchaseModal() {
-    document.getElementById("purchase-type-overlay").remove();
-    window.purchaseTypeDialogActive = false; // Reset flag after selection
+    let overlay = document.getElementById("purchase-type-overlay");
+    if (overlay) {
+        overlay.style.opacity = "0";
+        setTimeout(() => {
+            overlay.remove();
+            window.purchaseTypeDialogActive = false; // Reset flag after selection
+        }, 300); // Match the transition duration
+    } else {
+        window.purchaseTypeDialogActive = false;
+    }
 }
 
-// **Hide/Show Vehicle Details Section & Make VIN Table Mandatory When "Vehicle" is Selected**
+// Hide/Show Vehicle Details Section & Make VIN Table Mandatory When "Vehicle" is Selected
 function toggle_purchase_vehicle_fields(frm) {
     let is_vehicle = frm.doc.custom_purchase_type === "Vehicle";
 
-    // Hide `custom_purchase_vehicle_details` when "Spare" is selected
+    // Hide `custom_purchase_vehicle_details` when "Spare" or "Other" is selected
     frm.toggle_display("custom_purchase_vehicle_details", is_vehicle);
 
     // Make `custom_vin` table mandatory when "Vehicle" is selected
     // frm.toggle_reqd("custom_vin", is_vehicle);
 }
+
+// // **Smooth Fade-out Effect Before Closing Modal**
+// function fadeOutAndClosePurchaseModal() {
+//     document.getElementById("purchase-type-overlay").remove();
+//     window.purchaseTypeDialogActive = false; // Reset flag after selection
+// }
+
+// // **Hide/Show Vehicle Details Section & Make VIN Table Mandatory When "Vehicle" is Selected**
+// function toggle_purchase_vehicle_fields(frm) {
+//     let is_vehicle = frm.doc.custom_purchase_type === "Vehicle";
+
+//     // Hide `custom_purchase_vehicle_details` when "Spare" is selected
+//     frm.toggle_display("custom_purchase_vehicle_details", is_vehicle);
+
+//     // Make `custom_vin` table mandatory when "Vehicle" is selected
+//     // frm.toggle_reqd("custom_vin", is_vehicle);
+// }
 
 // **Sync `custom_vin` Table Data to `items` Table**
 function sync_vin_to_items(frm) {
@@ -150,10 +258,71 @@ function sync_vin_to_items(frm) {
 }
 
 // ✅ Show "Update VIN Data" button directly (not under Autowings menu)
+// function show_vin_buttons(frm) {
+//     if (frm.doc.custom_purchase_type === "Vehicle") {
+//         frm.add_custom_button(__('Update VIN Data'), function() {
+//             open_vin_modal(frm);
+//         });
+//     }
+// }
+// ✅ Show "Update VIN Data" and "Dummy Test" buttons when purchase type is "Vehicle"
+// ✅ Show "Update VIN Data" and "Dummy Test" buttons when purchase type is "Vehicle"
+// ✅ Show buttons based on custom_purchase_type
 function show_vin_buttons(frm) {
+    // Show "Update VIN Data" button only when custom_purchase_type is "Vehicle"
     if (frm.doc.custom_purchase_type === "Vehicle") {
         frm.add_custom_button(__('Update VIN Data'), function() {
             open_vin_modal(frm);
+        }).addClass("btn btn-primary").css({
+            "background-color": "black",
+            "color": "white",
+            "font-weight": "bold"
+        });
+    }
+
+    // Show "Update Items" button when custom_purchase_type is NOT "Vehicle" (e.g., "Spare" or "Other")
+    if (frm.doc.custom_purchase_type && frm.doc.custom_purchase_type !== "Vehicle") {
+        frm.add_custom_button(__('Update Items'), function() {
+            // Check if document is not submitted (docstatus === 0)
+            if (frm.doc.docstatus !== 0) {
+                frappe.msgprint(__('This action is only available for unsubmitted documents.'));
+                return;
+            }
+
+            // Execute Update Items logic
+            if (frm.doc.items && frm.doc.items.length > 0) {
+                frm.doc.items.forEach(function(item, index) {
+                    if (item.item_code) {
+                        frappe.call({
+                            method: 'frappe.client.get',
+                            args: { doctype: 'Item', name: item.item_code },
+                            callback: function(response) {
+                                if (response.message) {
+                                    let item_doc = response.message;
+                                    let row = frm.doc.items[index];
+                                    row.item_name = item_doc.item_name || row.item_code;
+                                    row.uom = item_doc.stock_uom || 'Nos';
+                                    row.stock_uom = item_doc.stock_uom || 'Nos';
+                                    row.conversion_factor = 1;
+                                    frm.refresh_field('items', row.name, row.parentfield);
+                                } else {
+                                    frappe.msgprint(__('Item {0} not found.', [item.item_code]));
+                                }
+                            },
+                            error: function(err) {
+                                frappe.msgprint(__('Error fetching details for item {0}.', [item.item_code]));
+                            }
+                        });
+                    }
+                });
+                frappe.msgprint(__('Item details updated successfully.'));
+            } else {
+                frappe.msgprint(__('No items found to update.'));
+            }
+        }).addClass("btn btn-secondary").css({
+            "background-color": "#6c757d",
+            "color": "white",
+            "font-weight": "bold"
         });
     }
 }
@@ -240,24 +409,6 @@ function download_blank_vin_csv(frm) {
 }
 
 
-// function update_vin_data(frm, file_url) {
-//     frappe.call({
-//         method: "autowings_app.custom_scripts.purchase_invoice.upload_vin_csv",
-//         args: {
-//             doc: JSON.stringify(frm.doc),  // ✅ Pass full document as JSON string
-//             file_url: file_url
-//         },
-//         callback: function(r) {
-//             if (!r.exc) {
-//                 frappe.msgprint(__("VIN data updated successfully."));
-                
-//                 // Update the form with new VIN data without requiring a save
-//                 frappe.model.sync(r.message.doc);
-//                 frm.refresh();
-//             }
-//         }
-//     });
-// }
 
 function update_vin_data(frm, file_url) {
     frappe.call({
@@ -286,34 +437,6 @@ function update_vin_data(frm, file_url) {
 
 
 
-
-// frappe.ui.form.on("Purchase Invoice", {
-//     refresh: function(frm) {
-//         if (frm.doc.docstatus === 1 && frm.doc.custom_purchase_type === "Vehicle") {
-//             frm.add_custom_button(__('Chassis Update'), function() {
-//                 update_chassis_details(frm);
-//             }).addClass("btn btn-primary").css({
-//                 "background-color": "black",
-//                 "color": "white",
-//                 "font-weight": "bold"
-//             });
-//         }
-//     }
-// });
-
-// function update_chassis_details(frm) {
-//     frappe.call({
-//         method: "autowings_app.custom_scripts.purchase_invoice.update_chassis_details",
-//         args: {
-//             docname: frm.doc.name
-//         },
-//         callback: function(response) {
-//             if (!response.exc) {
-//                 frappe.msgprint(__("Chassis details updated successfully!"));
-//             }
-//         }
-//     });
-// }
 frappe.ui.form.on("Purchase Invoice", {
     refresh: function(frm) {
         // ✅ Show "Chassis Update" button for submitted invoices
@@ -362,20 +485,6 @@ function update_chassis_details(frm) {
 }
 
 
-// frappe.ui.form.on("Purchase Invoice", {
-//     refresh: function(frm) {
-//         // Ensure the button is added only once to avoid duplicates
-//         if (!frm.custom_buttons || !frm.custom_buttons["Update VIN Data"]) {
-//             frm.fields_dict.custom_update_vin_data.$wrapper.find("button").on("click", function() {
-//                 frappe.msgprint({
-//                     title: __('Notification'),
-//                     indicator: 'blue',
-//                     message: __('✅ Button Clicked: Update VIN Data')
-//                 });
-//             });
-//         }
-//     }
-// });
 frappe.ui.form.on("Purchase Invoice", {
     refresh: function(frm) {
         // Hide the button if the document is submitted (docstatus == 1)
@@ -406,56 +515,56 @@ frappe.ui.form.on("Purchase Invoice", {
 });
 
 
-frappe.ui.form.on('Purchase Invoice', {
-    refresh: function(frm) {
-        // Add custom button "Update Items" if form is not submitted and purchase_type is not "Vehicle"
-        function addUpdateButton() {
-            if (frm.doc.docstatus === 0 && frm.doc.purchase_type !== 'Vehicle') {
-                if (!frm.custom_buttons['Update Items']) {
-                    frm.add_custom_button(__('Update Items'), function() {
-                        frm.doc.items.forEach(function(item, index) {
-                            if (item.item_code) {
-                                frappe.call({
-                                    method: 'frappe.client.get',
-                                    args: { doctype: 'Item', name: item.item_code },
-                                    callback: function(response) {
-                                        if (response.message) {
-                                            let item_doc = response.message;
-                                            let row = frm.doc.items[index];
-                                            row.item_name = item_doc.item_name || row.item_code;
-                                            row.uom = item_doc.stock_uom || 'Nos';
-                                            row.stock_uom = item_doc.stock_uom || 'Nos';
-                                            row.conversion_factor = 1;
-                                            frm.refresh_field('items', row.name, row.parentfield);
-                                        } else {
-                                            frappe.msgprint(__('Item {0} not found.', [item.item_code]));
-                                        }
-                                    },
-                                    error: function(err) {
-                                        frappe.msgprint(__('Error fetching details for item {0}.', [item.item_code]));
-                                    }
-                                });
-                            }
-                        });
-                        frappe.msgprint(__('Item details updated successfully.'));
-                    }).addClass('btn btn-primary btn-sm primary-action');
-                }
-            } else if (frm.custom_buttons['Update Items']) {
-                frm.remove_custom_button('Update Items');
-                console.log("Removed Update Items button due to purchase_type being Vehicle or docstatus changed");
-            }
-        }
+// frappe.ui.form.on('Purchase Invoice', {
+//     refresh: function(frm) {
+//         // Add custom button "Update Items" if form is not submitted and purchase_type is not "Vehicle"
+//         function addUpdateButton() {
+//             if (frm.doc.docstatus === 0 && frm.doc.purchase_type !== 'Vehicle') {
+//                 if (!frm.custom_buttons['Update Items']) {
+//                     frm.add_custom_button(__('Update Items'), function() {
+//                         frm.doc.items.forEach(function(item, index) {
+//                             if (item.item_code) {
+//                                 frappe.call({
+//                                     method: 'frappe.client.get',
+//                                     args: { doctype: 'Item', name: item.item_code },
+//                                     callback: function(response) {
+//                                         if (response.message) {
+//                                             let item_doc = response.message;
+//                                             let row = frm.doc.items[index];
+//                                             row.item_name = item_doc.item_name || row.item_code;
+//                                             row.uom = item_doc.stock_uom || 'Nos';
+//                                             row.stock_uom = item_doc.stock_uom || 'Nos';
+//                                             row.conversion_factor = 1;
+//                                             frm.refresh_field('items', row.name, row.parentfield);
+//                                         } else {
+//                                             frappe.msgprint(__('Item {0} not found.', [item.item_code]));
+//                                         }
+//                                     },
+//                                     error: function(err) {
+//                                         frappe.msgprint(__('Error fetching details for item {0}.', [item.item_code]));
+//                                     }
+//                                 });
+//                             }
+//                         });
+//                         frappe.msgprint(__('Item details updated successfully.'));
+//                     }).addClass('btn btn-primary btn-sm primary-action');
+//                 }
+//             } else if (frm.custom_buttons['Update Items']) {
+//                 frm.remove_custom_button('Update Items');
+//                 console.log("Removed Update Items button due to purchase_type being Vehicle or docstatus changed");
+//             }
+//         }
 
-        // Initial check with delay
-        setTimeout(() => {
-            console.log("Initial purchase_type value:", frm.doc.purchase_type);
-            addUpdateButton();
-        }, 500);
+//         // Initial check with delay
+//         setTimeout(() => {
+//             console.log("Initial purchase_type value:", frm.doc.purchase_type);
+//             addUpdateButton();
+//         }, 500);
 
-        // Real-time check when purchase_type changes
-        frm.set_df_property('purchase_type', 'change', function() {
-            console.log("purchase_type changed to:", frm.doc.purchase_type);
-            addUpdateButton();
-        });
-    }
-});
+//         // Real-time check when purchase_type changes
+//         frm.set_df_property('purchase_type', 'change', function() {
+//             console.log("purchase_type changed to:", frm.doc.purchase_type);
+//             addUpdateButton();
+//         });
+//     }
+// });

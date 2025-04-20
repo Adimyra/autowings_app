@@ -34,3 +34,40 @@ frappe.ui.form.on('Autowings Naming Series', {
         });
     }
 });
+
+
+// added custom btn 
+frappe.ui.form.on('Autowings Naming Series', {
+    refresh: function(frm) {
+        // Add custom button 'Update'
+        frm.add_custom_button(__('Update'), function() {
+            // Check if document is not submitted (docstatus === 0)
+            if (frm.doc.docstatus !== 0) {
+                frappe.msgprint(__('This action is only available for unsubmitted documents.'));
+                return;
+            }
+
+            // Call server-side method to update misc_account and enabled fields
+            frappe.call({
+                method: 'autowings_app.autowings_app.doctype.autowings_naming_series.autowings_naming_series.update_autowings_naming_series',
+                args: {
+                    docname: frm.doc.name
+                },
+                callback: function(response) {
+                    if (response.message) {
+                        // Refresh the form to reflect changes
+                        frm.reload_doc();
+                        frappe.msgprint(__('Update completed successfully.'));
+                    }
+                },
+                error: function(err) {
+                    frappe.msgprint(__('Error during update: {0}', [err.message]));
+                }
+            });
+        }).addClass("btn btn-secondary").css({
+            "background-color": "#6c757d",
+            "color": "white",
+            "font-weight": "bold"
+        });
+    }
+});
