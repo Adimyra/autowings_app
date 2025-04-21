@@ -22,5 +22,41 @@
   "parent_supplier_group": "All Supplier Groups",
   "payment_terms": null,
   "supplier_group_name": "RTO"
- }
+ },
+ {
+    "accounts": [],
+    "docstatus": 0,
+    "doctype": "Supplier Group",
+    "is_group": 0,
+    "modified": "2025-04-10 02:06:15.270531",
+    "name": "RSA Group",
+    "old_parent": "All Supplier Groups",
+    "parent_supplier_group": "All Supplier Groups",
+    "payment_terms": null,
+    "supplier_group_name": "RSA Group"
+   },
+   {
+    "accounts": [],
+    "docstatus": 0,
+    "doctype": "Supplier Group",
+    "is_group": 0,
+    "modified": "2025-04-10 02:06:15.270531",
+    "name": "Misc Group",
+    "old_parent": "All Supplier Groups",
+    "parent_supplier_group": "All Supplier Groups",
+    "payment_terms": null,
+    "supplier_group_name": "Misc Group"
+   },
+   {
+    "accounts": [],
+    "docstatus": 0,
+    "doctype": "Supplier Group",
+    "is_group": 0,
+    "modified": "2025-04-10 02:06:15.270531",
+    "name": "Extended Warranty Group",
+    "old_parent": "All Supplier Groups",
+    "parent_supplier_group": "All Supplier Groups",
+    "payment_terms": null,
+    "supplier_group_name": "Extended Warranty Group"
+   }
 ]

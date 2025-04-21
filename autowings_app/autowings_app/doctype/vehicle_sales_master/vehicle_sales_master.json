@@ -32,8 +32,8 @@
   "registration_number",
   "rto_office",
   "column_break_vktw",
-  "registration_status",
   "registration_date",
+  "rto_status",
   "insurance_details_section",
   "insurance_id",
   "insurance_provider",
@@ -156,14 +156,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "rto_registration_id.registration_status",
-   "fieldname": "registration_status",
-   "fieldtype": "Select",
-   "label": "Registration Status",
-   "options": "\nApplied\nPending\nIn Progress\nCompleted\nRejected",
-   "read_only": 1
-  },
-  {
    "fetch_from": "rto_registration_id.registration_date",
    "fieldname": "registration_date",
    "fieldtype": "Date",
@@ -204,9 +196,8 @@
   {
    "fetch_from": "insurance_id.insurance_status",
    "fieldname": "insurance_status",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "label": "Insurance Status",
-   "options": "\nApplied\nPending\nActive\nExpired",
    "read_only": 1
   },
   {
@@ -413,6 +404,12 @@
    "fieldtype": "Data",
    "label": "Warranty Status",
    "read_only": 1
+  },
+  {
+   "fetch_from": "rto_registration_id.registration_status",
+   "fieldname": "rto_status",
+   "fieldtype": "Data",
+   "label": "RTO Status"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -448,7 +445,7 @@
    "link_fieldname": "vsm_id"
   }
  ],
- "modified": "2025-04-21 01:36:27.692371",
+ "modified": "2025-04-21 12:54:03.677603",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",
