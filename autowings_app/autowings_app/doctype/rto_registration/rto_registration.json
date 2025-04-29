@@ -18,15 +18,17 @@
   "registration_charge",
   "application_entry_date",
   "application_number",
+  "section_break_driw",
+  "registration_number",
+  "column_break_qqpc",
   "payment_info_section",
   "payment_date",
   "payment_reference",
   "column_break_mwju",
   "payment_status",
   "payment_entry_id",
-  "section_break_driw",
-  "registration_number",
-  "column_break_qqpc",
+  "section_break_uaya",
+  "additional_accounts",
   "section_break_rqag",
   "rto_activity",
   "amended_from"
@@ -63,7 +65,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Registration Status",
-   "options": "\nPending\nApplied\nPayment Due\nPaid"
+   "options": "\nPending\nApplied\nPayment Due\nPaid\nRegistered"
   },
   {
    "fieldname": "registration_charge",
@@ -111,7 +113,7 @@
   {
    "fieldname": "payment_info_section",
    "fieldtype": "Section Break",
-   "label": "Payment Info"
+   "label": "Registration Payment Info"
   },
   {
    "fieldname": "payment_date",
@@ -177,12 +179,23 @@
    "label": "Payment Entry Id",
    "options": "Payment Entry",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_uaya",
+   "fieldtype": "Section Break",
+   "label": "Additional RTO Charges"
+  },
+  {
+   "fieldname": "additional_accounts",
+   "fieldtype": "Table",
+   "label": "Additional Accounts",
+   "options": "RTO Additional AC"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-21 03:02:47.228074",
+ "modified": "2025-04-29 10:27:01.590039",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",
@@ -204,5 +217,8 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
 }

@@ -93,7 +93,12 @@ doc_events = {
         "after_insert": "autowings_app.custom_scripts.supplier.on_supplier_save",
         "on_update": "autowings_app.custom_scripts.supplier.on_supplier_save",
         "on_trash": "autowings_app.custom_scripts.supplier.on_supplier_trash"
-    }
+    },
+    "Customer": {
+        "after_insert": "autowings_app.custom_scripts.customer.on_customer_save",
+        "on_update": "autowings_app.custom_scripts.customer.on_customer_save",
+        "on_trash": "autowings_app.custom_scripts.customer.on_customer_trash"
+}
 
 }
 

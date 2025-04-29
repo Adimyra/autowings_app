@@ -753,3 +753,6 @@ function update_checkbox_state(frm, checkbox_field, provider_field, amount_field
     // Enable checkbox (not read-only) if both conditions are met, otherwise disable it
     frm.set_df_property(checkbox_field, "read_only", !(has_provider && has_valid_amount));
 }
+
+
+

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- <link rel="stylesheet" href="/autowings_app/public/css/style.css"> -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 min-h-screen transition-colors duration-300">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div id="sidebar" class="bg-gradient-to-b from-gray-700 to-gray-500 dark:from-gray-800 dark:to-gray-600 text-white w-64 space-y-6 py-7 px-2 hidden md:block transition-colors duration-300">
+      <h1 class="text-2xl font-bold text-center">Admin Panel</h1>
+      <nav>
+        <a href="#dashboard" class="flex items-center py-2.5 px-4 rounded transition duration-200 hover:bg-gray-600 dark:hover:bg-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h11M9 21V3m0 0L3 10m6-7l6 7" />
+          </svg>
+          Dashboard
+        </a>
+        <a href="#users" class="flex items-center py-2.5 px-4 rounded transition duration-200 hover:bg-gray-600 dark:hover:bg-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Users
+        </a>
+        <a href="#settings" class="flex items-center py-2.5 px-4 rounded transition duration-200 hover:bg-gray-600 dark:hover:bg-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Settings
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Header with Logo, Menu Button, and Theme Switcher -->
+      <header class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-md flex items-center justify-between px-4 py-3 transition-colors duration-300">
+        <div class="flex items-center">
+          <!-- Mobile Menu Button -->
+          <button id="menu-btn" class="md:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <img src="https://adimyra.com/files/favicon.png" alt="Logo" class="h-8 w-8 mx-3 transition-all duration-300 dark:filter dark:brightness-200 dark:invert">
+          <h1 class="text-xl font-bold">Admin Panel</h1>
+        </div>
+        <!-- Theme Switcher -->
+        <div>
+          <button id="theme-switcher" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+            <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-8.66h-1M4.34 12H3m15.66 4.95l-.7-.7M6.05 6.05l-.7-.7m12.02 12.02l-.7-.7M6.05 17.95l-.7-.7M12 5a7 7 0 100 14 7 7 0 000-14z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dashboard Content -->
+      <main id="dashboard" class="p-6 space-y-6">
+        <!-- Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-gradient-to-r from-green-400 to-green-600 dark:from-green-700 dark:to-green-900 text-white p-4 rounded-lg shadow-md transition-colors duration-300">
+            <h2 class="text-lg font-bold">Card 1</h2>
+            <p class="text-gray-100">Dummy value: 123</p>
+          </div>
+          <div class="bg-gradient-to-r from-purple-400 to-purple-600 dark:from-purple-700 dark:to-purple-900 text-white p-4 rounded-lg shadow-md transition-colors duration-300">
+            <h2 class="text-lg font-bold">Card 2</h2>
+            <p class="text-gray-100">Dummy value: 456</p>
+          </div>
+          <div class="bg-gradient-to-r from-blue-400 to-blue-600 dark:from-blue-700 dark:to-blue-900 text-white p-4 rounded-lg shadow-md transition-colors duration-300">
+            <h2 class="text-lg font-bold">Card 3</h2>
+            <p class="text-gray-100">Dummy value: 789</p>
+          </div>
+          <div class="bg-gradient-to-r from-red-400 to-red-600 dark:from-red-700 dark:to-red-900 text-white p-4 rounded-lg shadow-md transition-colors duration-300">
+            <h2 class="text-lg font-bold">Card 4</h2>
+            <p class="text-gray-100">Dummy value: 101</p>
+          </div>
+        </div>
+
+        <!-- Pie Charts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-md transition-colors duration-300">
+            <h2 class="text-lg font-bold mb-4">Pie Chart 1</h2>
+            <canvas id="pieChart1" class="w-full h-64"></canvas>
+          </div>
+          <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-md transition-colors duration-300">
+            <h2 class="text-lg font-bold mb-4">Pie Chart 2</h2>
+            <canvas id="pieChart2" class="w-full h-64"></canvas>
+          </div>
+        </div>
+      </main>
+
+      <!-- Users Content -->
+      <main id="users" class="p-6 space-y-6 hidden">
+        <h2 class="text-2xl font-bold">Users Page</h2>
+        <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-md transition-colors duration-300">
+          <h3 class="text-lg font-bold mb-4">User List</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-left transition-colors duration-300">
+              <thead>
+                <tr class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                  <th class="py-2 px-4 border-b dark:border-gray-600 text-left">Name</th>
+                  <th class="py-2 px-4 border-b dark:border-gray-600 text-left">Email</th>
+                  <th class="py-2 px-4 border-b dark:border-gray-600 text-left">Role</th>
+                  <th class="py-2 px-4 border-b dark:border-gray-600 text-left">Phone</th>
+                  <th class="py-2 px-4 border-b dark:border-gray-600 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200">
+                  <td class="py-2 px-4 border-b dark:border-gray-600">John Doe</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">johndoe@example.com</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">Administrator</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">+1 234 567 890</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">Active</td>
+                </tr>
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200">
+                  <td class="py-2 px-4 border-b dark:border-gray-600">Jane Smith</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">janesmith@example.com</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">Editor</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">+1 987 654 321</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">Inactive</td>
+                </tr>
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200">
+                  <td class="py-2 px-4 border-b dark:border-gray-600">Alice Johnson</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">alicejohnson@example.com</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">Viewer</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">+1 555 666 777</td>
+                  <td class="py-2 px-4 border-b dark:border-gray-600">Active</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      <!-- Settings Content -->
+      <main id="settings" class="p-6 space-y-6 hidden">
+        <h2 class="text-2xl font-bold">Settings Page</h2>
+        <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-md transition-colors duration-300">
+          <h3 class="text-lg font-bold mb-4">Settings</h3>
+          <ul class="space-y-2">
+            <li class="flex justify-between">
+              <span class="font-medium">Theme:</span>
+              <span id="theme-status">Light</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="font-medium">Notifications:</span>
+              <span>Enabled</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="font-medium">Language:</span>
+              <span>English</span>
+            </li>
+          </ul>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Toggle sidebar on small screens
+    const menuBtn = document.getElementById('menu-btn');
+    const sidebar = document.getElementById('sidebar');
+
+    menuBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('hidden');
+    });
+
+    // Navigation between pages
+    const pages = document.querySelectorAll('main');
+    const links = document.querySelectorAll('nav a');
+
+    links.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+
+        pages.forEach(page => page.classList.add('hidden'));
+        target.classList.remove('hidden');
+      });
+    });
+
+    // Theme switcher logic
+    const themeSwitcher = document.getElementById('theme-switcher');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeStatus = document.getElementById('theme-status');
+    const htmlElement = document.documentElement;
+
+    // Function to update theme UI
+    function updateTheme(isDark) {
+      if (isDark) {
+        htmlElement.classList.add('dark');
+        themeIcon.innerHTML = `
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        `; // Moon icon
+        themeStatus.textContent = 'Dark';
+      } else {
+        htmlElement.classList.remove('dark');
+        themeIcon.innerHTML = `
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-8.66h-1M4.34 12H3m15.66 4.95l-.7-.7M6.05 6.05l-.7-.7m12.02 12.02l-.7-.7M6.05 17.95l-.7-.7M12 5a7 7 0 100 14 7 7 0 000-14z" />
+        `; // Sun icon
+        themeStatus.textContent = 'Light';
+      }
+    }
+
+    // Load theme from localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      updateTheme(true);
+    } else {
+      updateTheme(false);
+    }
+
+    // Toggle theme on click
+    themeSwitcher.addEventListener('click', () => {
+      const isDark = !htmlElement.classList.contains('dark');
+      updateTheme(isDark);
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateCharts(); // Update charts to match theme
+    });
+
+    // Chart.js theme-aware function
+    function getChartColors(isDark) {
+      return {
+        textColor: isDark ? '#E5E7EB' : '#1F2937', // gray-200 vs gray-800
+        borderColors: [
+          isDark ? 'rgba(255, 99, 132, 1)' : 'rgba(255, 99, 132, 0.8)',
+          isDark ? 'rgba(54, 162, 235, 1)' : 'rgba(54, 162, 235, 0.8)',
+          isDark ? 'rgba(255, 206, 86, 1)' : 'rgba(255, 206, 86, 0.8)',
+        ],
+        backgroundColors: [
+          isDark ? 'rgba(255, 99, 132, 0.4)' : 'rgba(255, 99, 132, 0.2)',
+          isDark ? 'rgba(54, 162, 235, 0.4)' : 'rgba(54, 162, 235, 0.2)',
+          isDark ? 'rgba(255, 206, 86, 0.4)' : 'rgba(255, 206, 86, 0.2)',
+        ],
+      };
+    }
+
+    // Initialize charts
+    let pieChart1, pieChart2;
+
+    function createCharts() {
+      const isDark = htmlElement.classList.contains('dark');
+      const colors = getChartColors(isDark);
+
+      // Pie Chart 1
+      const pieChart1Ctx = document.getElementById('pieChart1').getContext('2d');
+      pieChart1 = new Chart(pieChart1Ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Red', 'Blue', 'Yellow'],
+          datasets: [{
+            label: 'Dataset 1',
+            data: [300, 50, 100],
+            backgroundColor: colors.backgroundColors,
+            borderColor: colors.borderColors,
+            borderWidth: 1,
+          }],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: colors.textColor,
+              },
+            },
+          },
+        },
+      });
+
+      // Pie Chart 2
+      const pieChart2Ctx = document.getElementById('pieChart2').getContext('2d');
+      pieChart2 = new Chart(pieChart2Ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Green', 'Purple', 'Orange'],
+          datasets: [{
+            label: 'Dataset 2',
+            data: [200, 150, 50],
+            backgroundColor: colors.backgroundColors,
+            borderColor: colors.borderColors,
+            borderWidth: 1,
+          }],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: colors.textColor,
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // Update charts when theme changes
+    function updateCharts() {
+      const isDark = htmlElement.classList.contains('dark');
+      const colors = getChartColors(isDark);
+
+      // Update Pie Chart 1
+      pieChart1.data.datasets[0].backgroundColor = colors.backgroundColors;
+      pieChart1.data.datasets[0].borderColor = colors.borderColors;
+      pieChart1.options.plugins.legend.labels.color = colors.textColor;
+      pieChart1.update();
+
+      // Update Pie Chart 2
+      pieChart2.data.datasets[0].backgroundColor = colors.backgroundColors;
+      pieChart2.data.datasets[0].borderColor = colors.borderColors;
+      pieChart2.options.plugins.legend.labels.color = colors.textColor;
+      pieChart2.update();
+    }
+
+    // Initialize charts on page load
+    createCharts();
+  </script>
+</body>
+</html>
