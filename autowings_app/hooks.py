@@ -98,7 +98,10 @@ doc_events = {
         "after_insert": "autowings_app.custom_scripts.customer.on_customer_save",
         "on_update": "autowings_app.custom_scripts.customer.on_customer_save",
         "on_trash": "autowings_app.custom_scripts.customer.on_customer_trash"
-}
+    }
+    # "Payment Entry": {
+    #     "on_submit": "autowings_app.custom_scripts.payment_entry.on_payment_entry_submit"
+    # }
 
 }
 

@@ -1,8 +1,8 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:RTO-{YYYY}-{MM}-{####}",
- "creation": "2025-03-08 14:22:32.759060",
+ "autoname": "format:SCARD-{YYYY}-{MM}-{####}",
+ "creation": "2025-05-03 01:50:11.336761",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -13,28 +13,29 @@
   "journal_status",
   "chassis_number",
   "column_break_vdgb",
-  "registration_status",
-  "rto_office",
-  "registration_charge",
-  "application_entry_date",
-  "application_number",
+  "smart_card_status",
+  "rto_registration_id",
+  "smart_card_charge",
   "section_break_driw",
   "registration_number",
   "column_break_qqpc",
-  "updated_on",
   "payment_info_section",
   "payment_date",
   "payment_reference",
   "column_break_mwju",
   "payment_status",
   "payment_entry_id",
-  "section_break_uaya",
-  "additional_accounts",
   "section_break_rqag",
-  "rto_activity",
-  "amended_from"
+  "rto_activity"
  ],
  "fields": [
+  {
+   "fieldname": "vsm_id",
+   "fieldtype": "Link",
+   "label": "Vehicle Sales Master ID",
+   "options": "Vehicle Sales Master",
+   "read_only": 1
+  },
   {
    "fieldname": "customer",
    "fieldtype": "Link",
@@ -52,29 +53,17 @@
    "read_only": 1
   },
   {
-   "fieldname": "rto_office",
+   "fieldname": "journal_entry_id",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "RTO Office",
-   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"RTO\"]]",
-   "options": "Supplier",
+   "label": "Journal Entry ID",
+   "options": "Journal Entry",
    "read_only": 1
   },
   {
-   "fieldname": "registration_status",
+   "fieldname": "journal_status",
    "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Registration Status",
-   "options": "\nPending\nApplied\nPayment Due\nPaid\nRegistered",
-   "read_only": 1
-  },
-  {
-   "fieldname": "registration_charge",
-   "fieldtype": "Currency",
-   "label": "Registration Charge \u20b9",
-   "precision": "2",
+   "label": "Journal Status",
+   "options": "\nDraft\nSubmitted",
    "read_only": 1
   },
   {
@@ -88,34 +77,22 @@
    "read_only": 1
   },
   {
-   "fieldname": "vsm_id",
-   "fieldtype": "Link",
-   "label": "Vehicle Sales Master ID",
-   "options": "Vehicle Sales Master",
-   "read_only": 1
-  },
-  {
-   "fieldname": "journal_entry_id",
-   "fieldtype": "Link",
-   "label": "Journal Entry ID",
-   "options": "Journal Entry",
-   "read_only": 1
-  },
-  {
    "fieldname": "column_break_vdgb",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "application_entry_date",
-   "fieldtype": "Date",
-   "label": "Application Entry Date",
+   "fieldname": "section_break_driw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "registration_number",
+   "fieldtype": "Data",
+   "label": "Registration Number",
    "read_only": 1
   },
   {
-   "fieldname": "application_number",
-   "fieldtype": "Data",
-   "label": "Application Number",
-   "read_only": 1
+   "fieldname": "column_break_qqpc",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "payment_info_section",
@@ -145,19 +122,11 @@
    "read_only": 1
   },
   {
-   "fieldname": "section_break_driw",
-   "fieldtype": "Section Break",
-   "label": "Registration Details"
-  },
-  {
-   "fieldname": "registration_number",
-   "fieldtype": "Data",
-   "label": "Registration Number",
+   "fieldname": "payment_entry_id",
+   "fieldtype": "Link",
+   "label": "Payment Entry Id",
+   "options": "Payment Entry",
    "read_only": 1
-  },
-  {
-   "fieldname": "column_break_qqpc",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "section_break_rqag",
@@ -170,55 +139,37 @@
    "options": "RTO Activity Log"
   },
   {
-   "fieldname": "journal_status",
+   "fieldname": "smart_card_status",
    "fieldtype": "Select",
-   "label": "Journal Status",
-   "options": "\nDraft\nSubmitted",
-   "read_only": 1
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Smart Card Status",
+   "options": "\nPending\nApplied\nPayment Due\nPaid\nOrdered\nDispatched\nReceived\nDelivered"
   },
   {
-   "fieldname": "payment_entry_id",
+   "fieldname": "rto_registration_id",
    "fieldtype": "Link",
-   "label": "Payment Entry Id",
-   "options": "Payment Entry",
-   "read_only": 1
-  },
-  {
-   "fieldname": "section_break_uaya",
-   "fieldtype": "Section Break",
-   "label": "Additional RTO Charges"
-  },
-  {
-   "fieldname": "additional_accounts",
-   "fieldtype": "Table",
-   "label": "Additional Accounts",
-   "options": "RTO Additional AC",
-   "read_only": 1
-  },
-  {
-   "fieldname": "updated_on",
-   "fieldtype": "Date",
-   "label": "Updated On",
-   "read_only": 1
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "RTO Registration ID",
    "options": "RTO Registration",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
+  },
+  {
+   "fieldname": "smart_card_charge",
+   "fieldtype": "Currency",
+   "label": "Smart Card Charge \u20b9",
+   "precision": "2",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-03 02:33:02.100919",
+ "modified": "2025-05-03 02:29:35.489503",
  "modified_by": "Administrator",
  "module": "Autowings App",
- "name": "RTO Registration",
+ "name": "Vehicle Smart Card",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [

@@ -17,6 +17,7 @@
   "is_delivered",
   "delivery_note",
   "rto_registration",
+  "is_smart_card",
   "is_finance",
   "is_insurance",
   "is_rsa",
@@ -34,6 +35,8 @@
   "column_break_vktw",
   "registration_date",
   "rto_status",
+  "section_break_iwxj",
+  "smart_card_id",
   "insurance_details_section",
   "insurance_id",
   "insurance_provider",
@@ -410,6 +413,23 @@
    "fieldname": "rto_status",
    "fieldtype": "Data",
    "label": "RTO Status"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_smart_card",
+   "fieldtype": "Check",
+   "label": "Is Smart Card",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_iwxj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "smart_card_id",
+   "fieldtype": "Link",
+   "label": "Smart Card Id",
+   "options": "Vehicle Smart Card"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -445,7 +465,7 @@
    "link_fieldname": "vsm_id"
   }
  ],
- "modified": "2025-04-24 15:00:40.832698",
+ "modified": "2025-05-03 02:06:51.571655",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",

@@ -94,8 +94,8 @@ def add_rto_activity(rto_name, item, status, date, user=None):
             frappe.throw(_("RTO Registration {0} does not exist.").format(rto_name))
         
         # Validate status
-        if status not in ["Received", "Delivered"]:
-            frappe.throw(_("Status must be either 'Received' or 'Delivered'."))
+        # if status not in ["Received", "Delivered"]:
+        #     frappe.throw(_("Status must be either 'Received' or 'Delivered'."))
         
         # Set user to current user if not provided
         user = user or frappe.session.user

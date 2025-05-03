@@ -1,3 +1,4 @@
+/* Update Journals Button */
 .btn-update-journals {
     background: transparent;
     border: 2px solid #555555;
@@ -28,7 +29,65 @@
     z-index: 1;
 }
 
-/* hide */
+/* Update Button */
+.btn-update {
+    background: transparent;
+    border: 2px solid #555555;
+    color: #555555;
+    box-shadow: none;
+    padding: 8px 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-update:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+    color: #fff;
+    text-decoration: none;
+    background: rgba(85, 85, 85, 0.1);
+    border-color: #2a2a2a;
+}
+
+.btn-update:active {
+    opacity: 0.75;
+    transform: translateY(0);
+}
+
+.btn-update span {
+    position: relative;
+    z-index: 1;
+}
+
+/* Submit Button */
+.btn-update2 {
+    background-color: #28a745 !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    border: none !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    transition: background-color 0.2s ease, transform 0.1s ease !important;
+}
+
+.btn-update2:hover {
+    background-color: #218838 !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-update2:active {
+    background-color: #1e7e34 !important;
+    transform: translateY(0) !important;
+}
+
+.btn-update2:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3) !important;
+}
+
+/* Hide Vehicle Type Grid Elements */
 .vehicle-type .grid-footer,
 .vehicle-type .grid-custom-buttons {
     display: none !important;
