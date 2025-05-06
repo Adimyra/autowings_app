@@ -1622,75 +1622,6 @@
 // });
 
 frappe.ui.form.on('RTO Registration', {
-    refresh: function(frm) {
-        // Add custom button for submitting journals if main or child journals exist
-        if (frm.doc.docstatus === 0 && (frm.doc.journal_entry_id || (frm.doc.additional_accounts && frm.doc.additional_accounts.some(acc => acc.journal_entry_id)))) {
-            frm.remove_custom_button(__('Submit Journals'));
-
-            // Collect all journal IDs
-            let journal_ids = [];
-            if (frm.doc.journal_entry_id) {
-                journal_ids.push(frm.doc.journal_entry_id);
-            }
-            if (frm.doc.additional_accounts) {
-                frm.doc.additional_accounts.forEach(acc => {
-                    if (acc.journal_entry_id) {
-                        journal_ids.push(acc.journal_entry_id);
-                    }
-                });
-            }
-
-            // Fetch docstatus for all journals
-            Promise.all(journal_ids.map(id => 
-                frappe.db.get_value('Journal Entry', id, 'docstatus')
-                    .then(r => ({ id, docstatus: r.message.docstatus }))
-            )).then(results => {
-                // Check if all journals are submitted (docstatus === 1)
-                const allSubmitted = results.every(result => result.docstatus === 1);
-
-                // Add the button
-                const button = frm.add_custom_button(
-                    allSubmitted ? __('Journals Submitted') : __('Submit Journals'),
-                    function() {
-                        if (!allSubmitted) {
-                            show_submit_journals_dialog(frm);
-                        } else {
-                            frappe.msgprint({
-                                title: __('Journals Submitted'),
-                                message: __('All journals are already submitted.'),
-                                indicator: 'green'
-                            });
-                        }
-                    }
-                );
-
-                // Apply styling and disable if all submitted
-                button.addClass(allSubmitted ? 'btn-update btn-disabled' : 'btn-update2');
-                if (allSubmitted) {
-                    button.prop('disabled', true);
-                }
-
-                // Re-apply class and disabled state after a short delay to handle rendering issues
-                setTimeout(() => {
-                    button.addClass(allSubmitted ? 'btn-update btn-disabled' : 'btn-update2');
-                    if (allSubmitted) {
-                        button.prop('disabled', true);
-                    }
-                }, 100);
-            }).catch(err => {
-                console.error('Error fetching journal statuses:', err);
-                // Fallback: add button without disabling
-                const button = frm.add_custom_button(__('Submit Journals'), function() {
-                    show_submit_journals_dialog(frm);
-                });
-                button.addClass('btn-update2');
-                setTimeout(() => {
-                    button.addClass('btn-update2');
-                }, 100);
-            });
-        }
-    },
-
     before_workflow_action: function(frm) {
         // Intercept Verify action in Application Entry in Vahan state
         if (frm.selected_workflow_action === 'Verify' && frm.doc.workflow_state === 'Application Entry in Vahan') {
@@ -1701,6 +1632,39 @@ frappe.ui.form.on('RTO Registration', {
         else if (frm.selected_workflow_action === 'Approve' && frm.doc.workflow_state === 'Vahan Entry Verification') {
             frappe.validated = false; // Prevent default workflow transition
             trigger_approve_action(frm);
+        }
+        // Intercept Update Registration Number action in Due Registration Number state
+        else if (frm.selected_workflow_action === 'Update Registration Number' && frm.doc.workflow_state === 'Due Registration Number') {
+            frappe.validated = false; // Prevent default workflow transition
+            trigger_update_registration_number_action(frm);
+        }
+        // Intercept RTO Payment Entry action in Due RTO Charges Payment state
+        else if (frm.selected_workflow_action === 'RTO Payment Entry' && frm.doc.workflow_state === 'Due RTO Charges Payment') {
+            frappe.validated = false; // Prevent default workflow transition
+            trigger_rto_payment_entry_action(frm);
+        }
+    },
+
+    // Prevent changes to registration_charge if journal is submitted
+    registration_charge: function(frm) {
+        if (frm.doc.journal_entry_id) {
+            frappe.db.get_value('Journal Entry', frm.doc.journal_entry_id, 'docstatus')
+                .then(r => {
+                    if (r.message.docstatus === 1) {
+                        frappe.msgprint({
+                            title: __('Validation Error'),
+                            message: __('Cannot change Registration Charge because the journal is submitted.'),
+                            indicator: 'red'
+                        });
+                        frm.set_value('registration_charge', frm.doc.__original_registration_charge || frm.doc.registration_charge);
+                    } else {
+                        // Store the original value for rollback if needed
+                        frm.doc.__original_registration_charge = frm.doc.registration_charge;
+                    }
+                })
+                .catch(err => {
+                    console.error('Error checking journal status:', err);
+                });
         }
     }
 });
@@ -1714,9 +1678,9 @@ function trigger_verify_action(frm) {
         }
 
         // Check if any journals are submitted
-        if (frm.doc.journal_status === 'Submitted' ) {
+        if (frm.doc.journal_status === 'Submitted') {
             frappe.confirm(
-                __('Some journal are already submitted. Do you want to cancel them to proceed with updates?'),
+                __('Some journals are already submitted. Do you want to cancel them to proceed with updates?'),
                 function() {
                     cancel_journals_and_proceed(frm);
                 },
@@ -1746,7 +1710,6 @@ function trigger_approve_action(frm) {
     try {
         // Check if rto_office is set
         if (!frm.doc.rto_office) {
-            console.log('RTO Office missing, triggering alert');
             setTimeout(() => {
                 frappe.msgprint({
                     title: __('Validation Error'),
@@ -1754,7 +1717,6 @@ function trigger_approve_action(frm) {
                     indicator: 'red'
                 });
             }, 2000);
-            // Set workflow_state to Vahan Entry Verification
             frappe.call({
                 method: 'frappe.client.set_value',
                 args: {
@@ -1765,7 +1727,7 @@ function trigger_approve_action(frm) {
                     }
                 },
                 callback: function(r) {
-                    frm.reload_doc(); // Refresh to avoid document modified error
+                    frm.reload_doc();
                 },
                 error: function(err) {
                     frappe.msgprint({
@@ -1776,13 +1738,12 @@ function trigger_approve_action(frm) {
                     console.error('Set Workflow State Error:', err);
                 }
             });
-            frappe.validated = false; // Prevent workflow transition
+            frappe.validated = false;
             return;
         }
 
         // Check if journal_entry_id exists
         if (!frm.doc.journal_entry_id) {
-            console.log('Journal Entry ID missing, triggering alert');
             setTimeout(() => {
                 frappe.msgprint({
                     title: __('Validation Error'),
@@ -1790,7 +1751,6 @@ function trigger_approve_action(frm) {
                     indicator: 'red'
                 });
             }, 2000);
-            // Set workflow_state to Vahan Entry Verification
             frappe.call({
                 method: 'frappe.client.set_value',
                 args: {
@@ -1801,7 +1761,7 @@ function trigger_approve_action(frm) {
                     }
                 },
                 callback: function(r) {
-                    frm.reload_doc(); // Refresh to avoid document modified error
+                    frm.reload_doc();
                 },
                 error: function(err) {
                     frappe.msgprint({
@@ -1812,7 +1772,7 @@ function trigger_approve_action(frm) {
                     console.error('Set Workflow State Error:', err);
                 }
             });
-            frappe.validated = false; // Prevent workflow transition
+            frappe.validated = false;
             return;
         }
 
@@ -1820,69 +1780,50 @@ function trigger_approve_action(frm) {
         frappe.db.get_doc('Journal Entry', frm.doc.journal_entry_id)
             .then(journal => {
                 if (journal.docstatus === 1) {
-                    // Journal is submitted, allow workflow to proceed
-                    frappe.validated = true;
-                    frappe.call({
-                        method: 'frappe.model.workflow.apply_workflow',
-                        args: {
-                            doc: frm.doc,
-                            action: 'Approve'
+                    // Journal is submitted, proceed to next state based on payment_status
+                    proceed_to_next_state(frm);
+                } else {
+                    // Show confirmation popup for journal submission
+                    frappe.confirm(
+                        __('This will submit the journal. Are you sure?'),
+                        function() {
+                            // Allow updating registration_charge before submission
+                            show_update_registration_charge_dialog_for_approve(frm, journal);
                         },
-                        callback: function(r) {
-                            frm.reload_doc();
+                        function() {
+                            // User cancelled, stay in Vahan Entry Verification
                             frappe.msgprint({
-                                title: __('Success'),
-                                message: __('Workflow approved. Transitioned to Due RTO Charges Payment.'),
-                                indicator: 'green'
-                            });
-                        },
-                        error: function(err) {
-                            frappe.msgprint({
-                                title: __('Error'),
-                                message: __('Error applying workflow action: ') + (err.message || JSON.stringify(err)),
+                                title: __('Action Cancelled'),
+                                message: __('Approval cancelled by user.'),
                                 indicator: 'red'
                             });
-                            console.error('Workflow Approve Error:', err);
+                            frappe.call({
+                                method: 'frappe.client.set_value',
+                                args: {
+                                    doctype: 'RTO Registration',
+                                    name: frm.doc.name,
+                                    fieldname: {
+                                        workflow_state: 'Vahan Entry Verification'
+                                    }
+                                },
+                                callback: function(r) {
+                                    frm.reload_doc();
+                                },
+                                error: function(err) {
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Error setting workflow state: ') + (err.message || JSON.stringify(err)),
+                                        indicator: 'red'
+                                    });
+                                    console.error('Set Workflow State Error:', err);
+                                }
+                            });
                             frappe.validated = false;
                         }
-                    });
-                } else {
-                    // Journal is not submitted, show alert and stay in Vahan Entry Verification
-                    console.log('Journal not submitted, triggering alert');
-                    setTimeout(() => {
-                        frappe.msgprint({
-                            title: __('Validation Error'),
-                            message: __('Journal Entry is not submitted.'),
-                            indicator: 'red'
-                        });
-                    }, 2000);
-                    // Set workflow_state to Vahan Entry Verification
-                    frappe.call({
-                        method: 'frappe.client.set_value',
-                        args: {
-                            doctype: 'RTO Registration',
-                            name: frm.doc.name,
-                            fieldname: {
-                                workflow_state: 'Vahan Entry Verification'
-                            }
-                        },
-                        callback: function(r) {
-                            frm.reload_doc(); // Refresh to avoid document modified error
-                        },
-                        error: function(err) {
-                            frappe.msgprint({
-                                title: __('Error'),
-                                message: __('Error setting workflow state: ') + (err.message || JSON.stringify(err)),
-                                indicator: 'red'
-                            });
-                            console.error('Set Workflow State Error:', err);
-                        }
-                    });
-                    frappe.validated = false; // Prevent workflow transition
+                    );
                 }
             })
             .catch(err => {
-                console.log('Error fetching journal, triggering alert');
                 setTimeout(() => {
                     frappe.msgprint({
                         title: __('Validation Error'),
@@ -1890,8 +1831,6 @@ function trigger_approve_action(frm) {
                         indicator: 'red'
                     });
                 }, 2000);
-                console.error('Fetch Journal Error:', err);
-                // Set workflow_state to Vahan Entry Verification
                 frappe.call({
                     method: 'frappe.client.set_value',
                     args: {
@@ -1902,7 +1841,7 @@ function trigger_approve_action(frm) {
                         }
                     },
                     callback: function(r) {
-                        frm.reload_doc(); // Refresh to avoid document modified error
+                        frm.reload_doc();
                     },
                     error: function(err) {
                         frappe.msgprint({
@@ -1913,10 +1852,10 @@ function trigger_approve_action(frm) {
                         console.error('Set Workflow State Error:', err);
                     }
                 });
-                frappe.validated = false; // Prevent workflow transition
+                frappe.validated = false;
+                console.error('Fetch Journal Error:', err);
             });
     } catch (err) {
-        console.log('General error in approve action, triggering alert');
         setTimeout(() => {
             frappe.msgprint({
                 title: __('Validation Error'),
@@ -1924,8 +1863,6 @@ function trigger_approve_action(frm) {
                 indicator: 'red'
             });
         }, 2000);
-        console.error('Approve Action Error:', err);
-        // Set workflow_state to Vahan Entry Verification
         frappe.call({
             method: 'frappe.client.set_value',
             args: {
@@ -1936,7 +1873,7 @@ function trigger_approve_action(frm) {
                 }
             },
             callback: function(r) {
-                frm.reload_doc(); // Refresh to avoid document modified error
+                frm.reload_doc();
             },
             error: function(err) {
                 frappe.msgprint({
@@ -1947,386 +1884,347 @@ function trigger_approve_action(frm) {
                 console.error('Set Workflow State Error:', err);
             }
         });
-        frappe.validated = false; // Prevent workflow transition
+        frappe.validated = false;
+        console.error('Approve Action Error:', err);
     }
 }
-// frappe.ui.form.on('RTO Registration', {
-//     refresh: function(frm) {
-//         // Add custom button for submitting journals if main or child journals exist
-//         if (frm.doc.docstatus === 0 && (frm.doc.journal_entry_id || (frm.doc.additional_accounts && frm.doc.additional_accounts.some(acc => acc.journal_entry_id)))) {
-//             frm.remove_custom_button(__('Submit Journals'));
-//             frm.add_custom_button(__('Submit Journals'), function() {
-//                 show_submit_journals_dialog(frm);
-//             });
-//         }
-//     }
-// });
-// Dialog to submit main and child table journals
-function show_submit_journals_dialog(frm) {
-    // Collect all journal IDs (main and child table)
-    let journals = [];
-    if (frm.doc.journal_entry_id) {
-        journals.push({ id: frm.doc.journal_entry_id, is_main: true });
-    }
-    if (frm.doc.additional_accounts) {
-        frm.doc.additional_accounts.forEach((acc, idx) => {
-            if (acc.journal_entry_id) {
-                journals.push({ id: acc.journal_entry_id, is_main: false, idx: idx, smart_card_id: acc.smart_card_id });
-            }
-        });
-    }
 
-    if (!journals.length) {
-        frappe.msgprint({
-            title: __('No Journals'),
-            message: __('No journals found to submit.'),
-            indicator: 'blue'
-        });
-        return;
-    }
-
-    // Fetch journal statuses
-    let journal_statuses = {};
-    Promise.all(journals.map(j => 
-        frappe.db.get_value('Journal Entry', j.id, ['docstatus', 'title'])
-            .then(r => {
-                journal_statuses[j.id] = {
-                    docstatus: r.message.docstatus,
-                    title: r.message.title || j.id,
-                    is_main: j.is_main,
-                    idx: j.idx,
-                    smart_card_id: j.smart_card_id
-                };
-            })
-    )).then(() => {
-        // Build dialog fields
-        let fields = journals.map(j => ({
-            label: journal_statuses[j.id].is_main 
-                ? `${__('Main Journal')}: <b>${journal_statuses[j.id].title}</b>` 
-                : `${__('Additional Journal')}: <b>${journal_statuses[j.id].title}</b>`,
-            fieldname: `journal_${j.id.replace(/[^a-zA-Z0-9]/g, '_')}`,
-            fieldtype: 'HTML',
-            options: `
-                <div class="p-2">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr style="border: none;">
-                            <td style="padding: 8px; text-align: left; border: none; width: 30%;">
-                                <a href="/app/journal-entry/${j.id}" target="_blank" class="text-blue-600 hover:underline">${j.id}</a>
-                            </td>
-                            <td style="padding: 8px; font-weight: bold; text-align: left; border: none; width: 30%;">
-                                <span class="text-gray-600">${
-                                    journal_statuses[j.id].is_main 
-                                        ? frm.doc.rto_office 
-                                        : frm.doc.additional_accounts[j.idx].account
-                                }</span>
-                            </td>
-                            <td style="padding: 8px; text-align: left; border: none; width: 40%;">
-                                ${
-                                    journal_statuses[j.id].docstatus === 1 
-                                        ? `<button class="btn btn-success btn-disabled text-white px-4 py-2 rounded-md" disabled>${__('Submitted')}</button>` 
-                                        : `<button 
-                                            class="btn btn-success text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors duration-200" 
-                                            onclick="submitJournal('${j.id}', ${j.is_main}, ${j.idx}, '${j.smart_card_id || ''}', this)"
-                                           >${__('Submit')}</button>`
-                                }
-                            </td>
-                        </tr>
-                    </table>
-                </div>`
-        }));
-
-        let dialog = new frappe.ui.Dialog({
-            title: __('Submit Journals'),
-            fields: fields,
-            size: 'large', // Make dialog wider for better layout
-            primary_action_label: __('Close'),
-            primary_action: function() {
-                dialog.hide();
-            },
-            // Add custom CSS for a world-class look
-            on_page_show: function() {
-                $('.modal-content').addClass('shadow-lg rounded-lg border border-gray-200');
-                $('.modal-title').addClass('text-xl font-semibold text-gray-800');
-                $('.modal-body').addClass('p-6 bg-gray-50');
-                $('.modal-footer').addClass('border-t border-gray-200 bg-white');
-                $('.btn-primary').addClass('bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2');
-            }
-        });
-        dialog.show();
-
-        // Define submitJournal function globally to be accessible from HTML buttons
-        window.submitJournal = function(journal_id, is_main, idx, smart_card_id, button) {
-            if (journal_statuses[journal_id].docstatus === 1) {
-                return;
-            }
-
-            // Validate application_entry_date and application_number for main journal
-            if (is_main && (!frm.doc.application_entry_date || !frm.doc.application_number)) {
-                frappe.msgprint({
-                    title: __('Validation Error'),
-                    message: __('Application details required first then journal submit.'),
-                    indicator: 'red'
-                });
-                return;
-            }
-
-            submit_journal(journal_id).then(() => {
-                // Update statuses
-                let updates = {};
-                if (is_main) {
-                    updates.journal_status = 'Submitted';
-                } else {
-                    let additional_accounts = frm.doc.additional_accounts.map((acc, index) => ({
-                        ...acc,
-                        status: index === idx && acc.journal_entry_id === journal_id ? 'Submitted' : acc.status
-                    }));
-                    updates.additional_accounts = additional_accounts;
+// Main function to handle Update Registration Number action
+function trigger_update_registration_number_action(frm) {
+    try {
+        // Show a dialog to prompt for the registration number
+        let d = new frappe.ui.Dialog({
+            title: __('Enter Registration Number'),
+            fields: [
+                {
+                    label: __('Registration Number'),
+                    fieldname: 'registration_number',
+                    fieldtype: 'Data',
+                    reqd: 0 // Not mandatory, as we allow empty input
                 }
-
-                // // Update Vehicle Smart Card journal_status if applicable
-                // if (!is_main && smart_card_id) {
-                //     frappe.call({
-                //         method: 'frappe.client.set_value',
-                //         args: {
-                //             doctype: 'Vehicle Smart Card',
-                //             name: smart_card_id,
-                //             fieldname: { journal_status: 'Submitted' }
-                //             // also add workflow_state field value Application Entry in Vahan when submitted and smart_card_status == "Payment Due"
-
-
-                //         },
-                //         callback: function(r) {
-                //             if (!r.exc) {
-                //                 frappe.msgprint({
-                //                     title: __('Success'),
-                //                     message: __('Vehicle Smart Card journal status updated.'),
-                //                     indicator: 'green'
-                //                 });
-                //             }
-                //         },
-                //         error: function(err) {
-                //             frappe.msgprint({
-                //                 title: __('Error'),
-                //                 message: __('Error updating Vehicle Smart Card journal status: ') + (err.message || JSON.stringify(err)),
-                //                 indicator: 'red'
-                //             });
-                //             console.error('Vehicle Smart Card Update Error:', err);
-                //         }
-                //     });
-                // }
-                // Update Vehicle Smart Card journal_status if applicable
-                if (!is_main && smart_card_id) {
-                    // Fetch smart_card_status to check if it's "Payment Due"
-                    frappe.db.get_value('Vehicle Smart Card', smart_card_id, 'smart_card_status')
-                        .then(r => {
-                            let smart_card_status = r.message.smart_card_status;
-                            console.log(`Smart Card ID: ${smart_card_id}, Status: ${smart_card_status}`); // Debug log
-                            let fields_to_update = { 
-                                journal_status: 'Submitted',
-                                smart_card_status: 'Payment Due'
-                            };
-
-                            // If smart_card_status is "Payment Due", also update workflow_state
-                            if (smart_card_status === 'Payment Due') {
-                                fields_to_update.workflow_state = 'Application Entry in Vahan';
-                            }
-
-                            // Update Vehicle Smart Card
-                            frappe.call({
-                                method: 'frappe.client.set_value',
-                                args: {
-                                    doctype: 'Vehicle Smart Card',
-                                    name: smart_card_id,
-                                    fieldname: fields_to_update
-                                },
-                                callback: function(r) {
-                                    if (!r.exc) {
-                                        frappe.msgprint({
-                                            title: __('Success'),
-                                            message: __('Vehicle Smart Card journal status'
-                                                + (smart_card_status === 'Payment Due' ? ' and workflow state' : '') 
-                                                + ' updated.'),
-                                            indicator: 'green'
-                                        });
-                                    }
-                                },
-                                error: function(err) {
-                                    frappe.msgprint({
-                                        title: __('Error'),
-                                        message: __('Error updating Vehicle Smart Card: ') + (err.message || JSON.stringify(err)),
-                                        indicator: 'red'
-                                    });
-                                    console.error('Vehicle Smart Card Update Error:', err);
-                                }
-                            });
-                        })
-                        .catch(err => {
-                            frappe.msgprint({
-                                title: __('Error'),
-                                message: __('Error fetching Vehicle Smart Card status: ') + (err.message || JSON.stringify(err)),
-                                indicator: 'red'
-                            });
-                            console.error('Fetch Vehicle Smart Card Status Error:', err);
-                        });
-                }
-
+            ],
+            primary_action_label: __('Submit'),
+            primary_action(values) {
+                // Update the registration_number field without submitting the document
                 frappe.call({
                     method: 'frappe.client.set_value',
                     args: {
                         doctype: 'RTO Registration',
                         name: frm.doc.name,
-                        fieldname: updates
+                        fieldname: {
+                            registration_number: values.registration_number || ''
+                        }
                     },
                     callback: function(r) {
-                        frm.reload_doc();
-                        frappe.msgprint({
-                            title: __('Success'),
-                            message: __('Journal ') + journal_statuses[journal_id].title + __(' submitted successfully.'),
-                            indicator: 'green'
-                        });
-                        // Update button to disabled state with "Submitted" text
-                        button.outerHTML = `<button class="btn btn-success btn-disabled text-white px-4 py-2 rounded-md" disabled>${__('Submitted')}</button>`;
-                        journal_statuses[journal_id].docstatus = 1;
+                        if (!r.exc) {
+                            // Refresh the form to reflect the updated field
+                            frm.reload_doc();
+                            // Trigger the workflow action to evaluate the condition
+                            frappe.call({
+                                method: 'frappe.model.workflow.apply_workflow',
+                                args: {
+                                    doc: frm.doc,
+                                    action: 'Update Registration Number'
+                                },
+                                callback: function(r) {
+                                    if (!r.exc) {
+                                        // Refresh the form to reflect the new state
+                                        frm.reload_doc();
+                                        if (values.registration_number) {
+                                            frappe.msgprint({
+                                                title: __('Success'),
+                                                message: __('Registration Number updated and workflow state changed.'),
+                                                indicator: 'green'
+                                            });
+                                        } else {
+                                            frappe.msgprint({
+                                                title: __('No Input'),
+                                                message: __('No Registration Number provided. Workflow state remains Due Registration Number.'),
+                                                indicator: 'blue'
+                                            });
+                                        }
+                                    } else {
+                                        frappe.msgprint({
+                                            title: __('Error'),
+                                            message: __('Error applying workflow action: ') + (r.exc || JSON.stringify(r)),
+                                            indicator: 'red'
+                                        });
+                                        console.error('Workflow Action Error:', r.exc);
+                                    }
+                                },
+                                error: function(err) {
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Error applying workflow action: ') + (err.message || JSON.stringify(err)),
+                                        indicator: 'red'
+                                    });
+                                    console.error('Workflow Action Error:', err);
+                                }
+                            });
+                        } else {
+                            frappe.msgprint({
+                                title: __('Error'),
+                                message: __('Error updating Registration Number: ') + (r.exc || JSON.stringify(r)),
+                                indicator: 'red'
+                            });
+                            console.error('Update Field Error:', r.exc);
+                        }
                     },
                     error: function(err) {
                         frappe.msgprint({
                             title: __('Error'),
-                            message: __('Error updating journal status: ') + (err.message || JSON.stringify(err)),
+                            message: __('Error updating Registration Number: ') + (err.message || JSON.stringify(err)),
                             indicator: 'red'
                         });
-                        console.error('Update Status Error:', err);
+                        console.error('Update Field Error:', err);
                     }
                 });
-            }).catch(err => {
+                d.hide();
+            },
+            secondary_action_label: __('Cancel'),
+            secondary_action: function() {
+                d.hide();
                 frappe.msgprint({
-                    title: __('Error'),
-                    message: __('Error submitting journal: ') + (err.message || JSON.stringify(err)),
+                    title: __('Action Cancelled'),
+                    message: __('Registration Number update cancelled.'),
                     indicator: 'red'
                 });
-                console.error('Submit Journal Error:', err);
-            });
-        };
-    }).catch(err => {
+                // Stay in Due Registration Number
+                frappe.call({
+                    method: 'frappe.client.set_value',
+                    args: {
+                        doctype: 'RTO Registration',
+                        name: frm.doc.name,
+                        fieldname: {
+                            workflow_state: 'Due Registration Number'
+                        }
+                    },
+                    callback: function(r) {
+                        frm.reload_doc();
+                    }
+                });
+                frappe.validated = false;
+            }
+        });
+        d.show();
+    } catch (err) {
         frappe.msgprint({
             title: __('Error'),
-            message: __('Error fetching journal statuses: ') + (err.message || JSON.stringify(err)),
+            message: __('Error processing Update Registration Number action: ') + (err.message || JSON.stringify(err)),
             indicator: 'red'
         });
-        console.error('Fetch Journal Statuses Error:', err);
-    });
-}
-
-// Function to submit a journal entry
-function submit_journal(journal_id) {
-    return new Promise((resolve, reject) => {
-        frappe.call({
-            method: 'frappe.client.submit',
-            args: {
-                doctype: 'Journal Entry',
-                name: journal_id
-            },
-            callback: function(r) {
-                if (!r.exc) {
-                    resolve(r);
-                } else {
-                    reject(r.exc);
-                }
-            },
-            error: function(err) {
-                reject(err);
-            }
-        });
-    });
-}
-
-// Function to submit a journal entry
-function submit_journal(journal_id) {
-    return new Promise((resolve, reject) => {
-        frappe.call({
-            method: 'frappe.client.submit',
-            args: {
-                doctype: 'Journal Entry',
-                name: journal_id
-            },
-            callback: function(r) {
-                if (!r.exc) {
-                    resolve(r);
-                } else {
-                    reject(r.exc);
-                }
-            },
-            error: function(err) {
-                reject(err);
-            }
-        });
-    });
-}
-
-// Cancel submitted journals and proceed for Verify action
-function cancel_journals_and_proceed(frm) {
-    let journal_ids = [frm.doc.journal_entry_id].filter(id => id);
-    if (frm.doc.additional_accounts) {
-        journal_ids = journal_ids.concat(
-            frm.doc.additional_accounts
-                .filter(acc => acc.journal_entry_id && acc.status === 'Submitted')
-                .map(acc => acc.journal_entry_id)
-        );
+        console.error('Update Registration Number Error:', err);
+        frappe.validated = false;
     }
+}
 
-    let cancel_promises = journal_ids.map(journal_id => {
-        return frappe.call({
-            method: 'frappe.client.cancel',
-            args: {
-                doctype: 'Journal Entry',
-                name: journal_id
+// Function to proceed to the next state based on payment_status
+function proceed_to_next_state(frm) {
+    const next_state = frm.doc.payment_status === 'Paid' ? 'Due Registration Number' : 'Due RTO Charges Payment';
+    frappe.call({
+        method: 'frappe.model.workflow.apply_workflow',
+        args: {
+            doc: frm.doc,
+            action: 'Approve'
+        },
+        callback: function(r) {
+            if (!r.exc) {
+                frm.reload_doc();
+                frappe.msgprint({
+                    title: __('Success'),
+                    message: __('Workflow approved. Transitioned to ') + next_state + '.',
+                    indicator: 'green'
+                });
+            } else {
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error applying workflow action: ') + (r.exc || JSON.stringify(r)),
+                    indicator: 'red'
+                });
+                console.error('Workflow Approve Error:', r.exc);
+                frappe.validated = false;
             }
-        });
+        },
+        error: function(err) {
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Error applying workflow action: ') + (err.message || JSON.stringify(err)),
+                indicator: 'red'
+            });
+            console.error('Workflow Approve Error:', err);
+            frappe.validated = false;
+        }
     });
+}
 
-    Promise.all(cancel_promises)
-        .then(() => {
-            // Reset journal statuses in RTO Registration
+// Dialog to update registration charge for Approve action
+function show_update_registration_charge_dialog_for_approve(frm, journal) {
+    let dialog = new frappe.ui.Dialog({
+        title: __('Update Registration Charge'),
+        fields: [
+            {
+                label: __('Final Registration Charge'),
+                fieldname: 'final_registration_charge',
+                fieldtype: 'Currency',
+                default: frm.doc.registration_charge || 0,
+                reqd: 1
+            },
+            {
+                label: __('Submit Journal'),
+                fieldname: 'submit_journal',
+                fieldtype: 'Check',
+                default: 1
+            }
+        ],
+        primary_action_label: __('Proceed'),
+        primary_action: function(values) {
+            if (values.final_registration_charge <= 0) {
+                frappe.throw(__('Final Registration Charge must be greater than zero.'));
+            }
+
+            // Update RTO Registration and journal
+            update_rto_and_journal_for_approve(frm, journal, values.final_registration_charge, values.submit_journal, dialog);
+        },
+        secondary_action_label: __('Cancel'),
+        secondary_action: function() {
+            dialog.hide();
+            frappe.msgprint({
+                title: __('Action Cancelled'),
+                message: __('Approval cancelled.'),
+                indicator: 'red'
+            });
             frappe.call({
                 method: 'frappe.client.set_value',
                 args: {
                     doctype: 'RTO Registration',
                     name: frm.doc.name,
                     fieldname: {
-                        journal_status: 'Draft',
-                        additional_accounts: frm.doc.additional_accounts ? frm.doc.additional_accounts.map(acc => ({
-                            ...acc,
-                            status: 'Draft',
-                            journal_entry_id: acc.journal_entry_id
-                        })) : []
+                        workflow_state: 'Vahan Entry Verification'
                     }
                 },
                 callback: function(r) {
                     frm.reload_doc();
-                    frappe.msgprint({
-                        title: __('Success'),
-                        message: __('Journals cancelled. Proceed with updates.'),
-                        indicator: 'green'
-                    });
-                    show_update_registration_charge_dialog_for_verify(frm);
-                },
-                error: function(err) {
-                    frappe.msgprint({
-                        title: __('Error'),
-                        message: __('Error updating RTO Registration: ') + (err.message || JSON.stringify(err)),
-                        indicator: 'red'
-                    });
-                    console.error('Update RTO Registration Error:', err);
                 }
             });
-        })
-        .catch(err => {
-            frappe.msgprint({
-                title: __('Error'),
-                message: __('Error cancelling journals: ') + (err.message || JSON.stringify(err)),
-                indicator: 'red'
-            });
-            console.error('Cancel Journals Error:', err);
+            frappe.validated = false;
+        }
+    });
+    dialog.show();
+}
+
+// Update RTO Registration and journal for Approve action
+function update_rto_and_journal_for_approve(frm, journal, new_charge, submit_journal, dialog) {
+    get_company_abbr(function(company_abbr) {
+        let accounts_to_validate = [
+            `Debtors - ${company_abbr}`,
+            `${frm.doc.rto_office} Payable - ${company_abbr}`
+        ];
+
+        frappe.call({
+            method: 'autowings_app.custom_scripts.utils.validate_accounts',
+            args: {
+                accounts: accounts_to_validate,
+                company: frm.doc.company || 'Autowings'
+            },
+            callback: function(r) {
+                if (!r.message) {
+                    frappe.msgprint({
+                        title: __('Validation Error'),
+                        message: __('One or more accounts are invalid.'),
+                        indicator: 'red'
+                    });
+                    dialog.hide();
+                    return;
+                }
+
+                // Update journal
+                update_main_journal_entry(frm, journal, new_charge, company_abbr);
+                frappe.call({
+                    method: 'frappe.client.save',
+                    args: { doc: journal }
+                }).then(() => {
+                    // Update RTO Registration
+                    frappe.call({
+                        method: 'frappe.client.set_value',
+                        args: {
+                            doctype: 'RTO Registration',
+                            name: frm.doc.name,
+                            fieldname: {
+                                registration_charge: new_charge,
+                                journal_status: submit_journal ? 'Submitted' : 'Draft'
+                            }
+                        },
+                        callback: function(r) {
+                            if (submit_journal) {
+                                return submit_journal(frm.doc.journal_entry_id);
+                            }
+                            return Promise.resolve();
+                        }
+                    }).then(() => {
+                        frm.reload_doc();
+                        if (submit_journal) {
+                            // Proceed to next state
+                            proceed_to_next_state(frm);
+                        } else {
+                            frappe.msgprint({
+                                title: __('Success'),
+                                message: __('Registration Charge updated. Journal not submitted.'),
+                                indicator: 'green'
+                            });
+                            dialog.hide();
+                            frappe.call({
+                                method: 'frappe.client.set_value',
+                                args: {
+                                    doctype: 'RTO Registration',
+                                    name: frm.doc.name,
+                                    fieldname: {
+                                        workflow_state: 'Vahan Entry Verification'
+                                    }
+                                },
+                                callback: function(r) {
+                                    frm.reload_doc();
+                                }
+                            });
+                            frappe.validated = false;
+                        }
+                    }).catch(err => {
+                        frappe.msgprint({
+                            title: __('Error'),
+                            message: __('Error updating RTO Registration or submitting journal: ') + (err.message || JSON.stringify(err)),
+                            indicator: 'red'
+                        });
+                        console.error('Update RTO Error:', err);
+                        dialog.hide();
+                    });
+                }).catch(err => {
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Error saving journal: ') + (err.message || JSON.stringify(err)),
+                        indicator: 'red'
+                    });
+                    console.error('Save Journal Error:', err);
+                    dialog.hide();
+                });
+            },
+            error: function(err) {
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error validating accounts: ') + (err.message || JSON.stringify(err)),
+                    indicator: 'red'
+                });
+                console.error('Validate Accounts Error:', err);
+                dialog.hide();
+            }
         });
+    }, function(err) {
+        frappe.msgprint({
+            title: __('Error'),
+            message: __('Error fetching company abbreviation: ') + (err.message || JSON.stringify(err)),
+            indicator: 'red'
+        });
+        console.error('Company Abbr Error:', err);
+        dialog.hide();
+    });
 }
 
 // Dialog to update registration charge and application details for Verify action
@@ -2537,6 +2435,141 @@ function update_main_journal_entry_for_verify(frm, new_charge, submit_rto_journa
     });
 }
 
+// Cancel submitted journals and proceed for Verify action
+function cancel_journals_and_proceed(frm) {
+    let journal_ids = [frm.doc.journal_entry_id].filter(id => id);
+    if (frm.doc.additional_accounts) {
+        journal_ids = journal_ids.concat(
+            frm.doc.additional_accounts
+                .filter(acc => acc.journal_entry_id && acc.status === 'Submitted')
+                .map(acc => acc.journal_entry_id)
+        );
+    }
+
+    let cancel_promises = journal_ids.map(journal_id => {
+        return frappe.call({
+            method: 'frappe.client.cancel',
+            args: {
+                doctype: 'Journal Entry',
+                name: journal_id
+            }
+        });
+    });
+
+    Promise.all(cancel_promises)
+        .then(() => {
+            // Reset journal statuses in RTO Registration
+            frappe.call({
+                method: 'frappe.client.set_value',
+                args: {
+                    doctype: 'RTO Registration',
+                    name: frm.doc.name,
+                    fieldname: {
+                        journal_status: 'Draft',
+                        additional_accounts: frm.doc.additional_accounts ? frm.doc.additional_accounts.map(acc => ({
+                            ...acc,
+                            status: 'Draft',
+                            journal_entry_id: acc.journal_entry_id
+                        })) : []
+                    }
+                },
+                callback: function(r) {
+                    frm.reload_doc();
+                    frappe.msgprint({
+                        title: __('Success'),
+                        message: __('Journals cancelled. Proceed with updates.'),
+                        indicator: 'green'
+                    });
+                    show_update_registration_charge_dialog_for_verify(frm);
+                },
+                error: function(err) {
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Error updating RTO Registration: ') + (err.message || JSON.stringify(err)),
+                        indicator: 'red'
+                    });
+                    console.error('Update RTO Registration Error:', err);
+                }
+            });
+        })
+        .catch(err => {
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Error cancelling journals: ') + (err.message || JSON.stringify(err)),
+                indicator: 'red'
+            });
+            console.error('Cancel Journals Error:', err);
+        });
+}
+
+// Function to handle RTO Payment Entry action
+function trigger_rto_payment_entry_action(frm) {
+    try {
+        if (!frm.doc.rto_office) {
+            frappe.msgprint({
+                title: __('Validation Error'),
+                message: __('RTO Office is mandatory to proceed with payment entry.'),
+                indicator: 'red'
+            });
+            return;
+        }
+
+        if (!frm.doc.registration_charge || frm.doc.registration_charge <= 0) {
+            frappe.msgprint({
+                title: __('Validation Error'),
+                message: __('Registration Charge must be greater than zero.'),
+                indicator: 'red'
+            });
+            return;
+        }
+
+        get_company_abbr(function(company_abbr) {
+            let paid_to_account = `${frm.doc.rto_office} Payable - ${company_abbr}`;
+
+            // Validate that the paid_to account exists
+            frappe.db.get_value('Account', paid_to_account, 'name')
+                .then(r => {
+                    if (!r.message.name) {
+                        frappe.msgprint({
+                            title: __('Validation Error'),
+                            message: __('Account ') + paid_to_account + __(' does not exist. Please create the account first.'),
+                            indicator: 'red'
+                        });
+                        return;
+                    }
+
+                    let payment_entry_url = `/app/payment-entry/new-payment-entry?` +
+                        `payment_type=Pay&` +
+                        `party_type=Supplier&` +
+                        `party=${encodeURIComponent(frm.doc.rto_office)}&` +
+                        `party_name=${encodeURIComponent(frm.doc.rto_office)}&` +
+                        `paid_to=${encodeURIComponent(paid_to_account)}`;
+
+                    window.location.href = payment_entry_url;
+                })
+                .catch(err => {
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Error validating account: ') + (err.message || JSON.stringify(err)),
+                        indicator: 'red'
+                    });
+                });
+        }, function(err) {
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Error fetching company abbreviation: ') + (err.message || JSON.stringify(err)),
+                indicator: 'red'
+            });
+        });
+    } catch (err) {
+        frappe.msgprint({
+            title: __('Error'),
+            message: __('Error processing RTO Payment Entry action: ') + (err.message || JSON.stringify(err)),
+            indicator: 'red'
+        });
+    }
+}
+
 // Helper function to submit a journal entry
 function submit_journal(journal_id) {
     return frappe.db.get_doc('Journal Entry', journal_id)
@@ -2634,80 +2667,1055 @@ function update_main_journal_entry(frm, journal, new_charge, company_abbr) {
     journal.total_amount = new_charge;
 }
 
-// payment_entry.js
+// frappe.ui.form.on('RTO Registration', {
+//     refresh: function(frm) {
+//         // Add custom button for submitting journals if main or child journals exist
+//         if (frm.doc.docstatus === 0 && (frm.doc.journal_entry_id || (frm.doc.additional_accounts && frm.doc.additional_accounts.some(acc => acc.journal_entry_id)))) {
+//             frm.remove_custom_button(__('Submit Journals'));
 
-frappe.ui.form.on('RTO Registration', {
-    before_workflow_action: function(frm) {
-        if (frm.selected_workflow_action === 'RTO Payment Entry' && frm.doc.workflow_state === 'Due RTO Charges Payment') {
-            frappe.validated = false;
-            trigger_rto_payment_entry_action(frm);
-        }
-    }
-});
+//             // Collect all journal IDs
+//             let journal_ids = [];
+//             if (frm.doc.journal_entry_id) {
+//                 journal_ids.push(frm.doc.journal_entry_id);
+//             }
+//             if (frm.doc.additional_accounts) {
+//                 frm.doc.additional_accounts.forEach(acc => {
+//                     if (acc.journal_entry_id) {
+//                         journal_ids.push(acc.journal_entry_id);
+//                     }
+//                 });
+//             }
 
-function trigger_rto_payment_entry_action(frm) {
-    try {
-        if (!frm.doc.rto_office) {
-            frappe.msgprint({
-                title: __('Validation Error'),
-                message: __('RTO Office is mandatory to proceed with payment entry.'),
-                indicator: 'red'
-            });
-            return;
-        }
+//             // Fetch docstatus for all journals
+//             Promise.all(journal_ids.map(id => 
+//                 frappe.db.get_value('Journal Entry', id, 'docstatus')
+//                     .then(r => ({ id, docstatus: r.message.docstatus }))
+//             )).then(results => {
+//                 // Check if all journals are submitted (docstatus === 1)
+//                 const allSubmitted = results.every(result => result.docstatus === 1);
 
-        if (!frm.doc.registration_charge || frm.doc.registration_charge <= 0) {
-            frappe.msgprint({
-                title: __('Validation Error'),
-                message: __('Registration Charge must be greater than zero.'),
-                indicator: 'red'
-            });
-            return;
-        }
+//                 // Add the button
+//                 const button = frm.add_custom_button(
+//                     allSubmitted ? __('Journals Submitted') : __('Submit Journals'),
+//                     function() {
+//                         if (!allSubmitted) {
+//                             show_submit_journals_dialog(frm);
+//                         } else {
+//                             frappe.msgprint({
+//                                 title: __('Journals Submitted'),
+//                                 message: __('All journals are already submitted.'),
+//                                 indicator: 'green'
+//                             });
+//                         }
+//                     }
+//                 );
 
-        get_company_abbr(function(company_abbr) {
-            let paid_to_account = `${frm.doc.rto_office} Payable - ${company_abbr}`;
+//                 // Apply styling and disable if all submitted
+//                 button.addClass(allSubmitted ? 'btn-update btn-disabled' : 'btn-update2');
+//                 if (allSubmitted) {
+//                     button.prop('disabled', true);
+//                 }
 
-            // Validate that the paid_to account exists
-            frappe.db.get_value('Account', paid_to_account, 'name')
-                .then(r => {
-                    if (!r.message.name) {
-                        frappe.msgprint({
-                            title: __('Validation Error'),
-                            message: __('Account ') + paid_to_account + __(' does not exist. Please create the account first.'),
-                            indicator: 'red'
-                        });
-                        return;
-                    }
+//                 // Re-apply class and disabled state after a short delay to handle rendering issues
+//                 setTimeout(() => {
+//                     button.addClass(allSubmitted ? 'btn-update btn-disabled' : 'btn-update2');
+//                     if (allSubmitted) {
+//                         button.prop('disabled', true);
+//                     }
+//                 }, 100);
+//             }).catch(err => {
+//                 console.error('Error fetching journal statuses:', err);
+//                 // Fallback: add button without disabling
+//                 const button = frm.add_custom_button(__('Submit Journals'), function() {
+//                     show_submit_journals_dialog(frm);
+//                 });
+//                 button.addClass('btn-update2');
+//                 setTimeout(() => {
+//                     button.addClass('btn-update2');
+//                 }, 100);
+//             });
+//         }
+//     },
 
-                    let payment_entry_url = `/app/payment-entry/new-payment-entry?` +
-                        `payment_type=Pay&` +
-                        `party_type=Supplier&` +
-                        `party=${encodeURIComponent(frm.doc.rto_office)}&` +
-                        `party_name=${encodeURIComponent(frm.doc.rto_office)}&` +
-                        `paid_to=${encodeURIComponent(paid_to_account)}`;
+//     before_workflow_action: function(frm) {
+//         // Intercept Verify action in Application Entry in Vahan state
+//         if (frm.selected_workflow_action === 'Verify' && frm.doc.workflow_state === 'Application Entry in Vahan') {
+//             frappe.validated = false; // Prevent default workflow transition
+//             trigger_verify_action(frm);
+//         }
+//         // Intercept Approve action in Vahan Entry Verification state
+//         else if (frm.selected_workflow_action === 'Approve' && frm.doc.workflow_state === 'Vahan Entry Verification') {
+//             frappe.validated = false; // Prevent default workflow transition
+//             trigger_approve_action(frm);
+//         }
+//     }
+// });
 
-                    window.location.href = payment_entry_url;
-                })
-                .catch(err => {
-                    frappe.msgprint({
-                        title: __('Error'),
-                        message: __('Error validating account: ') + (err.message || JSON.stringify(err)),
-                        indicator: 'red'
-                    });
-                });
-        }, function(err) {
-            frappe.msgprint({
-                title: __('Error'),
-                message: __('Error fetching company abbreviation: ') + (err.message || JSON.stringify(err)),
-                indicator: 'red'
-            });
-        });
-    } catch (err) {
-        frappe.msgprint({
-            title: __('Error'),
-            message: __('Error processing RTO Payment Entry action: ') + (err.message || JSON.stringify(err)),
-            indicator: 'red'
-        });
-    }
-}
+// // Main function to handle Verify action
+// function trigger_verify_action(frm) {
+//     try {
+//         // Validate initial conditions
+//         if (!frm.doc.rto_office) {
+//             frappe.throw(__('RTO Office is mandatory to proceed with verification.'));
+//         }
+
+//         // Check if any journals are submitted
+//         if (frm.doc.journal_status === 'Submitted' ) {
+//             frappe.confirm(
+//                 __('Some journal are already submitted. Do you want to cancel them to proceed with updates?'),
+//                 function() {
+//                     cancel_journals_and_proceed(frm);
+//                 },
+//                 function() {
+//                     frappe.msgprint({
+//                         title: __('Action Cancelled'),
+//                         message: __('Verification stopped as journals are submitted.'),
+//                         indicator: 'red'
+//                     });
+//                 }
+//             );
+//         } else {
+//             show_update_registration_charge_dialog_for_verify(frm);
+//         }
+//     } catch (err) {
+//         frappe.msgprint({
+//             title: __('Error'),
+//             message: __('Error initiating verification: ') + (err.message || JSON.stringify(err)),
+//             indicator: 'red'
+//         });
+//         console.error('Verify Action Error:', err);
+//     }
+// }
+
+// // Main function to handle Approve action
+// function trigger_approve_action(frm) {
+//     try {
+//         // Check if rto_office is set
+//         if (!frm.doc.rto_office) {
+//             console.log('RTO Office missing, triggering alert');
+//             setTimeout(() => {
+//                 frappe.msgprint({
+//                     title: __('Validation Error'),
+//                     message: __('RTO Office is mandatory.'),
+//                     indicator: 'red'
+//                 });
+//             }, 2000);
+//             // Set workflow_state to Vahan Entry Verification
+//             frappe.call({
+//                 method: 'frappe.client.set_value',
+//                 args: {
+//                     doctype: 'RTO Registration',
+//                     name: frm.doc.name,
+//                     fieldname: {
+//                         workflow_state: 'Vahan Entry Verification'
+//                     }
+//                 },
+//                 callback: function(r) {
+//                     frm.reload_doc(); // Refresh to avoid document modified error
+//                 },
+//                 error: function(err) {
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Error setting workflow state: ') + (err.message || JSON.stringify(err)),
+//                         indicator: 'red'
+//                     });
+//                     console.error('Set Workflow State Error:', err);
+//                 }
+//             });
+//             frappe.validated = false; // Prevent workflow transition
+//             return;
+//         }
+
+//         // Check if journal_entry_id exists
+//         if (!frm.doc.journal_entry_id) {
+//             console.log('Journal Entry ID missing, triggering alert');
+//             setTimeout(() => {
+//                 frappe.msgprint({
+//                     title: __('Validation Error'),
+//                     message: __('Journal Entry is missing.'),
+//                     indicator: 'red'
+//                 });
+//             }, 2000);
+//             // Set workflow_state to Vahan Entry Verification
+//             frappe.call({
+//                 method: 'frappe.client.set_value',
+//                 args: {
+//                     doctype: 'RTO Registration',
+//                     name: frm.doc.name,
+//                     fieldname: {
+//                         workflow_state: 'Vahan Entry Verification'
+//                     }
+//                 },
+//                 callback: function(r) {
+//                     frm.reload_doc(); // Refresh to avoid document modified error
+//                 },
+//                 error: function(err) {
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Error setting workflow state: ') + (err.message || JSON.stringify(err)),
+//                         indicator: 'red'
+//                     });
+//                     console.error('Set Workflow State Error:', err);
+//                 }
+//             });
+//             frappe.validated = false; // Prevent workflow transition
+//             return;
+//         }
+
+//         // Check journal entry status
+//         frappe.db.get_doc('Journal Entry', frm.doc.journal_entry_id)
+//             .then(journal => {
+//                 if (journal.docstatus === 1) {
+//                     // Journal is submitted, allow workflow to proceed
+//                     frappe.validated = true;
+//                     frappe.call({
+//                         method: 'frappe.model.workflow.apply_workflow',
+//                         args: {
+//                             doc: frm.doc,
+//                             action: 'Approve'
+//                         },
+//                         callback: function(r) {
+//                             frm.reload_doc();
+//                             frappe.msgprint({
+//                                 title: __('Success'),
+//                                 message: __('Workflow approved. Transitioned to Due RTO Charges Payment.'),
+//                                 indicator: 'green'
+//                             });
+//                         },
+//                         error: function(err) {
+//                             frappe.msgprint({
+//                                 title: __('Error'),
+//                                 message: __('Error applying workflow action: ') + (err.message || JSON.stringify(err)),
+//                                 indicator: 'red'
+//                             });
+//                             console.error('Workflow Approve Error:', err);
+//                             frappe.validated = false;
+//                         }
+//                     });
+//                 } else {
+//                     // Journal is not submitted, show alert and stay in Vahan Entry Verification
+//                     console.log('Journal not submitted, triggering alert');
+//                     setTimeout(() => {
+//                         frappe.msgprint({
+//                             title: __('Validation Error'),
+//                             message: __('Journal Entry is not submitted.'),
+//                             indicator: 'red'
+//                         });
+//                     }, 2000);
+//                     // Set workflow_state to Vahan Entry Verification
+//                     frappe.call({
+//                         method: 'frappe.client.set_value',
+//                         args: {
+//                             doctype: 'RTO Registration',
+//                             name: frm.doc.name,
+//                             fieldname: {
+//                                 workflow_state: 'Vahan Entry Verification'
+//                             }
+//                         },
+//                         callback: function(r) {
+//                             frm.reload_doc(); // Refresh to avoid document modified error
+//                         },
+//                         error: function(err) {
+//                             frappe.msgprint({
+//                                 title: __('Error'),
+//                                 message: __('Error setting workflow state: ') + (err.message || JSON.stringify(err)),
+//                                 indicator: 'red'
+//                             });
+//                             console.error('Set Workflow State Error:', err);
+//                         }
+//                     });
+//                     frappe.validated = false; // Prevent workflow transition
+//                 }
+//             })
+//             .catch(err => {
+//                 console.log('Error fetching journal, triggering alert');
+//                 setTimeout(() => {
+//                     frappe.msgprint({
+//                         title: __('Validation Error'),
+//                         message: __('Error fetching Journal Entry.'),
+//                         indicator: 'red'
+//                     });
+//                 }, 2000);
+//                 console.error('Fetch Journal Error:', err);
+//                 // Set workflow_state to Vahan Entry Verification
+//                 frappe.call({
+//                     method: 'frappe.client.set_value',
+//                     args: {
+//                         doctype: 'RTO Registration',
+//                         name: frm.doc.name,
+//                         fieldname: {
+//                             workflow_state: 'Vahan Entry Verification'
+//                         }
+//                     },
+//                     callback: function(r) {
+//                         frm.reload_doc(); // Refresh to avoid document modified error
+//                     },
+//                     error: function(err) {
+//                         frappe.msgprint({
+//                             title: __('Error'),
+//                             message: __('Error setting workflow state: ') + (err.message || JSON.stringify(err)),
+//                             indicator: 'red'
+//                         });
+//                         console.error('Set Workflow State Error:', err);
+//                     }
+//                 });
+//                 frappe.validated = false; // Prevent workflow transition
+//             });
+//     } catch (err) {
+//         console.log('General error in approve action, triggering alert');
+//         setTimeout(() => {
+//             frappe.msgprint({
+//                 title: __('Validation Error'),
+//                 message: __('Error processing Approve action.'),
+//                 indicator: 'red'
+//             });
+//         }, 2000);
+//         console.error('Approve Action Error:', err);
+//         // Set workflow_state to Vahan Entry Verification
+//         frappe.call({
+//             method: 'frappe.client.set_value',
+//             args: {
+//                 doctype: 'RTO Registration',
+//                 name: frm.doc.name,
+//                 fieldname: {
+//                     workflow_state: 'Vahan Entry Verification'
+//                 }
+//             },
+//             callback: function(r) {
+//                 frm.reload_doc(); // Refresh to avoid document modified error
+//             },
+//             error: function(err) {
+//                 frappe.msgprint({
+//                     title: __('Error'),
+//                     message: __('Error setting workflow state: ') + (err.message || JSON.stringify(err)),
+//                     indicator: 'red'
+//                 });
+//                 console.error('Set Workflow State Error:', err);
+//             }
+//         });
+//         frappe.validated = false; // Prevent workflow transition
+//     }
+// }
+// // Dialog to submit main and child table journals
+// function show_submit_journals_dialog(frm) {
+//     // Collect all journal IDs (main and child table)
+//     let journals = [];
+//     if (frm.doc.journal_entry_id) {
+//         journals.push({ id: frm.doc.journal_entry_id, is_main: true });
+//     }
+//     if (frm.doc.additional_accounts) {
+//         frm.doc.additional_accounts.forEach((acc, idx) => {
+//             if (acc.journal_entry_id) {
+//                 journals.push({ id: acc.journal_entry_id, is_main: false, idx: idx, smart_card_id: acc.smart_card_id });
+//             }
+//         });
+//     }
+
+//     if (!journals.length) {
+//         frappe.msgprint({
+//             title: __('No Journals'),
+//             message: __('No journals found to submit.'),
+//             indicator: 'blue'
+//         });
+//         return;
+//     }
+
+//     // Fetch journal statuses
+//     let journal_statuses = {};
+//     Promise.all(journals.map(j => 
+//         frappe.db.get_value('Journal Entry', j.id, ['docstatus', 'title'])
+//             .then(r => {
+//                 journal_statuses[j.id] = {
+//                     docstatus: r.message.docstatus,
+//                     title: r.message.title || j.id,
+//                     is_main: j.is_main,
+//                     idx: j.idx,
+//                     smart_card_id: j.smart_card_id
+//                 };
+//             })
+//     )).then(() => {
+//         // Build dialog fields
+//         let fields = journals.map(j => ({
+//             label: journal_statuses[j.id].is_main 
+//                 ? `${__('Main Journal')}: <b>${journal_statuses[j.id].title}</b>` 
+//                 : `${__('Additional Journal')}: <b>${journal_statuses[j.id].title}</b>`,
+//             fieldname: `journal_${j.id.replace(/[^a-zA-Z0-9]/g, '_')}`,
+//             fieldtype: 'HTML',
+//             options: `
+//                 <div class="p-2">
+//                     <table style="width: 100%; border-collapse: collapse;">
+//                         <tr style="border: none;">
+//                             <td style="padding: 8px; text-align: left; border: none; width: 30%;">
+//                                 <a href="/app/journal-entry/${j.id}" target="_blank" class="text-blue-600 hover:underline">${j.id}</a>
+//                             </td>
+//                             <td style="padding: 8px; font-weight: bold; text-align: left; border: none; width: 30%;">
+//                                 <span class="text-gray-600">${
+//                                     journal_statuses[j.id].is_main 
+//                                         ? frm.doc.rto_office 
+//                                         : frm.doc.additional_accounts[j.idx].account
+//                                 }</span>
+//                             </td>
+//                             <td style="padding: 8px; text-align: left; border: none; width: 40%;">
+//                                 ${
+//                                     journal_statuses[j.id].docstatus === 1 
+//                                         ? `<button class="btn btn-success btn-disabled text-white px-4 py-2 rounded-md" disabled>${__('Submitted')}</button>` 
+//                                         : `<button 
+//                                             class="btn btn-success text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors duration-200" 
+//                                             onclick="submitJournal('${j.id}', ${j.is_main}, ${j.idx}, '${j.smart_card_id || ''}', this)"
+//                                            >${__('Submit')}</button>`
+//                                 }
+//                             </td>
+//                         </tr>
+//                     </table>
+//                 </div>`
+//         }));
+
+//         let dialog = new frappe.ui.Dialog({
+//             title: __('Submit Journals'),
+//             fields: fields,
+//             size: 'large', // Make dialog wider for better layout
+//             primary_action_label: __('Close'),
+//             primary_action: function() {
+//                 dialog.hide();
+//             },
+//             // Add custom CSS for a world-class look
+//             on_page_show: function() {
+//                 $('.modal-content').addClass('shadow-lg rounded-lg border border-gray-200');
+//                 $('.modal-title').addClass('text-xl font-semibold text-gray-800');
+//                 $('.modal-body').addClass('p-6 bg-gray-50');
+//                 $('.modal-footer').addClass('border-t border-gray-200 bg-white');
+//                 $('.btn-primary').addClass('bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2');
+//             }
+//         });
+//         dialog.show();
+
+//         // Define submitJournal function globally to be accessible from HTML buttons
+//         window.submitJournal = function(journal_id, is_main, idx, smart_card_id, button) {
+//             if (journal_statuses[journal_id].docstatus === 1) {
+//                 return;
+//             }
+
+//             // Validate application_entry_date and application_number for main journal
+//             if (is_main && (!frm.doc.application_entry_date || !frm.doc.application_number)) {
+//                 frappe.msgprint({
+//                     title: __('Validation Error'),
+//                     message: __('Application details required first then journal submit.'),
+//                     indicator: 'red'
+//                 });
+//                 return;
+//             }
+
+//             submit_journal(journal_id).then(() => {
+//                 // Update statuses
+//                 let updates = {};
+//                 if (is_main) {
+//                     updates.journal_status = 'Submitted';
+//                 } else {
+//                     let additional_accounts = frm.doc.additional_accounts.map((acc, index) => ({
+//                         ...acc,
+//                         status: index === idx && acc.journal_entry_id === journal_id ? 'Submitted' : acc.status
+//                     }));
+//                     updates.additional_accounts = additional_accounts;
+//                 }
+//                 // Update Vehicle Smart Card journal_status if applicable
+
+
+//                 if (!is_main && smart_card_id) {
+//                     // Fetch smart_card_status to check if it's "Payment Due"
+//                     frappe.db.get_value('Vehicle Smart Card', smart_card_id, 'smart_card_status')
+//                         .then(r => {
+//                             let smart_card_status = r.message.smart_card_status;
+//                             console.log(`Smart Card ID: ${smart_card_id}, Status: ${smart_card_status}`); // Debug log
+//                             let fields_to_update = { 
+//                                 journal_status: 'Submitted',
+//                                 smart_card_status: 'Payment Due'
+//                             };
+
+//                             // If smart_card_status is "Payment Due", also update workflow_state
+//                             if (smart_card_status === 'Payment Due') {
+//                                 fields_to_update.workflow_state = 'Application Entry in Vahan';
+//                             }
+
+//                             // Update Vehicle Smart Card
+//                             frappe.call({
+//                                 method: 'frappe.client.set_value',
+//                                 args: {
+//                                     doctype: 'Vehicle Smart Card',
+//                                     name: smart_card_id,
+//                                     fieldname: fields_to_update
+//                                 },
+//                                 callback: function(r) {
+//                                     if (!r.exc) {
+//                                         frappe.msgprint({
+//                                             title: __('Success'),
+//                                             message: __('Vehicle Smart Card journal status'
+//                                                 + (smart_card_status === 'Payment Due' ? ' and workflow state' : '') 
+//                                                 + ' updated.'),
+//                                             indicator: 'green'
+//                                         });
+//                                     }
+//                                 },
+//                                 error: function(err) {
+//                                     frappe.msgprint({
+//                                         title: __('Error'),
+//                                         message: __('Error updating Vehicle Smart Card: ') + (err.message || JSON.stringify(err)),
+//                                         indicator: 'red'
+//                                     });
+//                                     console.error('Vehicle Smart Card Update Error:', err);
+//                                 }
+//                             });
+//                         })
+//                         .catch(err => {
+//                             frappe.msgprint({
+//                                 title: __('Error'),
+//                                 message: __('Error fetching Vehicle Smart Card status: ') + (err.message || JSON.stringify(err)),
+//                                 indicator: 'red'
+//                             });
+//                             console.error('Fetch Vehicle Smart Card Status Error:', err);
+//                         });
+//                 }
+
+//                 frappe.call({
+//                     method: 'frappe.client.set_value',
+//                     args: {
+//                         doctype: 'RTO Registration',
+//                         name: frm.doc.name,
+//                         fieldname: updates
+//                     },
+//                     callback: function(r) {
+//                         frm.reload_doc();
+//                         frappe.msgprint({
+//                             title: __('Success'),
+//                             message: __('Journal ') + journal_statuses[journal_id].title + __(' submitted successfully.'),
+//                             indicator: 'green'
+//                         });
+//                         // Update button to disabled state with "Submitted" text
+//                         button.outerHTML = `<button class="btn btn-success btn-disabled text-white px-4 py-2 rounded-md" disabled>${__('Submitted')}</button>`;
+//                         journal_statuses[journal_id].docstatus = 1;
+//                     },
+//                     error: function(err) {
+//                         frappe.msgprint({
+//                             title: __('Error'),
+//                             message: __('Error updating journal status: ') + (err.message || JSON.stringify(err)),
+//                             indicator: 'red'
+//                         });
+//                         console.error('Update Status Error:', err);
+//                     }
+//                 });
+//             }).catch(err => {
+//                 frappe.msgprint({
+//                     title: __('Error'),
+//                     message: __('Error submitting journal: ') + (err.message || JSON.stringify(err)),
+//                     indicator: 'red'
+//                 });
+//                 console.error('Submit Journal Error:', err);
+//             });
+//         };
+//     }).catch(err => {
+//         frappe.msgprint({
+//             title: __('Error'),
+//             message: __('Error fetching journal statuses: ') + (err.message || JSON.stringify(err)),
+//             indicator: 'red'
+//         });
+//         console.error('Fetch Journal Statuses Error:', err);
+//     });
+// }
+
+// // Function to submit a journal entry
+// function submit_journal(journal_id) {
+//     return new Promise((resolve, reject) => {
+//         frappe.call({
+//             method: 'frappe.client.submit',
+//             args: {
+//                 doctype: 'Journal Entry',
+//                 name: journal_id
+//             },
+//             callback: function(r) {
+//                 if (!r.exc) {
+//                     resolve(r);
+//                 } else {
+//                     reject(r.exc);
+//                 }
+//             },
+//             error: function(err) {
+//                 reject(err);
+//             }
+//         });
+//     });
+// }
+
+// // Function to submit a journal entry
+// function submit_journal(journal_id) {
+//     return new Promise((resolve, reject) => {
+//         frappe.call({
+//             method: 'frappe.client.submit',
+//             args: {
+//                 doctype: 'Journal Entry',
+//                 name: journal_id
+//             },
+//             callback: function(r) {
+//                 if (!r.exc) {
+//                     resolve(r);
+//                 } else {
+//                     reject(r.exc);
+//                 }
+//             },
+//             error: function(err) {
+//                 reject(err);
+//             }
+//         });
+//     });
+// }
+
+// // Cancel submitted journals and proceed for Verify action
+// function cancel_journals_and_proceed(frm) {
+//     let journal_ids = [frm.doc.journal_entry_id].filter(id => id);
+//     if (frm.doc.additional_accounts) {
+//         journal_ids = journal_ids.concat(
+//             frm.doc.additional_accounts
+//                 .filter(acc => acc.journal_entry_id && acc.status === 'Submitted')
+//                 .map(acc => acc.journal_entry_id)
+//         );
+//     }
+
+//     let cancel_promises = journal_ids.map(journal_id => {
+//         return frappe.call({
+//             method: 'frappe.client.cancel',
+//             args: {
+//                 doctype: 'Journal Entry',
+//                 name: journal_id
+//             }
+//         });
+//     });
+
+//     Promise.all(cancel_promises)
+//         .then(() => {
+//             // Reset journal statuses in RTO Registration
+//             frappe.call({
+//                 method: 'frappe.client.set_value',
+//                 args: {
+//                     doctype: 'RTO Registration',
+//                     name: frm.doc.name,
+//                     fieldname: {
+//                         journal_status: 'Draft',
+//                         additional_accounts: frm.doc.additional_accounts ? frm.doc.additional_accounts.map(acc => ({
+//                             ...acc,
+//                             status: 'Draft',
+//                             journal_entry_id: acc.journal_entry_id
+//                         })) : []
+//                     }
+//                 },
+//                 callback: function(r) {
+//                     frm.reload_doc();
+//                     frappe.msgprint({
+//                         title: __('Success'),
+//                         message: __('Journals cancelled. Proceed with updates.'),
+//                         indicator: 'green'
+//                     });
+//                     show_update_registration_charge_dialog_for_verify(frm);
+//                 },
+//                 error: function(err) {
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Error updating RTO Registration: ') + (err.message || JSON.stringify(err)),
+//                         indicator: 'red'
+//                     });
+//                     console.error('Update RTO Registration Error:', err);
+//                 }
+//             });
+//         })
+//         .catch(err => {
+//             frappe.msgprint({
+//                 title: __('Error'),
+//                 message: __('Error cancelling journals: ') + (err.message || JSON.stringify(err)),
+//                 indicator: 'red'
+//             });
+//             console.error('Cancel Journals Error:', err);
+//         });
+// }
+
+// // Dialog to update registration charge and application details for Verify action
+// function show_update_registration_charge_dialog_for_verify(frm) {
+//     let fields = [
+//         {
+//             label: __('Final Registration Charge'),
+//             fieldname: 'final_registration_charge',
+//             fieldtype: 'Currency',
+//             default: frm.doc.registration_charge || 0,
+//             reqd: 1
+//         },
+//         {
+//             label: __('Submit RTO Journal'),
+//             fieldname: 'submit_rto_journal',
+//             fieldtype: 'Check',
+//             default: 0
+//         },
+//         {
+//             label: __('Application Entry Date'),
+//             fieldname: 'application_entry_date',
+//             fieldtype: 'Date',
+//             default: frm.doc.application_entry_date || frappe.datetime.now_date(),
+//             reqd: 1
+//         },
+//         {
+//             label: __('Application Number'),
+//             fieldname: 'application_number',
+//             fieldtype: 'Data',
+//             default: frm.doc.application_number || '',
+//             reqd: 1
+//         }
+//     ];
+
+//     let dialog = new frappe.ui.Dialog({
+//         title: __('Update Registration and Application Details'),
+//         fields: fields,
+//         primary_action_label: __('Proceed'),
+//         primary_action: function(values) {
+//             // Validate inputs
+//             if (values.final_registration_charge <= 0) {
+//                 frappe.throw(__('Final Registration Charge must be greater than zero.'));
+//             }
+//             if (!values.application_entry_date) {
+//                 frappe.throw(__('Application Entry Date is mandatory.'));
+//             }
+//             if (!values.application_number) {
+//                 frappe.throw(__('Application Number is mandatory.'));
+//             }
+
+//             // Update RTO Registration and main journal
+//             update_rto_and_journal_for_verify(frm, values, dialog);
+//         },
+//         secondary_action_label: __('Not Now'),
+//         secondary_action: function() {
+//             dialog.hide();
+//         }
+//     });
+//     dialog.show();
+// }
+
+// // Update RTO Registration and handle main journal for Verify action
+// function update_rto_and_journal_for_verify(frm, values, dialog) {
+//     // Update RTO Registration document
+//     let journal_status = values.submit_rto_journal && frm.doc.journal_entry_id ? 'Submitted' : (frm.doc.journal_status || 'Draft');
+//     frappe.call({
+//         method: 'frappe.client.set_value',
+//         args: {
+//             doctype: 'RTO Registration',
+//             name: frm.doc.name,
+//             fieldname: {
+//                 registration_charge: values.final_registration_charge,
+//                 application_entry_date: values.application_entry_date,
+//                 application_number: values.application_number,
+//                 registration_status: 'Applied',
+//                 journal_status: journal_status
+//             }
+//         },
+//         callback: function(r) {
+//             if (r.message) {
+//                 frm.reload_doc();
+//                 // Update main journal (if exists)
+//                 update_main_journal_entry_for_verify(frm, values.final_registration_charge, values.submit_rto_journal, dialog);
+//             }
+//         },
+//         error: function(err) {
+//             frappe.msgprint({
+//                 title: __('Error'),
+//                 message: __('Error updating RTO Registration: ') + (err.message || JSON.stringify(err)),
+//                 indicator: 'red'
+//             });
+//             console.error('Update RTO Error:', err);
+//             dialog.hide();
+//         }
+//     });
+// }
+
+// // Update main journal entry for Verify action
+// function update_main_journal_entry_for_verify(frm, new_charge, submit_rto_journal, dialog) {
+//     if (!frm.doc.journal_entry_id) {
+//         if (submit_rto_journal) {
+//             frappe.msgprint({
+//                 title: __('Validation Error'),
+//                 message: __('Main Journal Entry is missing but Submit RTO Journal is checked.'),
+//                 indicator: 'red'
+//             });
+//             dialog.hide();
+//             return;
+//         }
+//         dialog.hide();
+//         frappe.msgprint({
+//             title: __('Success'),
+//             message: __('Registration and application details updated.'),
+//             indicator: 'green'
+//         });
+//         return;
+//     }
+
+//     get_company_abbr(function(company_abbr) {
+//         let accounts_to_validate = [
+//             `Debtors - ${company_abbr}`,
+//             `${frm.doc.rto_office} Payable - ${company_abbr}`
+//         ];
+
+//         frappe.call({
+//             method: 'autowings_app.custom_scripts.utils.validate_accounts',
+//             args: {
+//                 accounts: accounts_to_validate,
+//                 company: frm.doc.company || 'Autowings'
+//             },
+//             callback: function(r) {
+//                 if (!r.message) {
+//                     frappe.msgprint({
+//                         title: __('Validation Error'),
+//                         message: __('One or more accounts are invalid.'),
+//                         indicator: 'red'
+//                     });
+//                     dialog.hide();
+//                     return;
+//                 }
+
+//                 frappe.db.get_doc('Journal Entry', frm.doc.journal_entry_id)
+//                     .then(main_journal => {
+//                         if (main_journal.docstatus !== 0) {
+//                             frappe.msgprint({
+//                                 title: __('Validation Error'),
+//                                 message: __('Main Journal Entry is not in Draft status.'),
+//                                 indicator: 'red'
+//                             });
+//                             dialog.hide();
+//                             return;
+//                         }
+//                         update_main_journal_entry(frm, main_journal, new_charge, company_abbr);
+//                         frappe.call({
+//                             method: 'frappe.client.save',
+//                             args: { doc: main_journal }
+//                         }).then(() => {
+//                             if (submit_rto_journal) {
+//                                 return submit_journal(frm.doc.journal_entry_id);
+//                             }
+//                             return Promise.resolve();
+//                         }).then(() => {
+//                             dialog.hide();
+//                             frm.reload_doc();
+//                             frappe.msgprint({
+//                                 title: __('Success'),
+//                                 message: __('Registration and application details updated.'),
+//                                 indicator: 'green'
+//                             });
+//                         }).catch(err => {
+//                             frappe.msgprint({
+//                                 title: __('Error'),
+//                                 message: __('Error updating or submitting main journal: ') + (err.message || JSON.stringify(err)),
+//                                 indicator: 'red'
+//                             });
+//                             console.error('Update Main Journal Error:', err);
+//                             dialog.hide();
+//                         });
+//                     })
+//                     .catch(err => {
+//                         frappe.msgprint({
+//                             title: __('Error'),
+//                             message: __('Error fetching main journal entry: ') + (err.message || JSON.stringify(err)),
+//                             indicator: 'red'
+//                         });
+//                         console.error('Fetch Main Journal Error:', err);
+//                         dialog.hide();
+//                     });
+//             },
+//             error: function(err) {
+//                 frappe.msgprint({
+//                     title: __('Error'),
+//                     message: __('Error validating accounts: ') + (err.message || JSON.stringify(err)),
+//                     indicator: 'red'
+//                 });
+//                 console.error('Validate Accounts Error:', err);
+//                 dialog.hide();
+//             }
+//         });
+//     }, function(err) {
+//         frappe.msgprint({
+//             title: __('Error'),
+//             message: __('Error fetching company abbreviation: ') + (err.message || JSON.stringify(err)),
+//             indicator: 'red'
+//         });
+//         console.error('Company Abbr Error:', err);
+//         dialog.hide();
+//     });
+// }
+
+// // Helper function to submit a journal entry
+// function submit_journal(journal_id) {
+//     return frappe.db.get_doc('Journal Entry', journal_id)
+//         .then(journal => {
+//             if (journal.docstatus !== 0) {
+//                 return Promise.resolve();
+//             }
+//             return frappe.call({
+//                 method: 'frappe.client.submit',
+//                 args: { doc: journal }
+//             });
+//         })
+//         .catch(err => {
+//             frappe.msgprint({
+//                 title: __('Error'),
+//                 message: __('Error submitting journal entry ') + journal_id + ': ' + (err.message || JSON.stringify(err)),
+//                 indicator: 'red'
+//             });
+//             console.error('Submit Journal Error:', err);
+//             throw err;
+//         });
+// }
+
+// // Reused functions from original code
+// let cached_company_abbr = null;
+
+// function get_company_abbr(callback, error_callback) {
+//     if (cached_company_abbr) {
+//         console.log('Using cached company abbreviation:', cached_company_abbr);
+//         callback(cached_company_abbr);
+//         return;
+//     }
+//     frappe.call({
+//         method: 'autowings_app.custom_scripts.utils.get_company_abbr',
+//         callback: function(r) {
+//             if (r.message) {
+//                 cached_company_abbr = r.message;
+//                 console.log('Fetched company abbreviation:', cached_company_abbr);
+//                 callback(cached_company_abbr);
+//             } else {
+//                 error_callback(new Error('No company abbreviation returned.'));
+//             }
+//         },
+//         error: function(err) {
+//             error_callback(err);
+//         }
+//     });
+// }
+
+// function update_main_journal_entry(frm, journal, new_charge, company_abbr) {
+//     let debtorAccount = journal.accounts.find(acc => 
+//         acc.account === `Debtors - ${company_abbr}` && 
+//         acc.debit_in_account_currency > 0 &&
+//         acc.against_account.includes(frm.doc.rto_office)
+//     );
+//     let payableAccount = journal.accounts.find(acc => 
+//         acc.account === `${frm.doc.rto_office} Payable - ${company_abbr}` && 
+//         acc.credit_in_account_currency > 0
+//     );
+
+//     if (debtorAccount && payableAccount) {
+//         debtorAccount.debit_in_account_currency = new_charge;
+//         debtorAccount.debit = new_charge;
+//         payableAccount.credit_in_account_currency = new_charge;
+//         payableAccount.credit = new_charge;
+//     } else {
+//         journal.accounts = [
+//             {
+//                 account: `Debtors - ${company_abbr}`,
+//                 party_type: 'Customer',
+//                 party: frm.doc.customer,
+//                 debit_in_account_currency: new_charge,
+//                 debit: new_charge,
+//                 credit_in_account_currency: 0,
+//                 credit: 0,
+//                 cost_center: `Main - ${company_abbr}`,
+//                 against_account: frm.doc.rto_office
+//             },
+//             {
+//                 account: `${frm.doc.rto_office} Payable - ${company_abbr}`,
+//                 party_type: 'Supplier',
+//                 party: frm.doc.rto_office,
+//                 debit_in_account_currency: 0,
+//                 debit: 0,
+//                 credit_in_account_currency: new_charge,
+//                 credit: new_charge,
+//                 cost_center: `Main - ${company_abbr}`,
+//                 against_account: frm.doc.customer
+//             }
+//         ];
+//     }
+
+//     journal.total_debit = new_charge;
+//     journal.total_credit = new_charge;
+//     journal.total_amount = new_charge;
+// }
+
+// // payment_entry.js
+
+// frappe.ui.form.on('RTO Registration', {
+//     before_workflow_action: function(frm) {
+//         if (frm.selected_workflow_action === 'RTO Payment Entry' && frm.doc.workflow_state === 'Due RTO Charges Payment') {
+//             frappe.validated = false;
+//             trigger_rto_payment_entry_action(frm);
+//         }
+//     }
+// });
+
+// function trigger_rto_payment_entry_action(frm) {
+//     try {
+//         if (!frm.doc.rto_office) {
+//             frappe.msgprint({
+//                 title: __('Validation Error'),
+//                 message: __('RTO Office is mandatory to proceed with payment entry.'),
+//                 indicator: 'red'
+//             });
+//             return;
+//         }
+
+//         if (!frm.doc.registration_charge || frm.doc.registration_charge <= 0) {
+//             frappe.msgprint({
+//                 title: __('Validation Error'),
+//                 message: __('Registration Charge must be greater than zero.'),
+//                 indicator: 'red'
+//             });
+//             return;
+//         }
+
+//         get_company_abbr(function(company_abbr) {
+//             let paid_to_account = `${frm.doc.rto_office} Payable - ${company_abbr}`;
+
+//             // Validate that the paid_to account exists
+//             frappe.db.get_value('Account', paid_to_account, 'name')
+//                 .then(r => {
+//                     if (!r.message.name) {
+//                         frappe.msgprint({
+//                             title: __('Validation Error'),
+//                             message: __('Account ') + paid_to_account + __(' does not exist. Please create the account first.'),
+//                             indicator: 'red'
+//                         });
+//                         return;
+//                     }
+
+//                     let payment_entry_url = `/app/payment-entry/new-payment-entry?` +
+//                         `payment_type=Pay&` +
+//                         `party_type=Supplier&` +
+//                         `party=${encodeURIComponent(frm.doc.rto_office)}&` +
+//                         `party_name=${encodeURIComponent(frm.doc.rto_office)}&` +
+//                         `paid_to=${encodeURIComponent(paid_to_account)}`;
+
+//                     window.location.href = payment_entry_url;
+//                 })
+//                 .catch(err => {
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Error validating account: ') + (err.message || JSON.stringify(err)),
+//                         indicator: 'red'
+//                     });
+//                 });
+//         }, function(err) {
+//             frappe.msgprint({
+//                 title: __('Error'),
+//                 message: __('Error fetching company abbreviation: ') + (err.message || JSON.stringify(err)),
+//                 indicator: 'red'
+//             });
+//         });
+//     } catch (err) {
+//         frappe.msgprint({
+//             title: __('Error'),
+//             message: __('Error processing RTO Payment Entry action: ') + (err.message || JSON.stringify(err)),
+//             indicator: 'red'
+//         });
+//     }
+// }
+
+
+// rto registration number of vehicle
