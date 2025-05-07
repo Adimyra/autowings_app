@@ -13,6 +13,7 @@
   "journal_status",
   "chassis_number",
   "column_break_vdgb",
+  "status",
   "registration_status",
   "rto_office",
   "registration_charge",
@@ -22,6 +23,17 @@
   "registration_number",
   "column_break_qqpc",
   "updated_on",
+  "number_plate_details_section",
+  "number_plate_ordered",
+  "number_plate_order_details",
+  "column_break_exni",
+  "number_plate_received",
+  "number_plate_received_details",
+  "column_break_bjko",
+  "number_plate_installed",
+  "number_plate_installation_details",
+  "installed_by",
+  "installation_date",
   "payment_info_section",
   "payment_date",
   "payment_reference",
@@ -31,8 +43,7 @@
   "section_break_uaya",
   "additional_accounts",
   "section_break_rqag",
-  "rto_activity",
-  "amended_from"
+  "rto_activity"
  ],
  "fields": [
   {
@@ -63,11 +74,10 @@
   },
   {
    "fieldname": "registration_status",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Registration Status",
-   "options": "\nPending\nApplied\nPayment Due\nPaid\nRegistered",
    "read_only": 1
   },
   {
@@ -92,7 +102,8 @@
    "fieldtype": "Link",
    "label": "Vehicle Sales Master ID",
    "options": "Vehicle Sales Master",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "journal_entry_id",
@@ -114,7 +125,8 @@
   {
    "fieldname": "application_number",
    "fieldtype": "Data",
-   "label": "Application Number"
+   "label": "Application Number",
+   "read_only": 1
   },
   {
    "fieldname": "payment_info_section",
@@ -165,8 +177,10 @@
   {
    "fieldname": "rto_activity",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "RTO Activity",
-   "options": "RTO Activity Log"
+   "options": "RTO Activity Log",
+   "read_only": 1
   },
   {
    "fieldname": "journal_status",
@@ -201,20 +215,80 @@
    "read_only": 1
   },
   {
-   "fieldname": "amended_from",
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "number_plate_details_section",
+   "fieldtype": "Section Break",
+   "label": "Number Plate Details",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "number_plate_ordered",
+   "fieldtype": "Check",
+   "label": "Number Plate Ordered",
+   "read_only": 1
+  },
+  {
+   "fieldname": "number_plate_order_details",
+   "fieldtype": "Data",
+   "label": "Number Plate Order Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_exni",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "number_plate_received",
+   "fieldtype": "Check",
+   "label": "Number Plate Received",
+   "read_only": 1
+  },
+  {
+   "fieldname": "number_plate_received_details",
+   "fieldtype": "Data",
+   "label": "Number Plate Received Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bjko",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "number_plate_installed",
+   "fieldtype": "Check",
+   "label": "Number Plate Installed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "number_plate_installation_details",
+   "fieldtype": "Data",
+   "label": "Number Plate Installation Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "installed_by",
    "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "RTO Registration",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
+   "label": "Installed By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "installation_date",
+   "fieldtype": "Datetime",
+   "label": "Installation Date",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
  "links": [],
- "modified": "2025-05-05 17:29:45.471362",
+ "modified": "2025-05-08 01:44:05.068524",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

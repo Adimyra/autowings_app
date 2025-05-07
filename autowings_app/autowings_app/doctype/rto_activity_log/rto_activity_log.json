@@ -6,31 +6,18 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "item",
+  "activity",
   "status",
-  "date",
-  "user"
+  "user",
+  "update_on",
+  "remarks"
  ],
  "fields": [
   {
-   "fieldname": "item",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Activity",
-   "options": "RTO Activity Item"
-  },
-  {
    "fieldname": "status",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Status",
-   "options": "RTO Activity Item Status"
-  },
-  {
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Date"
+   "label": "Status"
   },
   {
    "fieldname": "user",
@@ -38,12 +25,30 @@
    "in_list_view": 1,
    "label": "Updated by",
    "options": "User"
+  },
+  {
+   "fieldname": "activity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Activity"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "update_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Update On"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-27 22:04:38.054836",
+ "modified": "2025-05-07 15:47:18.042224",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Activity Log",

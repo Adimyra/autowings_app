@@ -10,11 +10,12 @@
   "customer",
   "sales_invoice",
   "journal_entry_id",
-  "journal_status",
   "chassis_number",
   "column_break_vdgb",
+  "status",
   "smart_card_status",
   "rto_registration_id",
+  "journal_account",
   "smart_card_charge",
   "section_break_driw",
   "registration_number",
@@ -23,7 +24,7 @@
   "payment_date",
   "payment_reference",
   "column_break_mwju",
-  "payment_status",
+  "smart_card_payment_status",
   "payment_entry_id",
   "section_break_rqag",
   "rto_activity"
@@ -57,13 +58,6 @@
    "fieldtype": "Link",
    "label": "Journal Entry ID",
    "options": "Journal Entry",
-   "read_only": 1
-  },
-  {
-   "fieldname": "journal_status",
-   "fieldtype": "Select",
-   "label": "Journal Status",
-   "options": "\nDraft\nSubmitted",
    "read_only": 1
   },
   {
@@ -116,12 +110,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "payment_status",
-   "fieldtype": "Data",
-   "label": "Payment Status",
-   "read_only": 1
-  },
-  {
    "fieldname": "payment_entry_id",
    "fieldtype": "Link",
    "label": "Payment Entry Id",
@@ -135,8 +123,10 @@
   {
    "fieldname": "rto_activity",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "RTO Activity",
-   "options": "RTO Activity Log"
+   "options": "RTO Activity Log",
+   "read_only": 1
   },
   {
    "fieldname": "smart_card_status",
@@ -144,7 +134,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Smart Card Status",
-   "options": "\nPending\nApplied\nPayment Due\nPaid\nOrdered\nDispatched\nReceived\nDelivered"
+   "options": "\nPending\nApplied\nPayment Due\nPaid\nOrdered\nDispatched\nReceived\nDelivered",
+   "read_only": 1
   },
   {
    "fieldname": "rto_registration_id",
@@ -161,12 +152,31 @@
    "label": "Smart Card Charge \u20b9",
    "precision": "2",
    "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "journal_account",
+   "fieldtype": "Link",
+   "label": "Journal Account",
+   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"RTO\"]]",
+   "options": "Supplier",
+   "read_only": 1
+  },
+  {
+   "fieldname": "smart_card_payment_status",
+   "fieldtype": "Data",
+   "label": "Payment Status",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
  "links": [],
- "modified": "2025-05-03 02:29:35.489503",
+ "modified": "2025-05-08 01:52:28.951215",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Smart Card",

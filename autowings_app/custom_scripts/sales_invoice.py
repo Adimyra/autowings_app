@@ -2114,7 +2114,8 @@ def create_or_update_rto_registration(doc, vsm_doc_name, company):
                 "registration_charge": doc.custom_registration_charge,
                 "registration_status": "Pending",
                 "journal_status": "Draft",
-                "payment_status": "Due"
+                "payment_status": "Due",
+                "status": "Due Application Entry"
             })
             rto_doc.save()
         else:
@@ -2128,7 +2129,9 @@ def create_or_update_rto_registration(doc, vsm_doc_name, company):
                 "registration_charge": doc.custom_registration_charge,
                 "registration_status": "Pending",
                 "journal_status": "Draft",
-                "payment_status": "Due"
+                "payment_status": "Due",
+                "status": "Due Application Entry"
+
             })
             rto_doc.insert()
             rto_doc_name = rto_doc.name
@@ -2159,7 +2162,8 @@ def create_or_update_vehicle_smart_card(doc, vsm_doc_name, rto_doc_name, company
                 "smart_card_charge": smart_card_entry.amount,
                 "smart_card_status": "Pending",
                 "journal_status": "Draft",
-                "payment_status": "Due"
+                "payment_status": "Due",
+                "status": "Registration Pending"
             })
             smart_card_doc.save()
         else:
@@ -2174,7 +2178,9 @@ def create_or_update_vehicle_smart_card(doc, vsm_doc_name, rto_doc_name, company
                 "smart_card_charge": smart_card_entry.amount,
                 "smart_card_status": "Pending",
                 "journal_status": "Draft",
-                "payment_status": "Due"
+                "payment_status": "Due",
+                "status": "Registration Pending"
+
             })
             smart_card_doc.insert()
             smart_card_doc_name = smart_card_doc.name
