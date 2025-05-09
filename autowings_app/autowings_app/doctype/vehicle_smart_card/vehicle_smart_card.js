@@ -152,6 +152,7 @@ frappe.ui.form.on('Vehicle Smart Card', {
 
                 // Add custom CSS for this specific modal and timeline styling
                 dialog.$wrapper.find('.modal-content').prepend(`
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
                     <style>
                         .rto-activity-modal .modal-dialog {
                             max-width: 800px !important;
@@ -166,11 +167,15 @@ frappe.ui.form.on('Vehicle Smart Card', {
                             padding: 20px;
                             overflow-y: auto;
                             max-height: 70vh;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 1.5rem;
                         }
                         .timeline {
                             position: relative;
                             padding: 20px 0;
                             list-style: none;
+                            width: 100%;
                         }
                         .timeline:before {
                             content: '';
@@ -185,72 +190,208 @@ frappe.ui.form.on('Vehicle Smart Card', {
                         }
                         .timeline-item {
                             position: relative;
-                            margin-bottom: 20px;
+                            margin-bottom: 40px;
                             padding-left: 60px;
                         }
                         .timeline-icon {
                             position: absolute;
                             left: 20px;
-                            top: 5px;
+                            top: 50%;
+                            transform: translateY(-50%);
                             width: 20px;
                             height: 20px;
                             border-radius: 50%;
-                            background: #fff;
-                            border: 3px solid;
+                            border: none;
                             display: flex;
                             align-items: center;
                             justify-content: center;
+                            z-index: 1;
+                            animation: pulse 1.5s ease-in-out infinite;
+                            transition: transform 0.2s ease, box-shadow 0.2s ease;
                         }
-                        .status-error .timeline-icon { border-color: #d9534f; }
-                        .status-success .timeline-icon { border-color: #5cb85c; }
-                        .status-danger .timeline-icon { border-color: #f0ad4e; }
-                        .timeline-content {
-                            background: #fff;
-                            padding: 15px;
-                            border-radius: 6px;
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                        .timeline-icon.status-error {
+                            background-color: #d9534f;
+                        }
+                        .timeline-icon.status-success {
+                            background-color: #5cb85c;
+                        }
+                        .timeline-icon.status-danger {
+                            background-color: #f0ad4e;
+                        }
+                        .latest-activity .timeline-icon {
+                            width: 24px;
+                            height: 24px;
+                            animation: strong-pulse 1.5s ease-in-out infinite;
+                        }
+                        .timeline-icon:hover {
+                            transform: translateY(-50%) scale(1.2);
+                            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+                        }
+                        @keyframes pulse {
+                            0% { transform: translateY(-50%) scale(1); }
+                            50% { transform: translateY(-50%) scale(1.1); }
+                            100% { transform: translateY(-50%) scale(1); }
+                        }
+                        @keyframes strong-pulse {
+                            0% { transform: translateY(-50%) scale(1); }
+                            50% { transform: translateY(-50%) scale(1.15); }
+                            100% { transform: translateY(-50%) scale(1); }
+                        }
+                        .card {
+                            background-color: #ffffff;
+                            border-radius: 0.5rem;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                            padding: 1.5rem;
+                            width: 100%;
                             position: relative;
-                            transition: transform 0.2s;
+                            border-left: 4px solid;
+                            transition: transform 0.2s ease, box-shadow 0.2s ease;
                         }
-                        .timeline-content:hover {
+                        .card:hover {
                             transform: translateY(-2px);
+                            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
                         }
-                        .timeline-content h4 {
-                            margin: 0 0 8px;
-                            font-size: 16px;
-                            color: #333;
+                        .card.status-success {
+                            background-color: #f0fdf4;
+                            border-left-color: #5cb85c;
                         }
-                        .timeline-content p {
+                        .card.status-error {
+                            background-color: #fef2f2;
+                            border-left-color: #d9534f;
+                        }
+                        .card.status-danger {
+                            background-color: #fff7ed;
+                            border-left-color: #f0ad4e;
+                        }
+                        .card h2 {
+                            font-size: 1.25rem;
+                            font-weight: 600;
+                            color: #1f2937;
+                            margin-bottom: 0.5rem;
+                            display: flex;
+                            align-items: center;
+                        }
+                        .card h2 i {
+                            margin-right: 0.5rem;
+                        }
+                        .card .info {
+                            display: flex;
+                            align-items: center;
+                            margin-bottom: 0.5rem;
+                        }
+                        .card .info.remarks {
+                            align-items: flex-start;
+                            flex-wrap: nowrap;
+                        }
+                        .card .info.remarks i {
+                            margin-top: 0.25rem;
+                            flex-shrink: 0;
+                        }
+                        .card .info i {
+                            margin-right: 0.5rem;
+                            flex-shrink: 0;
+                        }
+                        .card .label {
+                            color: #4b5563;
+                            font-weight: 500;
+                        }
+                        .card .value {
+                            margin-left: 0.5rem;
+                            color: #374151;
+                            flex: 1;
+                        }
+                        .card .status-success {
+                            color: #5cb85c;
+                        }
+                        .card .status-error {
+                            color: #d9534f;
+                        }
+                        .card .status-danger {
+                            color: #f0ad4e;
+                        }
+                        .card .icon-success {
+                            color: #5cb85c;
+                        }
+                        .card .icon-error {
+                            color: #d9534f;
+                        }
+                        .card .icon-danger {
+                            color: #f0ad4e;
+                        }
+                        .card .remarks p {
                             margin: 0;
-                            color: #666;
-                            font-size: 14px;
-                        }
-                        .status-error { color: #d9534f; }
-                        .status-success { color: #5cb85c; }
-                        .status-danger { color: #f0ad4e; }
-                        .remarks-yellow {
+                            color: #374151;
                             background-color: #fff3cd;
-                            display: inline-block;
                             padding: 4px 8px;
                             border-radius: 3px;
-                            margin-top: 8px;
+                            display: inline-block;
+                            word-break: break-word;
+                            flex: 1;
                         }
-                        .latest-activity .timeline-content {
-                            border-left: 4px solid #5cb85c;
+                        .latest-activity .card {
+                            border-left-width: 6px;
                         }
                         .progress-bar-container {
-                            margin-bottom: 20px;
+                            width: 100%;
+                            margin-bottom: 1.5rem;
+                            background-color: #ffffff;
+                            border-radius: 0.5rem;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                            padding: 1rem;
+                        }
+                        .progress-bar-container h2 {
+                            font-size: 1.25rem;
+                            font-weight: 600;
+                            color: #1f2937;
+                            margin-bottom: 0.5rem;
+                            display: flex;
+                            align-items: center;
+                        }
+                        .progress-bar-container h2 i {
+                            margin-right: 0.5rem;
+                            color: #5cb85c;
                         }
                         .progress-bar {
                             height: 20px;
                             background: #e9ecef;
                             border-radius: 10px;
                             overflow: hidden;
+                            position: relative;
                         }
                         .progress-bar-fill {
                             height: 100%;
-                            background: #5cb85c;
-                            transition: width 0.3s ease;
+                            background: linear-gradient(90deg, #5cb85c, #7ed321);
+                            width: 0;
+                            animation: fill-progress 1.5s ease forwards;
+                            position: relative;
+                            overflow: hidden;
+                        }
+                        .progress-bar-fill::after {
+                            content: '';
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 200%;
+                            height: 100%;
+                            background: linear-gradient(
+                                45deg,
+                                rgba(255,255,255,0.2) 25%,
+                                transparent 25%,
+                                transparent 50%,
+                                rgba(255,255,255,0.2) 50%,
+                                rgba(255,255,255,0.2) 75%,
+                                transparent 75%,
+                                transparent
+                            );
+                            background-size: 30px 30px;
+                            animation: shimmer 2s linear infinite;
+                        }
+                        @keyframes fill-progress {
+                            to { width: var(--progress-width); }
+                        }
+                        @keyframes shimmer {
+                            0% { Schumann: translateX(-100%); }
+                            100% { transform: translateX(100%); }
                         }
                     </style>
                 `);
@@ -267,15 +408,37 @@ function generate_activity_timeline(frm) {
         return new Date(b.update_on) - new Date(a.update_on);
     });
 
-    // Show progress bar only if frm.doc.status is "Completed"
-    let progressBarHtml = frm.doc.status === 'Completed' ? `
+    // Calculate progress percentage based on document status
+    let progress_percentage = 0;
+    switch (frm.doc.status) {
+        case 'Application Details Updated':
+            progress_percentage = 25;
+            break;
+        case 'Due Payment to RTO':
+            progress_percentage = 50;
+            break;
+        case 'Due Updation in Vahan':
+            progress_percentage = 75;
+            break;
+        case 'Handover to Customer':
+            progress_percentage = 90;
+            break;
+        case 'Completed':
+            progress_percentage = 100;
+            break;
+        default:
+            progress_percentage = 0;
+    }
+
+    // Show progress bar with calculated percentage
+    let progressBarHtml = `
         <div class="progress-bar-container">
-            <h4>Completed: 100%</h4>
+            <h2><i class="fas fa-check-circle"></i> Progress: ${progress_percentage}%</h2>
             <div class="progress-bar">
-                <div class="progress-bar-fill" style="width: 100%"></div>
+                <div class="progress-bar-fill" style="--progress-width: ${progress_percentage}%"></div>
             </div>
         </div>
-    ` : '';
+    `;
 
     let html = `
         ${progressBarHtml}
@@ -287,7 +450,15 @@ function generate_activity_timeline(frm) {
         let status_class = 'status-danger';
         if (row.status === 'Application Verification Skipped') {
             status_class = 'status-error';
-        } else if (['Application Verified', 'Payment Recorded', 'Registration Updated', 'Application Details Updated', 'Journals and Smart Cards Updated'].includes(row.status)) {
+        } else if ([
+            'Application Verified',
+            'Payment Recorded',
+            'Registration Updated',
+            'Application Details Updated',
+            'Journals and Smart Cards Updated',
+            'Vahan Update Completed',
+            'Handover Completed'
+        ].includes(row.status)) {
             status_class = 'status-success';
         }
 
@@ -295,20 +466,42 @@ function generate_activity_timeline(frm) {
         let update_on = frappe.datetime.str_to_user(row.update_on);
 
         // Handle remarks
-        let remarks = row.remarks ? `<span class="remarks-yellow">${frappe.utils.escape_html(row.remarks)}</span>` : '';
+        let remarks = row.remarks ? `
+            <div class="info remarks">
+                <i class="fas fa-comment icon-${status_class}"></i>
+                <span class="label">Remarks:</span>
+                <div class="value">
+                    <p>${frappe.utils.escape_html(row.remarks)}</p>
+                </div>
+            </div>
+        ` : '';
 
         // Apply latest-activity class to the first row
         let row_class = index === 0 ? 'latest-activity' : '';
 
         html += `
             <li class="timeline-item ${status_class} ${row_class}">
-                <div class="timeline-icon"></div>
-                <div class="timeline-content">
-                    <h4>${frappe.utils.escape_html(row.activity)}</h4>
-                    <p><strong>Status:</strong> <span class="${status_class}">${frappe.utils.escape_html(row.status)}</span></p>
-                    <p><strong>Updated By:</strong> ${frappe.utils.escape_html(row.user)}</p>
-                    <p><strong>Updated On:</strong> ${update_on}</p>
-                    ${remarks ? `<p><strong>Remarks:</strong> ${remarks}</p>` : ''}
+                <div class="timeline-icon ${status_class}"></div>
+                <div class="card ${status_class}">
+                    <h2>
+                        ${frappe.utils.escape_html(row.activity)}
+                    </h2>
+                    <div class="info">
+                        <i class="fas fa-check-circle icon-${status_class}"></i>
+                        <span class="label">Status:</span>
+                        <span class="value ${status_class}">${frappe.utils.escape_html(row.status)}</span>
+                    </div>
+                    <div class="info">
+                        <i class="fas fa-calendar-alt icon-${status_class}"></i>
+                        <span class="label">Updated On:</span>
+                        <span class="value">${update_on}</span>
+                    </div>
+                    <div class="info">
+                        <i class="fas fa-user icon-${status_class}"></i>
+                        <span class="label">Updated By:</span>
+                        <span class="value">${frappe.utils.escape_html(row.user)}</span>
+                    </div>
+                    ${remarks}
                 </div>
             </li>
         `;
@@ -317,6 +510,199 @@ function generate_activity_timeline(frm) {
     html += '</ul>';
     return html;
 }
+// frappe.ui.form.on('Vehicle Smart Card', {
+//     refresh: function(frm) {
+//         // Check if rto_activity child table has rows
+//         if (frm.doc.rto_activity && frm.doc.rto_activity.length > 0) {
+//             // Add custom button to the form
+//             frm.add_custom_button(__('View Activities'), function() {
+//                 // Create a new dialog (modal) with large size
+//                 let dialog = new frappe.ui.Dialog({
+//                     title: __('Smart Card Activity Timeline'),
+//                     size: 'large',
+//                     fields: [
+//                         {
+//                             fieldtype: 'HTML',
+//                             fieldname: 'activity_timeline',
+//                             options: generate_activity_timeline(frm)
+//                         }
+//                     ],
+//                     primary_action_label: __('Close'),
+//                     primary_action: function() {
+//                         dialog.hide();
+//                     }
+//                 });
+
+//                 // Add a unique class to this modal for targeted styling
+//                 dialog.$wrapper.addClass('rto-activity-modal');
+
+//                 // Add custom CSS for this specific modal and timeline styling
+//                 dialog.$wrapper.find('.modal-content').prepend(`
+//                     <style>
+//                         .rto-activity-modal .modal-dialog {
+//                             max-width: 800px !important;
+//                             width: 90% !important;
+//                             margin: 30px auto !important;
+//                         }
+//                         .rto-activity-modal .modal-content {
+//                             border-radius: 8px;
+//                             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+//                         }
+//                         .rto-activity-modal .modal-body {
+//                             padding: 20px;
+//                             overflow-y: auto;
+//                             max-height: 70vh;
+//                         }
+//                         .timeline {
+//                             position: relative;
+//                             padding: 20px 0;
+//                             list-style: none;
+//                         }
+//                         .timeline:before {
+//                             content: '';
+//                             position: absolute;
+//                             top: 0;
+//                             bottom: 0;
+//                             width: 4px;
+//                             background: #e9ecef;
+//                             left: 30px;
+//                             margin: 0;
+//                             border-radius: 2px;
+//                         }
+//                         .timeline-item {
+//                             position: relative;
+//                             margin-bottom: 20px;
+//                             padding-left: 60px;
+//                         }
+//                         .timeline-icon {
+//                             position: absolute;
+//                             left: 20px;
+//                             top: 5px;
+//                             width: 20px;
+//                             height: 20px;
+//                             border-radius: 50%;
+//                             background: #fff;
+//                             border: 3px solid;
+//                             display: flex;
+//                             align-items: center;
+//                             justify-content: center;
+//                         }
+//                         .status-error .timeline-icon { border-color: #d9534f; }
+//                         .status-success .timeline-icon { border-color: #5cb85c; }
+//                         .status-danger .timeline-icon { border-color: #f0ad4e; }
+//                         .timeline-content {
+//                             background: #fff;
+//                             padding: 15px;
+//                             border-radius: 6px;
+//                             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+//                             position: relative;
+//                             transition: transform 0.2s;
+//                         }
+//                         .timeline-content:hover {
+//                             transform: translateY(-2px);
+//                         }
+//                         .timeline-content h4 {
+//                             margin: 0 0 8px;
+//                             font-size: 16px;
+//                             color: #333;
+//                         }
+//                         .timeline-content p {
+//                             margin: 0;
+//                             color: #666;
+//                             font-size: 14px;
+//                         }
+//                         .status-error { color: #d9534f; }
+//                         .status-success { color: #5cb85c; }
+//                         .status-danger { color: #f0ad4e; }
+//                         .remarks-yellow {
+//                             background-color: #fff3cd;
+//                             display: inline-block;
+//                             padding: 4px 8px;
+//                             border-radius: 3px;
+//                             margin-top: 8px;
+//                         }
+//                         .latest-activity .timeline-content {
+//                             border-left: 4px solid #5cb85c;
+//                         }
+//                         .progress-bar-container {
+//                             margin-bottom: 20px;
+//                         }
+//                         .progress-bar {
+//                             height: 20px;
+//                             background: #e9ecef;
+//                             border-radius: 10px;
+//                             overflow: hidden;
+//                         }
+//                         .progress-bar-fill {
+//                             height: 100%;
+//                             background: #5cb85c;
+//                             transition: width 0.3s ease;
+//                         }
+//                     </style>
+//                 `);
+//                 dialog.show();
+//             });
+//         }
+//     }
+// });
+
+// // Function to generate timeline HTML with progress bar
+// function generate_activity_timeline(frm) {
+//     // Sort activities in descending order based on update_on
+//     let sorted_activities = frm.doc.rto_activity.slice().sort((a, b) => {
+//         return new Date(b.update_on) - new Date(a.update_on);
+//     });
+
+//     // Show progress bar only if frm.doc.status is "Completed"
+//     let progressBarHtml = frm.doc.status === 'Completed' ? `
+//         <div class="progress-bar-container">
+//             <h4>Completed: 100%</h4>
+//             <div class="progress-bar">
+//                 <div class="progress-bar-fill" style="width: 100%"></div>
+//             </div>
+//         </div>
+//     ` : '';
+
+//     let html = `
+//         ${progressBarHtml}
+//         <ul class="timeline">
+//     `;
+
+//     sorted_activities.forEach((row, index) => {
+//         // Determine status class based on status value
+//         let status_class = 'status-danger';
+//         if (row.status === 'Application Verification Skipped') {
+//             status_class = 'status-error';
+//         } else if (['Application Verified', 'Payment Recorded', 'Registration Updated', 'Application Details Updated', 'Journals and Smart Cards Updated'].includes(row.status)) {
+//             status_class = 'status-success';
+//         }
+
+//         // Format update_on date
+//         let update_on = frappe.datetime.str_to_user(row.update_on);
+
+//         // Handle remarks
+//         let remarks = row.remarks ? `<span class="remarks-yellow">${frappe.utils.escape_html(row.remarks)}</span>` : '';
+
+//         // Apply latest-activity class to the first row
+//         let row_class = index === 0 ? 'latest-activity' : '';
+
+//         html += `
+//             <li class="timeline-item ${status_class} ${row_class}">
+//                 <div class="timeline-icon"></div>
+//                 <div class="timeline-content">
+//                     <h4>${frappe.utils.escape_html(row.activity)}</h4>
+//                     <p><strong>Status:</strong> <span class="${status_class}">${frappe.utils.escape_html(row.status)}</span></p>
+//                     <p><strong>Updated By:</strong> ${frappe.utils.escape_html(row.user)}</p>
+//                     <p><strong>Updated On:</strong> ${update_on}</p>
+//                     ${remarks ? `<p><strong>Remarks:</strong> ${remarks}</p>` : ''}
+//                 </div>
+//             </li>
+//         `;
+//     });
+
+//     html += '</ul>';
+//     return html;
+// }
 
 
 
@@ -351,8 +737,14 @@ frappe.ui.form.on('Vehicle Smart Card', {
             });
         }
 
-        // Add Update in Vahan button
-        if (frm.doc.status === 'Due Updation in Vahan') {
+        // // Add Update in Vahan button
+        // if (frm.doc.status === 'Due Updation in Vahan') {
+        //     frm.add_custom_button(__('Update in Vahan'), function() {
+        //         show_update_vahan_dialog(frm);
+        //     });
+        // }
+        // Add Update in Vahan button only if logged-in user has Sales Manager role
+        if (frm.doc.status === 'Due Updation in Vahan' && frappe.user_roles.includes('Sales Manager')) {
             frm.add_custom_button(__('Update in Vahan'), function() {
                 show_update_vahan_dialog(frm);
             });
