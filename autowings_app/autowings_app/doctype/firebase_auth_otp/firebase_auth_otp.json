@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-09 23:17:27.103325",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_name",
+  "customer_mobile",
+  "otp_code",
+  "otp_sent",
+  "otp_verified",
+  "firebase_verification_id",
+  "user_entered_otp",
+  "otp_verification_status",
+  "otp_sent_at",
+  "otp_verified_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Link",
+   "label": "Customer Name",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "customer_mobile",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Mobile",
+   "reqd": 1
+  },
+  {
+   "fieldname": "otp_code",
+   "fieldtype": "Data",
+   "label": "OTP Code"
+  },
+  {
+   "default": "0",
+   "fieldname": "otp_sent",
+   "fieldtype": "Check",
+   "label": "OTP Sent"
+  },
+  {
+   "default": "0",
+   "fieldname": "otp_verified",
+   "fieldtype": "Check",
+   "label": "OTP Verified"
+  },
+  {
+   "fieldname": "firebase_verification_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Firebase Verification ID"
+  },
+  {
+   "fieldname": "user_entered_otp",
+   "fieldtype": "Data",
+   "label": "User Entered OTP"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "otp_verification_status",
+   "fieldtype": "Select",
+   "label": "OTP Verification Status",
+   "options": "Pending\nVerified\nFailed"
+  },
+  {
+   "fieldname": "otp_sent_at",
+   "fieldtype": "Datetime",
+   "label": "OTP Sent At"
+  },
+  {
+   "fieldname": "otp_verified_at",
+   "fieldtype": "Datetime",
+   "label": "OTP Verified At"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-09 23:37:02.657836",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Firebase Auth OTP",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

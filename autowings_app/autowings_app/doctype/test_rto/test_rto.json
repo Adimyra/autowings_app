@@ -6,7 +6,10 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_hsvz",
-  "amended_from"
+  "name1",
+  "image_upload",
+  "doc_attached",
+  "image_preview"
  ],
  "fields": [
   {
@@ -14,20 +17,29 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Test RTO",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
+   "fieldname": "image_upload",
+   "fieldtype": "Attach Image",
+   "label": "Image Upload"
+  },
+  {
+   "fieldname": "doc_attached",
+   "fieldtype": "Attach",
+   "label": "Doc Attached"
+  },
+  {
+   "fieldname": "image_preview",
+   "fieldtype": "Image",
+   "label": "Image Preview"
+  },
+  {
+   "fieldname": "name1",
+   "fieldtype": "Data",
+   "label": "Name"
   }
  ],
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
  "links": [],
- "modified": "2025-04-29 16:13:29.778206",
+ "modified": "2025-05-09 17:34:48.125029",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Test RTO",
@@ -43,7 +55,6 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "submit": 1,
    "write": 1
   }
  ],

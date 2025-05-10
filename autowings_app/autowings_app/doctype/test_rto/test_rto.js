@@ -1,8 +1,17 @@
-// Copyright (c) 2025, Adimyra Systems Private Limited and contributors
-// For license information, please see license.txt
-
-// frappe.ui.form.on("Test RTO", {
-// 	refresh(frm) {
-
-// 	},
-// });
+frappe.ui.form.on('Test RTO', {
+    refresh: function(frm) {
+        frm.add_custom_button(__('Attach Image'), function() {
+            const attach_btn = frm.fields_dict.image_upload.$wrapper.find('.btn-attach');
+            if (attach_btn.length) {
+                attach_btn.click();
+                frappe.after_ajax(() => {
+                    frappe.ui.form.on('File', {
+                        after_save: function() {
+                            frm.save();
+                        }
+                    });
+                });
+            }
+        });
+    }
+});

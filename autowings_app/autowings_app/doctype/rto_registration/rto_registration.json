@@ -26,14 +26,36 @@
   "number_plate_details_section",
   "number_plate_ordered",
   "number_plate_order_details",
+  "order_date",
   "column_break_exni",
   "number_plate_received",
   "number_plate_received_details",
+  "received_date",
   "column_break_bjko",
   "number_plate_installed",
   "number_plate_installation_details",
   "installed_by",
   "installation_date",
+  "number_plate_image",
+  "number_plate_image_preview",
+  "documents_details_section",
+  "submitted_to_dto_column",
+  "document_submitted_to_dto",
+  "doc_sub_date",
+  "doc_sub_remarks",
+  "received_from_dto_column",
+  "document_received_from_dto",
+  "doc_rec_date",
+  "doc_rec_remarks",
+  "document_attachments_column",
+  "preview",
+  "rc_document",
+  "delivered_details_section",
+  "handover_to_customer",
+  "to_customer",
+  "handover_date",
+  "column_break_qtml",
+  "handover_remarks",
   "payment_info_section",
   "payment_date",
   "payment_reference",
@@ -284,11 +306,127 @@
    "fieldtype": "Datetime",
    "label": "Installation Date",
    "read_only": 1
+  },
+  {
+   "fieldname": "order_date",
+   "fieldtype": "Datetime",
+   "label": "Order Date"
+  },
+  {
+   "fieldname": "received_date",
+   "fieldtype": "Datetime",
+   "label": "Received Date"
+  },
+  {
+   "fieldname": "documents_details_section",
+   "fieldtype": "Section Break",
+   "label": "Documents Details"
+  },
+  {
+   "fieldname": "submitted_to_dto_column",
+   "fieldtype": "Column Break",
+   "label": "Submitted to DTO"
+  },
+  {
+   "default": "0",
+   "fieldname": "document_submitted_to_dto",
+   "fieldtype": "Check",
+   "label": "Document Submitted To DTO"
+  },
+  {
+   "fieldname": "doc_sub_date",
+   "fieldtype": "Datetime",
+   "label": "Submission Date"
+  },
+  {
+   "fieldname": "doc_sub_remarks",
+   "fieldtype": "Data",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "received_from_dto_column",
+   "fieldtype": "Column Break",
+   "label": "Received From DTO"
+  },
+  {
+   "default": "0",
+   "fieldname": "document_received_from_dto",
+   "fieldtype": "Check",
+   "label": "Document Received from DTO"
+  },
+  {
+   "fieldname": "doc_rec_date",
+   "fieldtype": "Datetime",
+   "label": "Received Date"
+  },
+  {
+   "fieldname": "doc_rec_remarks",
+   "fieldtype": "Data",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "document_attachments_column",
+   "fieldtype": "Column Break",
+   "label": "Document Attachments"
+  },
+  {
+   "fieldname": "rc_document",
+   "fieldtype": "Attach Image",
+   "label": "RC Document",
+   "options": "allow_multiple"
+  },
+  {
+   "fieldname": "preview",
+   "fieldtype": "Image",
+   "label": "Preview",
+   "options": "rc_document"
+  },
+  {
+   "fieldname": "delivered_details_section",
+   "fieldtype": "Section Break",
+   "label": "Delivered Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "handover_to_customer",
+   "fieldtype": "Check",
+   "label": "Handover to customer"
+  },
+  {
+   "fieldname": "to_customer",
+   "fieldtype": "Link",
+   "label": "To Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "handover_date",
+   "fieldtype": "Datetime",
+   "label": "Handover Date"
+  },
+  {
+   "fieldname": "column_break_qtml",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "handover_remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "number_plate_image",
+   "fieldtype": "Attach Image",
+   "label": "Number Plate Image"
+  },
+  {
+   "fieldname": "number_plate_image_preview",
+   "fieldtype": "Image",
+   "label": "Preview",
+   "options": "number_plate_image"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-08 01:44:05.068524",
+ "modified": "2025-05-09 18:37:49.743383",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

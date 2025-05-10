@@ -1756,6 +1756,370 @@ function finalize_update(frm, dialog, has_changes) {
 // other one
 
 
+// frappe.ui.form.on('RTO Registration', {
+//     refresh: function(frm) {
+//         // Add Order Number Plate button
+//         if (frm.doc.status === 'Due Number Plate Ordering' && !frm.doc.number_plate_ordered) {
+//             frm.add_custom_button(__('Order Number Plate'), function() {
+//                 let dialog = new frappe.ui.Dialog({
+//                     title: __('Order Number Plate'),
+//                     fields: [
+//                         {
+//                             label: __('Order Details'),
+//                             fieldname: 'order_details',
+//                             fieldtype: 'Small Text',
+//                             reqd: 1
+//                         }
+//                     ],
+//                     primary_action_label: __('Order'),
+//                     primary_action: function(values) {
+//                         if (!values.order_details) {
+//                             frappe.throw(__('Order Details are mandatory.'));
+//                         }
+//                         frappe.call({
+//                             method: 'frappe.client.set_value',
+//                             args: {
+//                                 doctype: 'RTO Registration',
+//                                 name: frm.doc.name,
+//                                 fieldname: {
+//                                     number_plate_ordered: 1,
+//                                     number_plate_order_details: values.order_details,
+//                                     status: 'Number Plate Not Received'
+//                                 }
+//                             },
+//                             callback: function(r) {
+//                                 if (!r.exc) {
+//                                     log_rto_activity(frm, 'Number Plate Ordered', 'Order Placed', values.order_details);
+//                                     frm.reload_doc();
+//                                     frappe.msgprint({
+//                                         title: __('Success'),
+//                                         message: __('Number Plate ordered successfully.'),
+//                                         indicator: 'green'
+//                                     });
+//                                     dialog.hide();
+//                                 } else {
+//                                     log_rto_activity(frm, 'Number Plate Ordered', 'Order Failed', r.exc || JSON.stringify(r));
+//                                     frappe.msgprint({
+//                                         title: __('Error'),
+//                                         message: __('Error ordering Number Plate: ') + (r.exc || JSON.stringify(r)),
+//                                         indicator: 'red'
+//                                     });
+//                                 }
+//                             }
+//                         });
+//                     },
+//                     secondary_action_label: __('Cancel'),
+//                     secondary_action: function() {
+//                         dialog.hide();
+//                         prompt_for_remarks(frm, 'Number Plate Order Cancelled', 'Order Cancelled');
+//                     }
+//                 });
+//                 dialog.show();
+//             });
+//         }
+
+//         // Add Number Plate Received button
+//         if (frm.doc.status === 'Number Plate Not Received' && frm.doc.number_plate_ordered && !frm.doc.number_plate_received) {
+//             frm.add_custom_button(__('Number Plate Received'), function() {
+//                 let dialog = new frappe.ui.Dialog({
+//                     title: __('Number Plate Received'),
+//                     fields: [
+//                         {
+//                             label: __('Received Details'),
+//                             fieldname: 'received_details',
+//                             fieldtype: 'Small Text',
+//                             reqd: 1
+//                         }
+//                     ],
+//                     primary_action_label: __('Confirm Receipt'),
+//                     primary_action: function(values) {
+//                         if (!values.received_details) {
+//                             frappe.throw(__('Received Details are mandatory.'));
+//                         }
+//                         frappe.call({
+//                             method: 'frappe.client.set_value',
+//                             args: {
+//                                 doctype: 'RTO Registration',
+//                                 name: frm.doc.name,
+//                                 fieldname: {
+//                                     number_plate_received: 1,
+//                                     number_plate_received_details: values.received_details,
+//                                     status: 'Due Number Plate Installation'
+//                                 }
+//                             },
+//                             callback: function(r) {
+//                                 if (!r.exc) {
+//                                     log_rto_activity(frm, 'Number Plate Received', 'Receipt Confirmed', values.received_details);
+//                                     frm.reload_doc();
+//                                     frappe.msgprint({
+//                                         title: __('Success'),
+//                                         message: __('Number Plate receipt confirmed successfully.'),
+//                                         indicator: 'green'
+//                                     });
+//                                     dialog.hide();
+//                                 } else {
+//                                     log_rto_activity(frm, 'Number Plate Received', 'Receipt Failed', r.exc || JSON.stringify(r));
+//                                     frappe.msgprint({
+//                                         title: __('Error'),
+//                                         message: __('Error confirming Number Plate receipt: ') + (r.exc || JSON.stringify(r)),
+//                                         indicator: 'red'
+//                                     });
+//                                 }
+//                             }
+//                         });
+//                     },
+//                     secondary_action_label: __('Cancel'),
+//                     secondary_action: function() {
+//                         dialog.hide();
+//                         prompt_for_remarks(frm, 'Number Plate Receipt Cancelled', 'Receipt Cancelled');
+//                     }
+//                 });
+//                 dialog.show();
+//             });
+//         }
+
+//         // Add Number Plate Installation button
+//         if (frm.doc.status === 'Due Number Plate Installation' && frm.doc.number_plate_received && !frm.doc.number_plate_installed) {
+//             frm.add_custom_button(__('Number Plate Installation'), function() {
+//                 let dialog = new frappe.ui.Dialog({
+//                     title: __('Number Plate Installation'),
+//                     fields: [
+//                         {
+//                             label: __('Installation Details'),
+//                             fieldname: 'installation_details',
+//                             fieldtype: 'Small Text',
+//                             reqd: 1
+//                         },
+//                         {
+//                             label: __('Installed By'),
+//                             fieldname: 'installed_by',
+//                             fieldtype: 'Link',
+//                             options: 'User',
+//                             reqd: 1
+//                         },
+//                         {
+//                             label: __('Installation Date'),
+//                             fieldname: 'installation_date',
+//                             fieldtype: 'Datetime',
+//                             reqd: 1,
+//                             default: frappe.datetime.now_datetime()
+//                         }
+//                     ],
+//                     primary_action_label: __('Install'),
+//                     primary_action: function(values) {
+//                         if (!values.installation_details) {
+//                             frappe.throw(__('Installation Details are mandatory.'));
+//                         }
+//                         if (!values.installed_by) {
+//                             frappe.throw(__('Installed By is mandatory.'));
+//                         }
+//                         if (!values.installation_date) {
+//                             frappe.throw(__('Installation Date is mandatory.'));
+//                         }
+//                         frappe.call({
+//                             method: 'frappe.client.set_value',
+//                             args: {
+//                                 doctype: 'RTO Registration',
+//                                 name: frm.doc.name,
+//                                 fieldname: {
+//                                     number_plate_installed: 1,
+//                                     number_plate_installation_details: values.installation_details,
+//                                     installed_by: values.installed_by,
+//                                     installation_date: values.installation_date,
+//                                     status: 'Due Scanning RC'
+//                                 }
+//                             },
+//                             callback: function(r) {
+//                                 if (!r.exc) {
+//                                     log_rto_activity(frm, 'Number Plate Installed', 'Installation Completed', `Installed by ${values.installed_by} on ${values.installation_date}`);
+//                                     frm.reload_doc();
+//                                     frappe.msgprint({
+//                                         title: __('Success'),
+//                                         message: __('Number Plate installed successfully.'),
+//                                         indicator: 'green'
+//                                     });
+//                                     dialog.hide();
+//                                 } else {
+//                                     log_rto_activity(frm, 'Number Plate Installed', 'Installation Failed', r.exc || JSON.stringify(r));
+//                                     frappe.msgprint({
+//                                         title: __('Error'),
+//                                         message: __('Error confirming Number Plate installation: ') + (r.exc || JSON.stringify(r)),
+//                                         indicator: 'red'
+//                                     });
+//                                 }
+//                             }
+//                         });
+//                     },
+//                     secondary_action_label: __('Cancel'),
+//                     secondary_action: function() {
+//                         dialog.hide();
+//                         prompt_for_remarks(frm, 'Number Plate Installation Cancelled', 'Installation Cancelled');
+//                     }
+//                 });
+//                 dialog.show();
+//             });
+//         }
+
+
+//                 // Add Attach Scanned Document button
+//                 if (frm.doc.status === 'Due Scanning RC' && frm.doc.number_plate_installed) {
+//                     frm.add_custom_button(__('Attach Scanned Document'), function() {
+//                         // Fetch the initial number of attachments
+//                         frappe.call({
+//                             method: 'frappe.client.get_list',
+//                             args: {
+//                                 doctype: 'File',
+//                                 fields: ['file_name', 'file_url'],
+//                                 filters: {
+//                                     attached_to_doctype: 'RTO Registration',
+//                                     attached_to_name: frm.doc.name
+//                                 }
+//                             },
+//                             callback: function(r) {
+//                                 if (!r.exc) {
+//                                     let initial_attachments = r.message || [];
+//                                     let initial_count = initial_attachments.length;
+        
+//                                     // Simulate click on the sidebar's "Add Attachment" button
+//                                     let add_attachment_btn = $('.layout-side-section .add-attachment-btn');
+//                                     if (add_attachment_btn.length > 0) {
+//                                         add_attachment_btn.click();
+        
+//                                         // Monitor for an increase in attachment count
+//                                         let checkAttachments = setInterval(function() {
+//                                             frappe.call({
+//                                                 method: 'frappe.client.get_list',
+//                                                 args: {
+//                                                     doctype: 'File',
+//                                                     fields: ['file_name', 'file_url'],
+//                                                     filters: {
+//                                                         attached_to_doctype: 'RTO Registration',
+//                                                         attached_to_name: frm.doc.name
+//                                                     }
+//                                                 },
+//                                                 callback: function(r) {
+//                                                     if (!r.exc) {
+//                                                         let current_attachments = r.message || [];
+//                                                         let current_count = current_attachments.length;
+        
+//                                                         // Check if the attachment count has increased
+//                                                         if (current_count > initial_count) {
+//                                                             // Stop checking once a new attachment is confirmed
+//                                                             clearInterval(checkAttachments);
+        
+//                                                             // Update status to Completed
+//                                                             frappe.call({
+//                                                                 method: 'frappe.client.set_value',
+//                                                                 args: {
+//                                                                     doctype: 'RTO Registration',
+//                                                                     name: frm.doc.name,
+//                                                                     fieldname: {
+//                                                                         status: 'Completed'
+//                                                                     }
+//                                                                 },
+//                                                                 callback: function(r) {
+//                                                                     if (!r.exc) {
+//                                                                         log_rto_activity(frm, 'Scanned RC Attached', 'Process Completed', 'All scanned RC documents attached.');
+//                                                                         frm.reload_doc();
+//                                                                         frappe.msgprint({
+//                                                                             title: __('Success'),
+//                                                                             message: __('Scanned RC documents attached and process completed.'),
+//                                                                             indicator: 'green'
+//                                                                         });
+//                                                                     } else {
+//                                                                         log_rto_activity(frm, 'Scanned RC Attached', 'Completion Failed', r.exc || JSON.stringify(r));
+//                                                                         frappe.msgprint({
+//                                                                             title: __('Error'),
+//                                                                             message: __('Error completing the process: ') + (r.exc || JSON.stringify(r)),
+//                                                                             indicator: 'red'
+//                                                                         });
+//                                                                     }
+//                                                                 }
+//                                                             });
+//                                                         }
+//                                                     }
+//                                                 }
+//                                             });
+//                                         }, 1000); // Check every second
+//                                     } else {
+//                                         frappe.msgprint({
+//                                             title: __('Error'),
+//                                             message: __('Add Attachment button not found in the sidebar.'),
+//                                             indicator: 'red'
+//                                         });
+//                                     }
+//                                 }
+//                             }
+//                         });
+//                     });
+//                 }
+//             }
+//         });
+
+// // Reusable function to log activity in rto_activity child table
+// function log_rto_activity(frm, activity, status, remarks) {
+//     let activity_log = {
+//         doctype: 'RTO Activity Log',
+//         activity: activity,
+//         status: status,
+//         user: frappe.session.user,
+//         update_on: frappe.datetime.now_datetime(),
+//         remarks: remarks || '',
+//         parent: frm.doc.name,
+//         parentfield: 'rto_activity',
+//         parenttype: 'RTO Registration'
+//     };
+
+//     frappe.call({
+//         method: 'frappe.client.insert',
+//         args: {
+//             doc: activity_log
+//         },
+//         callback: function(r) {
+//             if (r.exc) {
+//                 frappe.msgprint({
+//                     title: __('Error'),
+//                     message: __('Error logging activity: ') + (r.exc || JSON.stringify(r)),
+//                     indicator: 'red'
+//                 });
+//                 console.error('Activity Log Error:', r.exc);
+//             }
+//         }
+//     });
+// }
+
+// // Reusable function to prompt for remarks on cancellation
+// function prompt_for_remarks(frm, activity, status) {
+//     let remark_dialog = new frappe.ui.Dialog({
+//         title: __('Enter Remarks'),
+//         fields: [
+//             {
+//                 label: __('Remarks'),
+//                 fieldname: 'remarks',
+//                 fieldtype: 'Small Text',
+//                 reqd: 1,
+//                 description: __('Please provide the reason for cancellation.')
+//             }
+//         ],
+//         primary_action_label: __('Save'),
+//         primary_action: function(values) {
+//             log_rto_activity(frm, activity, status, values.remarks);
+//             frm.reload_doc();
+//             frappe.msgprint({
+//                 title: __('Success'),
+//                 message: __('Remarks added successfully.'),
+//                 indicator: 'green'
+//             });
+//             remark_dialog.hide();
+//         },
+//         secondary_action_label: __('Cancel'),
+//         secondary_action: function() {
+//             remark_dialog.hide();
+//         }
+//     });
+//     remark_dialog.show();
+// }
+
 frappe.ui.form.on('RTO Registration', {
     refresh: function(frm) {
         // Add Order Number Plate button
@@ -1765,6 +2129,13 @@ frappe.ui.form.on('RTO Registration', {
                     title: __('Order Number Plate'),
                     fields: [
                         {
+                            label: __('Order Date'),
+                            fieldname: 'order_date',
+                            fieldtype: 'Datetime',
+                            reqd: 1,
+                            default: frappe.datetime.now_datetime()
+                        },
+                        {
                             label: __('Order Details'),
                             fieldname: 'order_details',
                             fieldtype: 'Small Text',
@@ -1773,6 +2144,9 @@ frappe.ui.form.on('RTO Registration', {
                     ],
                     primary_action_label: __('Order'),
                     primary_action: function(values) {
+                        if (!values.order_date) {
+                            frappe.throw(__('Order Date is mandatory.'));
+                        }
                         if (!values.order_details) {
                             frappe.throw(__('Order Details are mandatory.'));
                         }
@@ -1783,6 +2157,7 @@ frappe.ui.form.on('RTO Registration', {
                                 name: frm.doc.name,
                                 fieldname: {
                                     number_plate_ordered: 1,
+                                    order_date: values.order_date,
                                     number_plate_order_details: values.order_details,
                                     status: 'Number Plate Not Received'
                                 }
@@ -1825,6 +2200,13 @@ frappe.ui.form.on('RTO Registration', {
                     title: __('Number Plate Received'),
                     fields: [
                         {
+                            label: __('Received Date'),
+                            fieldname: 'received_date',
+                            fieldtype: 'Datetime',
+                            reqd: 1,
+                            default: frappe.datetime.now_datetime()
+                        },
+                        {
                             label: __('Received Details'),
                             fieldname: 'received_details',
                             fieldtype: 'Small Text',
@@ -1833,6 +2215,9 @@ frappe.ui.form.on('RTO Registration', {
                     ],
                     primary_action_label: __('Confirm Receipt'),
                     primary_action: function(values) {
+                        if (!values.received_date) {
+                            frappe.throw(__('Received Date is mandatory.'));
+                        }
                         if (!values.received_details) {
                             frappe.throw(__('Received Details are mandatory.'));
                         }
@@ -1843,6 +2228,7 @@ frappe.ui.form.on('RTO Registration', {
                                 name: frm.doc.name,
                                 fieldname: {
                                     number_plate_received: 1,
+                                    received_date: values.received_date,
                                     number_plate_received_details: values.received_details,
                                     status: 'Due Number Plate Installation'
                                 }
@@ -1926,7 +2312,7 @@ frappe.ui.form.on('RTO Registration', {
                                     number_plate_installation_details: values.installation_details,
                                     installed_by: values.installed_by,
                                     installation_date: values.installation_date,
-                                    status: 'Due Scanning RC'
+                                    status: 'Due Documents Submission to DTO'
                                 }
                             },
                             callback: function(r) {
@@ -1960,101 +2346,273 @@ frappe.ui.form.on('RTO Registration', {
             });
         }
 
-
-                // Add Attach Scanned Document button
-                if (frm.doc.status === 'Due Scanning RC' && frm.doc.number_plate_installed) {
-                    frm.add_custom_button(__('Attach Scanned Document'), function() {
-                        // Fetch the initial number of attachments
+        // Add Submit Documents to DTO button
+        if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate_installed && !frm.doc.document_submitted_to_dto) {
+            frm.add_custom_button(__('Submit Documents to DTO'), function() {
+                let dialog = new frappe.ui.Dialog({
+                    title: __('Submit Documents to DTO'),
+                    fields: [
+                        {
+                            label: __('Submission Date'),
+                            fieldname: 'doc_sub_date',
+                            fieldtype: 'Datetime',
+                            reqd: 1,
+                            default: frappe.datetime.now_datetime()
+                        },
+                        {
+                            label: __('Remarks'),
+                            fieldname: 'doc_sub_remarks',
+                            fieldtype: 'Small Text'
+                        }
+                    ],
+                    primary_action_label: __('Submit'),
+                    primary_action: function(values) {
+                        if (!values.doc_sub_date) {
+                            frappe.throw(__('Submission Date is mandatory.'));
+                        }
                         frappe.call({
-                            method: 'frappe.client.get_list',
+                            method: 'frappe.client.set_value',
                             args: {
-                                doctype: 'File',
-                                fields: ['file_name', 'file_url'],
-                                filters: {
-                                    attached_to_doctype: 'RTO Registration',
-                                    attached_to_name: frm.doc.name
+                                doctype: 'RTO Registration',
+                                name: frm.doc.name,
+                                fieldname: {
+                                    doc_sub_date: values.doc_sub_date,
+                                    doc_sub_remarks: values.doc_sub_remarks,
+                                    document_submitted_to_dto: 1,
+                                    status: 'Documents Not Received from DTO'
                                 }
                             },
                             callback: function(r) {
                                 if (!r.exc) {
-                                    let initial_attachments = r.message || [];
-                                    let initial_count = initial_attachments.length;
-        
-                                    // Simulate click on the sidebar's "Add Attachment" button
-                                    let add_attachment_btn = $('.layout-side-section .add-attachment-btn');
-                                    if (add_attachment_btn.length > 0) {
-                                        add_attachment_btn.click();
-        
-                                        // Monitor for an increase in attachment count
-                                        let checkAttachments = setInterval(function() {
-                                            frappe.call({
-                                                method: 'frappe.client.get_list',
-                                                args: {
-                                                    doctype: 'File',
-                                                    fields: ['file_name', 'file_url'],
-                                                    filters: {
-                                                        attached_to_doctype: 'RTO Registration',
-                                                        attached_to_name: frm.doc.name
-                                                    }
-                                                },
-                                                callback: function(r) {
-                                                    if (!r.exc) {
-                                                        let current_attachments = r.message || [];
-                                                        let current_count = current_attachments.length;
-        
-                                                        // Check if the attachment count has increased
-                                                        if (current_count > initial_count) {
-                                                            // Stop checking once a new attachment is confirmed
-                                                            clearInterval(checkAttachments);
-        
-                                                            // Update status to Completed
-                                                            frappe.call({
-                                                                method: 'frappe.client.set_value',
-                                                                args: {
-                                                                    doctype: 'RTO Registration',
-                                                                    name: frm.doc.name,
-                                                                    fieldname: {
-                                                                        status: 'Completed'
-                                                                    }
-                                                                },
-                                                                callback: function(r) {
-                                                                    if (!r.exc) {
-                                                                        log_rto_activity(frm, 'Scanned RC Attached', 'Process Completed', 'All scanned RC documents attached.');
-                                                                        frm.reload_doc();
-                                                                        frappe.msgprint({
-                                                                            title: __('Success'),
-                                                                            message: __('Scanned RC documents attached and process completed.'),
-                                                                            indicator: 'green'
-                                                                        });
-                                                                    } else {
-                                                                        log_rto_activity(frm, 'Scanned RC Attached', 'Completion Failed', r.exc || JSON.stringify(r));
-                                                                        frappe.msgprint({
-                                                                            title: __('Error'),
-                                                                            message: __('Error completing the process: ') + (r.exc || JSON.stringify(r)),
-                                                                            indicator: 'red'
-                                                                        });
-                                                                    }
-                                                                }
-                                                            });
-                                                        }
-                                                    }
-                                                }
-                                            });
-                                        }, 1000); // Check every second
-                                    } else {
-                                        frappe.msgprint({
-                                            title: __('Error'),
-                                            message: __('Add Attachment button not found in the sidebar.'),
-                                            indicator: 'red'
-                                        });
-                                    }
+                                    log_rto_activity(frm, 'Documents Submitted to DTO', 'Submission Completed', values.doc_sub_remarks);
+                                    frm.reload_doc();
+                                    frappe.msgprint({
+                                        title: __('Success'),
+                                        message: __('Documents submitted to DTO successfully.'),
+                                        indicator: 'green'
+                                    });
+                                    dialog.hide();
+                                } else {
+                                    log_rto_activity(frm, 'Documents Submitted to DTO', 'Submission Failed', r.exc || JSON.stringify(r));
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Error submitting documents to DTO: ') + (r.exc || JSON.stringify(r)),
+                                        indicator: 'red'
+                                    });
                                 }
                             }
                         });
+                    },
+                    secondary_action_label: __('Cancel'),
+                    secondary_action: function() {
+                        dialog.hide();
+                        prompt_for_remarks(frm, 'Document Submission Cancelled', 'Submission Cancelled');
+                    }
+                });
+                dialog.show();
+            });
+        }
+
+        // Add Documents Received from DTO button
+        if (frm.doc.status === 'Documents Not Received from DTO' && frm.doc.document_submitted_to_dto && !frm.doc.document_received_from_dto) {
+            frm.add_custom_button(__('Documents Received from DTO'), function() {
+                let dialog = new frappe.ui.Dialog({
+                    title: __('Documents Received from DTO'),
+                    fields: [
+                        {
+                            label: __('Received Date'),
+                            fieldname: 'doc_rec_date',
+                            fieldtype: 'Datetime',
+                            reqd: 1,
+                            default: frappe.datetime.now_datetime()
+                        },
+                        {
+                            label: __('Remarks'),
+                            fieldname: 'doc_rec_remarks',
+                            fieldtype: 'Small Text'
+                        }
+                    ],
+                    primary_action_label: __('Confirm Receipt'),
+                    primary_action: function(values) {
+                        if (!values.doc_rec_date) {
+                            frappe.throw(__('Received Date is mandatory.'));
+                        }
+                        frappe.call({
+                            method: 'frappe.client.set_value',
+                            args: {
+                                doctype: 'RTO Registration',
+                                name: frm.doc.name,
+                                fieldname: {
+                                    doc_rec_date: values.doc_rec_date,
+                                    doc_rec_remarks: values.doc_rec_remarks,
+                                    document_received_from_dto: 1,
+                                    status: 'Due Scanning RC'
+                                }
+                            },
+                            callback: function(r) {
+                                if (!r.exc) {
+                                    log_rto_activity(frm, 'Documents Received from DTO', 'Receipt Confirmed', values.doc_rec_remarks);
+                                    frm.reload_doc();
+                                    frappe.msgprint({
+                                        title: __('Success'),
+                                        message: __('Documents received from DTO successfully.'),
+                                        indicator: 'green'
+                                    });
+                                    dialog.hide();
+                                } else {
+                                    log_rto_activity(frm, 'Documents Received from DTO', 'Receipt Failed', r.exc || JSON.stringify(r));
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Error confirming receipt of documents: ') + (r.exc || JSON.stringify(r)),
+                                        indicator: 'red'
+                                    });
+                                }
+                            }
+                        });
+                    },
+                    secondary_action_label: __('Cancel'),
+                    secondary_action: function() {
+                        dialog.hide();
+                        prompt_for_remarks(frm, 'Document Receipt Cancelled', 'Receipt Cancelled');
+                    }
+                });
+                dialog.show();
+            });
+        }
+
+        // Add Attach Scanned Document button
+        if (frm.doc.status === 'Due Scanning RC' && frm.doc.document_received_from_dto) {
+            frm.add_custom_button(__('Attach Scanned Document'), function() {
+                const attach_btn = frm.fields_dict.rc_document.$wrapper.find('.btn-attach');
+                if (attach_btn.length) {
+                    attach_btn.click();
+                    frappe.after_ajax(() => {
+                        // Monitor changes to rc_document field
+                        let checkDocument = setInterval(() => {
+                            if (frm.doc.rc_document && frm.doc.rc_document !== frm.get_field('rc_document')._last_value) {
+                                clearInterval(checkDocument);
+                                frappe.call({
+                                    method: 'frappe.client.set_value',
+                                    args: {
+                                        doctype: 'RTO Registration',
+                                        name: frm.doc.name,
+                                        fieldname: {
+                                            attachment_attach: frm.doc.rc_document,
+                                            status: 'Due Handover to Customer'
+                                        }
+                                    },
+                                    callback: function(r) {
+                                        if (!r.exc) {
+                                            log_rto_activity(frm, 'Scanned RC Attached', 'Document Attached', `Attachment added: ${frm.doc.rc_document}`);
+                                            frm.reload_doc();
+                                            frappe.msgprint({
+                                                title: __('Success'),
+                                                message: __('Scanned RC document attached successfully.'),
+                                                indicator: 'green'
+                                            });
+                                        } else {
+                                            log_rto_activity(frm, 'Scanned RC Attached', 'Attachment Failed', r.exc || JSON.stringify(r));
+                                            frappe.msgprint({
+                                                title: __('Error'),
+                                                message: __('Error attaching scanned RC document: ') + (r.exc || JSON.stringify(r)),
+                                                indicator: 'red'
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        }, 1000); // Check every second
+                    });
+                } else {
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Attach button for rc_document not found.'),
+                        indicator: 'red'
                     });
                 }
-            }
-        });
+            });
+        }
+
+        // Add Handover to Customer button
+        if (frm.doc.status === 'Due Handover to Customer' && frm.doc.rc_document && !frm.doc.handover_to_customer) {
+            frm.add_custom_button(__('Handover to Customer'), function() {
+                let dialog = new frappe.ui.Dialog({
+                    title: __('Handover to Customer'),
+                    fields: [
+                        {
+                            label: __('Handover Date'),
+                            fieldname: 'handover_date',
+                            fieldtype: 'Datetime',
+                            reqd: 1,
+                            default: frappe.datetime.now_datetime()
+                        },
+                        {
+                            label: __('To Customer'),
+                            fieldname: 'to_customer',
+                            fieldtype: 'Data',
+                            reqd: 1,
+                            default: frm.doc.customer
+                        },
+                        {
+                            label: __('Handover Remarks'),
+                            fieldname: 'handover_remarks',
+                            fieldtype: 'Small Text'
+                        }
+                    ],
+                    primary_action_label: __('Handover'),
+                    primary_action: function(values) {
+                        if (!values.handover_date) {
+                            frappe.throw(__('Handover Date is mandatory.'));
+                        }
+                        if (!values.to_customer) {
+                            frappe.throw(__('To Customer is mandatory.'));
+                        }
+                        frappe.call({
+                            method: 'frappe.client.set_value',
+                            args: {
+                                doctype: 'RTO Registration',
+                                name: frm.doc.name,
+                                fieldname: {
+                                    handover_date: values.handover_date,
+                                    to_customer: values.to_customer,
+                                    handover_remarks: values.handover_remarks,
+                                    handover_to_customer: 1,
+                                    status: 'Completed',
+                                    registration_status: 'Handover to Customer'
+                                }
+                            },
+                            callback: function(r) {
+                                if (!r.exc) {
+                                    log_rto_activity(frm, 'Handover to Customer', 'Handover Completed', values.handover_remarks || `Handed over to ${values.to_customer}`);
+                                    frm.reload_doc();
+                                    frappe.msgprint({
+                                        title: __('Success'),
+                                        message: __('Documents handed over to customer successfully.'),
+                                        indicator: 'green'
+                                    });
+                                    dialog.hide();
+                                } else {
+                                    log_rto_activity(frm, 'Handover to Customer', 'Handover Failed', r.exc || JSON.stringify(r));
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Error handing over documents: ') + (r.exc || JSON.stringify(r)),
+                                        indicator: 'red'
+                                    });
+                                }
+                            }
+                        });
+                    },
+                    secondary_action_label: __('Cancel'),
+                    secondary_action: function() {
+                        dialog.hide();
+                        prompt_for_remarks(frm, 'Handover to Customer Cancelled', 'Handover Cancelled');
+                    }
+                });
+                dialog.show();
+            });
+        }
+    }
+});
 
 // Reusable function to log activity in rto_activity child table
 function log_rto_activity(frm, activity, status, remarks) {

@@ -10,8 +10,8 @@ app_license = "mit"
 
 # required_apps = []
 app_include_js = [
-    "/assets/autowings_app/js/lib/chart.min.js",
-    # "/assets/autowings_app/js/payment_entry.js"
+    "/assets/autowings_app/js/lib/chart.min.js"
+    # "/assets/autowings_app/js/firebase_auth.js"
 ]
 app_include_css = [
     "/assets/autowings_app/css/custom.css"
