@@ -1329,67 +1329,44 @@ function log_warranty_activity(params) {
 
 // for Vehicle Misc sales on update payment
 
-frappe.ui.form.on('Payment Entry', {
-    before_submit: function(frm) {
-        console.log("Before Submit triggered for Payment Entry:", frm.doc.name);
-        let references = frm.doc.references || [];
-        
-        if (!references.length) {
-            console.log("No references found in Payment Entry.");
-            return;
-        }
-
-        references.forEach(function(ref) {
-            if (ref.reference_doctype === "Journal Entry") {
-                console.log("Checking Journal Entry reference:", ref.reference_name);
-                frappe.call({
-                    method: "frappe.client.get_list",
-                    args: {
-                        doctype: "Vehicle Misc Sales",
-                        filters: {}, // Can add {"name": "MISC-25-050626"} for testing
-                        fields: ["name", "misc_accounts"],
-                        limit_page_length: 50
-                    },
-                    async: false, // Ensure synchronous call to block submit until check is complete
-                    callback: function(response) {
-                        console.log("Vehicle Misc Sales response:", response);
-                        let vehicle_misc_sales = response.message || [];
-                        
-                        if (!vehicle_misc_sales.length) {
-                            console.log("No Vehicle Misc Sales documents found.");
-                            return;
-                        }
-
-                        vehicle_misc_sales.forEach(function(vms) {
-                            let misc_accounts = vms.misc_accounts || [];
-                            if (!misc_accounts.length) {
-                                console.log("No misc_accounts in Vehicle Misc Sales:", vms.name);
-                                return;
-                            }
-
-                            misc_accounts.forEach(function(account) {
-                                console.log("Comparing journal_entry_id:", account.journal_entry_id, "with reference_name:", ref.reference_name);
-                                if (account.journal_entry_id === ref.reference_name) {
-                                    console.log("Match found:", account.journal_entry_id, vms.name);
-                                    frappe.msgprint({
-                                        title: __("Match Found"),
-                                        message: __("Matched Journal Entry ID: {0} in Vehicle Misc Sales: {1}", [account.journal_entry_id, vms.name]),
-                                        indicator: "green"
-                                    });
-                                }
-                            });
-                        });
-                    },
-                    error: function(err) {
-                        console.error("Error fetching Vehicle Misc Sales:", err);
-                        frappe.msgprint({
-                            title: __("Error"),
-                            message: __("Failed to fetch Vehicle Misc Sales documents. Check console for details."),
-                            indicator: "red"
-                        });
-                    }
-                });
-            }
-        });
-    }
-});
+// frappe.ui.form.on('Payment Entry', {
+//     on_submit: function(frm) {
+//         // Check if the references child table exists and has entries
+//         if (frm.doc.references && frm.doc.references.length > 0) {
+//             // Iterate through each reference in the child table
+//             frm.doc.references.forEach(function(row) {
+//                 // Check if the reference is a Journal Entry
+//                 if (row.reference_doctype === 'Journal Entry') {
+//                     // Update the Journal Entry with custom_payment_entry_id and custom_payment_status
+//                     frappe.call({
+//                         method: 'frappe.client.set_value',
+//                         args: {
+//                             doctype: 'Journal Entry',
+//                             name: row.reference_name,
+//                             fieldname: {
+//                                 'custom_payment_entry_id': frm.doc.name,
+//                                 'custom_payment_status': 'Paid'
+//                             }
+//                         },
+//                         callback: function(response) {
+//                             if (response.message) {
+//                                 frappe.msgprint({
+//                                     title: __('Success'),
+//                                     message: __('Journal Entry {0} updated successfully.', [row.reference_name]),
+//                                     indicator: 'green'
+//                                 });
+//                             }
+//                         },
+//                         error: function(error) {
+//                             frappe.msgprint({
+//                                 title: __('Error'),
+//                                 message: __('Failed to update Journal Entry {0}.', [row.reference_name]),
+//                                 indicator: 'red'
+//                             });
+//                         }
+//                     });
+//                 }
+//             });
+//         }
+//     }
+// });

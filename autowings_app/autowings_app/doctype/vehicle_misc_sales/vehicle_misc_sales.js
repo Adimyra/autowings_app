@@ -1,3 +1,389 @@
+frappe.ui.form.on('Vehicle Misc Sales', {
+    refresh: function(frm) {
+        console.log('Form refresh, checking misc_activity');
+        // Add View Activities button if misc_activity has rows
+        if (frm.doc.misc_activity && frm.doc.misc_activity.length > 0) {
+            console.log('Adding View Activities button');
+            frm.add_custom_button(__('View Activities'), function() {
+                console.log('View Activities button clicked');
+                try {
+                    let dialog = new frappe.ui.Dialog({
+                        title: __('Misc Activity Timeline'),
+                        size: 'large',
+                        fields: [
+                            {
+                                fieldtype: 'HTML',
+                                fieldname: 'activity_timeline',
+                                options: generate_activity_timeline(frm)
+                            }
+                        ],
+                        primary_action_label: __('Close'),
+                        primary_action: function() {
+                            dialog.hide();
+                        }
+                    });
+
+                    dialog.$wrapper.addClass('misc-activity-modal');
+                    dialog.$wrapper.find('.modal-content').prepend(`
+                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+                        <style>
+                            .misc-activity-modal .modal-dialog {
+                                max-width: 800px !important;
+                                width: 90% !important;
+                                margin: 30px auto !important;
+                            }
+                            .misc-activity-modal .modal-content {
+                                border-radius: 8px;
+                                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                            }
+                            .misc-activity-modal .modal-body {
+                                padding: 20px;
+                                overflow-y: auto;
+                                max-height: 70vh;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 1.5rem;
+                            }
+                            .timeline {
+                                position: relative;
+                                padding: 20px 0;
+                                list-style: none;
+                                width: 100%;
+                            }
+                            .timeline:before {
+                                content: '';
+                                position: absolute;
+                                top: 0;
+                                bottom: 0;
+                                width: 4px;
+                                background: #e9ecef;
+                                left: 30px;
+                                margin: 0;
+                                border-radius: 2px;
+                            }
+                            .timeline-item {
+                                position: relative;
+                                margin-bottom: 40px;
+                                padding-left: 60px;
+                            }
+                            .timeline-icon {
+                                position: absolute;
+                                left: 20px;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                width: 20px;
+                                height: 20px;
+                                border-radius: 50%;
+                                border: none;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                z-index: 1;
+                                animation: pulse 1.5s ease-in-out infinite;
+                                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                            }
+                            .timeline-icon.status-error {
+                                background-color: #d9534f;
+                            }
+                            .timeline-icon.status-success {
+                                background-color: #5cb85c;
+                            }
+                            .timeline-icon.status-danger {
+                                background-color: #f0ad4e;
+                            }
+                            .latest-activity .timeline-icon {
+                                width: 24px;
+                                height: 24px;
+                                animation: strong-pulse 1.5s ease-in-out infinite;
+                            }
+                            .timeline-icon:hover {
+                                transform: translateY(-50%) scale(1.2);
+                                box-shadow: 0 0 8px rgba(0,0,0,0.3);
+                            }
+                            @keyframes pulse {
+                                0% { transform: translateY(-50%) scale(1); }
+                                50% { transform: translateY(-50%) scale(1.1); }
+                                100% { transform: translateY(-50%) scale(1); }
+                            }
+                            @keyframes strong-pulse {
+                                0% { transform: translateY(-50%) scale(1); }
+                                50% { transform: translateY(-50%) scale(1.15); }
+                                100% { transform: translateY(-50%) scale(1); }
+                            }
+                            .card {
+                                background-color: #ffffff;
+                                border-radius: 0.5rem;
+                                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                padding: 1.5rem;
+                                width: 100%;
+                                position: relative;
+                                border-left: 4px solid;
+                                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                            }
+                            .card:hover {
+                                transform: translateY(-2px);
+                                box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+                            }
+                            .card.status-success {
+                                background-color: #f0fdf4;
+                                border-left-color: #5cb85c;
+                            }
+                            .card.status-error {
+                                background-color: #fef2f2;
+                                border-left-color: #d9534f;
+                            }
+                            .card.status-danger {
+                                background-color: #fff7ed;
+                                border-left-color: #f0ad4e;
+                            }
+                            .card h2 {
+                                font-size: 1.25rem;
+                                font-weight: 600;
+                                color: #1f2937;
+                                margin-bottom: 0.5rem;
+                                display: flex;
+                                align-items: center;
+                            }
+                            .card h2 i {
+                                margin-right: 0.5rem;
+                            }
+                            .card .info {
+                                display: flex;
+                                align-items: center;
+                                margin-bottom: 0.5rem;
+                            }
+                            .card .info.remarks {
+                                align-items: flex-start;
+                                flex-wrap: nowrap;
+                            }
+                            .card .info.remarks i {
+                                margin-top: 0.25rem;
+                                flex-shrink: 0;
+                            }
+                            .card .info i {
+                                margin-right: 0.5rem;
+                                flex-shrink: 0;
+                            }
+                            .card .label {
+                                color: #4b5563;
+                                font-weight: 500;
+                            }
+                            .card .value {
+                                margin-left: 0.5rem;
+                                color: #374151;
+                                flex: 1;
+                            }
+                            .card .status-success {
+                                color: #5cb85c;
+                            }
+                            .card .status-error {
+                                color: #d9534f;
+                            }
+                            .card .status-danger {
+                                color: #f0ad4e;
+                            }
+                            .card .icon-success {
+                                color: #5cb85c;
+                            }
+                            .card .icon-error {
+                                color: #d9534f;
+                            }
+                            .card .icon-danger {
+                                color: #f0ad4e;
+                            }
+                            .card .remarks p {
+                                margin: 0;
+                                color: #374151;
+                                background-color: #fff3cd;
+                                padding: 4px 8px;
+                                border-radius: 3px;
+                                display: inline-block;
+                                word-break: break-word;
+                                flex: 1;
+                            }
+                            .latest-activity .card {
+                                border-left-width: 6px;
+                            }
+                            .progress-bar-container {
+                                width: 100%;
+                                margin-bottom: 1.5rem;
+                                background-color: #ffffff;
+                                border-radius: 0.5rem;
+                                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                padding: 1rem;
+                            }
+                            .progress-bar-container h2 {
+                                font-size: 1.25rem;
+                                font-weight: 600;
+                                color: #1f2937;
+                                margin-bottom: 0.5rem;
+                                display: flex;
+                                align-items: center;
+                            }
+                            .progress-bar-container h2 i {
+                                margin-right: 0.5rem;
+                                color: #5cb85c;
+                            }
+                            .progress-bar {
+                                height: 20px;
+                                background: #e9ecef;
+                                border-radius: 10px;
+                                overflow: hidden;
+                                position: relative;
+                            }
+                            .progress-bar-fill {
+                                height: 100%;
+                                background: linear-gradient(90deg, #5cb85c, #7ed321);
+                                width: 0;
+                                animation: fill-progress 1.5s ease forwards;
+                                position: relative;
+                                overflow: hidden;
+                            }
+                            .progress-bar-fill::after {
+                                content: '';
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                width: 200%;
+                                height: 100%;
+                                background: linear-gradient(
+                                    45deg,
+                                    rgba(255,255,255,0.2) 25%,
+                                    transparent 25%,
+                                    transparent 50%,
+                                    rgba(255,255,255,0.2) 50%,
+                                    rgba(255,255,255,0.2) 75%,
+                                    transparent 75%,
+                                    transparent
+                                );
+                                background-size: 30px 30px;
+                                animation: shimmer 2s linear infinite;
+                            }
+                            @keyframes fill-progress {
+                                to { width: var(--progress-width); }
+                            }
+                            @keyframes shimmer {
+                                0% { transform: translateX(-100%); }
+                                100% { transform: translateX(100%); }
+                            }
+                        </style>
+                    `);
+                    dialog.show();
+                } catch (e) {
+                    console.error('Error opening activity dialog:', e);
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Failed to open activity timeline: ') + e.message,
+                        indicator: 'red'
+                    });
+                }
+            });
+        }
+    }
+});
+
+// Function to generate timeline HTML with progress bar
+function generate_activity_timeline(frm) {
+    console.log('Generating activity timeline');
+    // Sort activities in descending order based on update_on
+    let sorted_activities = frm.doc.misc_activity.slice().sort((a, b) => {
+        return new Date(b.update_on) - new Date(a.update_on);
+    });
+
+    // Calculate progress percentage based on document status
+    let progress_percentage = 0;
+    switch (frm.doc.status) {
+        case 'Due Update':
+            progress_percentage = 25;
+            break;
+        case 'Due Payment':
+            progress_percentage = 50;
+            break;
+        case 'Completed': // Assuming 'Completed' is a possible status
+            progress_percentage = 100;
+            break;
+        default:
+            progress_percentage = 0;
+    }
+
+    // Show progress bar with calculated percentage
+    let progressBarHtml = `
+        <div class="progress-bar-container">
+            <h2><i class="fas fa-check-circle"></i> Progress: ${progress_percentage}%</h2>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" style="--progress-width: ${progress_percentage}%"></div>
+            </div>
+        </div>
+    `;
+
+    let html = `
+        ${progressBarHtml}
+        <ul class="timeline">
+    `;
+
+    sorted_activities.forEach((row, index) => {
+        // Determine status class based on status value
+        let status_class = 'status-danger';
+        if (row.status.includes('Failed') || row.status.includes('Skipped')) {
+            status_class = 'status-error';
+        } else if ([
+            'Updated Misc Accounts',
+            'Journals Submitted',
+            'Payment Initiated',
+            'Payment Attempted'
+        ].includes(row.status)) {
+            status_class = 'status-success';
+        }
+
+        // Format update_on date
+        let update_on = frappe.datetime.str_to_user(row.update_on);
+
+        // Handle remarks
+        let remarks = row.remarks ? `
+            <div class="info remarks">
+                <i class="fas fa-comment icon-${status_class}"></i>
+                <span class="label">Remarks:</span>
+                <div class="value">
+                    <p>${frappe.utils.escape_html(row.remarks)}</p>
+                </div>
+            </div>
+        ` : '';
+
+        // Apply latest-activity class to the first row
+        let row_class = index === 0 ? 'latest-activity' : '';
+
+        html += `
+            <li class="timeline-item ${status_class} ${row_class}">
+                <div class="timeline-icon ${status_class}"></div>
+                <div class="card ${status_class}">
+                    <h2>
+                        ${frappe.utils.escape_html(row.activity)}
+                    </h2>
+                    <div class="info">
+                        <i class="fas fa-check-circle icon-${status_class}"></i>
+                        <span class="label">Status:</span>
+                        <span class="value ${status_class}">${frappe.utils.escape_html(row.status)}</span>
+                    </div>
+                    <div class="info">
+                        <i class="fas fa-calendar-alt icon-${status_class}"></i>
+                        <span class="label">Updated On:</span>
+                        <span class="value">${update_on}</span>
+                    </div>
+                    <div class="info">
+                        <i class="fas fa-user icon-${status_class}"></i>
+                        <span class="label">Updated By:</span>
+                        <span class="value">${frappe.utils.escape_html(row.user)}</span>
+                    </div>
+                    ${remarks}
+                </div>
+            </li>
+        `;
+    });
+
+    html += '</ul>';
+    return html;
+}
+
 // // frappe.ui.form.on('Vehicle Misc Sales', {
 // //     refresh: function(frm) {
 // //         // Add custom button "Update Journals"
@@ -6,6 +392,7 @@
 // //         });
 // //     }
 // // });
+
 
 // frappe.ui.form.on('Vehicle Misc Sales', {
 //     refresh: function(frm) {
@@ -344,7 +731,6 @@
 //         }
 //     });
 // }
-
 frappe.ui.form.on('Vehicle Misc Sales', {
     refresh: function(frm) {
         try {
@@ -361,7 +747,7 @@ frappe.ui.form.on('Vehicle Misc Sales', {
                         if (!r.exc) {
                             frm.reload_doc();
                         } else {
-                            log_vehicle_misc_activity(frm, 'Clear Workflow State', 'Failed', 'Failed to clear workflow state');
+                            log_vehicle_misc_activity(frm, 'Clear Workflow State', 'Failed', 'Failed to clear workflow state: ' + (r.exc || 'Unknown error'));
                         }
                     },
                     error: function(err) {
@@ -385,8 +771,8 @@ frappe.ui.form.on('Vehicle Misc Sales', {
                 });
             }
 
-            // Add Make Payment button if any child row has payment_status 'Due' and journal_status 'Submitted'
-            if (frm.doc.misc_accounts && frm.doc.misc_accounts.some(row => row.payment_status === 'Due') && frm.doc.status === 'Due Payment' && frm.doc.journal_status === 'Submitted') {
+            // Add Make Payment button if status is 'Due Payment'
+            if (frm.doc.status === 'Due Payment') {
                 frm.add_custom_button(__('Make Payment'), function() {
                     try {
                         show_payment_dialog(frm);
@@ -401,7 +787,7 @@ frappe.ui.form.on('Vehicle Misc Sales', {
             }
 
             // Set form status indicator
-            frm.set_intro(__('Status: ') + frm.doc.status + ' | Journal Status: ' + frm.doc.journal_status, 'blue');
+            frm.set_intro(__('Status: ') + frm.doc.status, 'blue');
         } catch (e) {
             frappe.msgprint({
                 title: __('Error'),
@@ -476,14 +862,13 @@ function show_update_misc_dialog(frm) {
             misc_account: row.misc_account,
             amount: row.amount,
             journal_entry_id: row.journal_entry_id,
-            payment_status: row.payment_status,
-            submit_journal: frm.doc.journal_status === 'Draft' ? true : false
+            payment_status: row.payment_status || 'Due'
         }));
 
         function show_row_dialog() {
             if (current_row_index >= misc_accounts.length) {
                 frappe.confirm(
-                    __('Do you want to submit the selected journal entries? This action cannot be undone.'),
+                    __('Do you want to submit the journal entries? This action cannot be undone.'),
                     function() {
                         submit_journals(frm, misc_accounts);
                     },
@@ -503,7 +888,8 @@ function show_update_misc_dialog(frm) {
                         fieldname: 'misc_account',
                         fieldtype: 'Data',
                         default: row.misc_account,
-                        reqd: 1
+                        reqd: 1,
+                        read_only: 1
                     },
                     {
                         label: __('Account Amount'),
@@ -511,13 +897,6 @@ function show_update_misc_dialog(frm) {
                         fieldtype: 'Currency',
                         default: row.amount,
                         reqd: 1
-                    },
-                    {
-                        label: __('Submit Journal'),
-                        fieldname: 'submit_journal',
-                        fieldtype: 'Check',
-                        default: row.submit_journal ? 1 : 0,
-                        depends_on: 'eval:doc.journal_status==="Draft"'
                     }
                 ],
                 primary_action_label: current_row_index === misc_accounts.length - 1 ? __('Update & Finish') : __('Update & Next'),
@@ -532,8 +911,7 @@ function show_update_misc_dialog(frm) {
                     misc_accounts[current_row_index] = {
                         ...row,
                         misc_account: values.misc_account,
-                        amount: values.amount,
-                        submit_journal: values.submit_journal || false
+                        amount: values.amount
                     };
 
                     current_row_index++;
@@ -545,7 +923,6 @@ function show_update_misc_dialog(frm) {
                     dialog.hide();
                 }
             });
-            dialog.set_value('journal_status', frm.doc.journal_status);
             dialog.show();
         }
 
@@ -592,13 +969,15 @@ function update_document_and_journals(frm, misc_accounts, submit_journals, remar
                 misc_account: row.misc_account,
                 amount: row.amount,
                 journal_entry_id: row.journal_entry_id,
-                payment_status: row.payment_status
+                payment_status: row.payment_status || 'Due'
             }));
 
-            // Update parent status
-            let new_status = submit_journals && frm.doc.misc_accounts.some(row => row.payment_status === 'Due') ? 'Due Payment' : 'Due Update';
-            frm.doc.status = new_status;
-            frm.doc.workflow_state = '';
+            // Update parent status and journal_status only if not submitting journals
+            if (!submit_journals) {
+                frm.doc.status = 'Due Update';
+                frm.doc.journal_status = frm.doc.journal_status || 'Draft';
+                frm.doc.workflow_state = '';
+            }
 
             // Save document
             save_document_with_retry(frm, has_changes, () => {
@@ -622,23 +1001,30 @@ function update_document_and_journals(frm, misc_accounts, submit_journals, remar
                                                 return frappe.db.get_doc('Journal Entry', row.journal_entry_id)
                                                     .then(journal => {
                                                         if (journal.docstatus !== 0) {
-                                                            throw new Error(`Journal Entry ${row.journal_entry_id} is not in Draft status`);
+                                                            return { journal_id: row.journal_entry_id, name: row.name, skipped: true, reason: `Journal Entry ${row.journal_entry_id} is not in Draft status` };
                                                         }
                                                         update_journal_entry(frm, journal, row.amount, company_abbr);
                                                         return frappe.call({
                                                             method: 'frappe.client.save',
                                                             args: { doc: journal }
-                                                        }).then(() => ({ journal_id: row.journal_entry_id, name: row.name, submit: row.submit_journal }));
+                                                        }).then(() => ({ journal_id: row.journal_entry_id, name: row.name, skipped: false }));
                                                     })
                                                     .catch(err => {
-                                                        throw new Error(`Error updating journal ${row.journal_entry_id}: ${err.message}`);
+                                                        return { journal_id: row.journal_entry_id, name: row.name, skipped: true, reason: `Error updating journal ${row.journal_entry_id}: ${err.message}` };
                                                     });
                                             }
-                                            return Promise.resolve({ journal_id: null, name: row.name, submit: row.submit_journal });
+                                            return Promise.resolve({ journal_id: null, name: row.name, skipped: true, reason: 'No journal entry or already processed' });
                                         });
 
                                         Promise.all(promises)
                                             .then(results => {
+                                                // Log skipped journals
+                                                results.forEach(result => {
+                                                    if (result.skipped && result.journal_id) {
+                                                        log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Skipped', result.reason);
+                                                    }
+                                                });
+
                                                 if (has_changes) {
                                                     log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Success', 'Misc accounts details updated');
                                                 }
@@ -650,10 +1036,10 @@ function update_document_and_journals(frm, misc_accounts, submit_journals, remar
                                                 }
                                             })
                                             .catch(err => {
-                                                log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Error updating journals: ' + err.message);
+                                                log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Error processing journals: ' + err.message);
                                                 frappe.msgprint({
                                                     title: __('Error'),
-                                                    message: err.message || 'Error updating journals',
+                                                    message: 'Error processing journals: ' + err.message,
                                                     indicator: 'red'
                                                 });
                                             });
@@ -693,7 +1079,7 @@ function update_document_and_journals(frm, misc_accounts, submit_journals, remar
                         });
                     }
                 });
-            });
+            }, misc_accounts);
         }).catch(err => {
             log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Failed to refresh document: ' + err.message);
             frappe.msgprint({
@@ -747,199 +1133,111 @@ function prompt_for_remarks(frm, misc_accounts) {
     }
 }
 
-// Submit journals after updating with retry logic
-function submit_journals_after_update(frm, misc_accounts, update_results, retry_count = 0) {
-    const max_retries = 3;
+// Submit journals after updating
+function submit_journals_after_update(frm, misc_accounts, update_results) {
     try {
-        // Refresh document to ensure latest state
-        frm.reload_doc().then(() => {
-            frappe.call({
-                method: 'autowings_app.custom_scripts.utils.get_company_abbr',
-                callback: function(r) {
-                    if (!r.exc && r.message) {
-                        let company_abbr = r.message;
-                        let promises = misc_accounts.map(row => {
-                            let update_result = update_results.find(res => res.name === row.name && res.journal_id === row.journal_entry_id);
-                            if (row.journal_entry_id && frm.doc.journal_status === 'Draft' && update_result && update_result.submit) {
-                                return frappe.db.get_doc('Journal Entry', row.journal_entry_id)
-                                    .then(journal => {
-                                        if (journal.docstatus !== 0) {
-                                            throw new Error(`Journal Entry ${row.journal_entry_id} is not in Draft status`);
-                                        }
-                                        return frappe.call({
-                                            method: 'frappe.client.submit',
-                                            args: { doc: journal }
-                                        }).then(() => {
-                                            return { journal_id: row.journal_entry_id, name: row.name };
-                                        });
-                                    })
-                                    .catch(err => {
-                                        throw new Error(`Error processing journal ${row.journal_entry_id}: ${err.message}`);
-                                    });
-                            }
-                            return Promise.resolve({ journal_id: null, name: row.name });
-                        });
-
-                        Promise.all(promises)
-                            .then(results => {
-                                // Check if all journals are submitted
-                                let all_journals_submitted = true;
-                                let journal_checks = misc_accounts.map(row => {
-                                    if (row.journal_entry_id) {
-                                        return frappe.db.get_doc('Journal Entry', row.journal_entry_id)
-                                            .then(journal => {
-                                                if (journal.docstatus !== 1) {
-                                                    all_journals_submitted = false;
-                                                }
-                                            });
+        frappe.call({
+            method: 'autowings_app.custom_scripts.utils.get_company_abbr',
+            callback: function(r) {
+                if (!r.exc && r.message) {
+                    let company_abbr = r.message;
+                    let promises = misc_accounts.map(row => {
+                        let update_result = update_results.find(res => res.name === row.name && res.journal_id === row.journal_entry_id);
+                        if (row.journal_entry_id && frm.doc.journal_status === 'Draft' && update_result && !update_result.skipped) {
+                            return frappe.db.get_doc('Journal Entry', row.journal_entry_id)
+                                .then(journal => {
+                                    if (journal.docstatus !== 0) {
+                                        return { journal_id: row.journal_entry_id, name: row.name, submitted: false, reason: `Journal Entry ${row.journal_entry_id} is not in Draft status` };
                                     }
-                                    return Promise.resolve();
+                                    return frappe.call({
+                                        method: 'frappe.client.submit',
+                                        args: { doc: journal }
+                                    }).then(() => ({ journal_id: row.journal_entry_id, name: row.name, submitted: true }));
+                                })
+                                .catch(err => {
+                                    return { journal_id: row.journal_entry_id, name: row.name, submitted: false, reason: `Error submitting journal ${row.journal_entry_id}: ${err.message}` };
                                 });
+                        }
+                        return Promise.resolve({ journal_id: row.journal_entry_id, name: row.name, submitted: false, reason: 'No journal entry or already processed' });
+                    });
 
-                                Promise.all(journal_checks)
-                                    .then(() => {
-                                        if (all_journals_submitted) {
-                                            // Update journal_status to Submitted
-                                            update_journal_status_with_retry(frm, retry_count)
-                                                .then(() => {
-                                                    log_vehicle_misc_activity(frm, 'Journals Submitted', 'Success', 'Journals updated and submitted');
-                                                    finalize_update(frm, true);
-                                                })
-                                                .catch(err => {
-                                                    log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error updating journal status: ' + err.message);
-                                                    frappe.msgprint({
-                                                        title: __('Error'),
-                                                        message: err.message || 'Error updating journal status',
-                                                        indicator: 'red'
-                                                    });
-                                                });
-                                        } else {
-                                            log_vehicle_misc_activity(frm, 'Journals Submitted', 'Partial Success', 'Some journals were submitted');
-                                            finalize_update(frm, true);
-                                        }
-                                    })
-                                    .catch(err => {
-                                        log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error checking journal status: ' + err.message);
-                                        frappe.msgprint({
-                                            title: __('Error'),
-                                            message: err.message || 'Error checking journal status',
-                                            indicator: 'red'
-                                        });
-                                    });
-                            })
-                            .catch(err => {
-                                if (retry_count < max_retries && err.message.includes('modified after you have opened it')) {
-                                    submit_journals_after_update(frm, misc_accounts, update_results, retry_count + 1);
-                                } else {
-                                    log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error submitting journals: ' + err.message);
+                    Promise.all(promises)
+                        .then(results => {
+                            let all_submitted = results.every(result => !result.journal_id || result.submitted);
+                            let failed_journals = results.filter(result => result.journal_id && !result.submitted);
+
+                            // Log failed submissions
+                            failed_journals.forEach(result => {
+                                log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', result.reason);
+                            });
+
+                            if (all_submitted && results.some(result => result.submitted)) {
+                                // Refresh document to avoid TimestampMismatchError
+                                frm.reload_doc().then(() => {
+                                    // Update document status and journal_status
+                                    frm.doc.status = 'Due Payment';
+                                    frm.doc.journal_status = 'Submitted';
+                                    save_document_with_retry(frm, true, () => {
+                                        log_vehicle_misc_activity(frm, 'Journals Submitted', 'Success', 'All journals updated and submitted successfully');
+                                        finalize_update(frm, true);
+                                    }, misc_accounts);
+                                }).catch(err => {
+                                    log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Failed to refresh document for status update: ' + err.message);
                                     frappe.msgprint({
                                         title: __('Error'),
-                                        message: err.message || 'Error submitting journals',
+                                        message: 'Failed to refresh document for status update: ' + err.message,
                                         indicator: 'red'
                                     });
-                                }
+                                    finalize_update(frm, true);
+                                });
+                            } else {
+                                // Log partial success or failure
+                                log_vehicle_misc_activity(frm, 'Journals Submitted', all_submitted ? 'Success' : 'Partial Success', all_submitted ? 'All journals processed' : 'Some journals failed to submit');
+                                finalize_update(frm, true);
+                            }
+                        })
+                        .catch(err => {
+                            log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error processing journal submissions: ' + err.message);
+                            frappe.msgprint({
+                                title: __('Error'),
+                                message: 'Error processing journal submissions: ' + err.message,
+                                indicator: 'red'
                             });
-                    } else {
-                        log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Failed to fetch company abbreviation');
-                        frappe.msgprint({
-                            title: __('Error'),
-                            message: 'Error fetching company abbreviation',
-                            indicator: 'red'
+                            finalize_update(frm, true);
                         });
-                    }
-                },
-                error: function(err) {
-                    if (retry_count < max_retries && err.message.includes('modified after you have opened it')) {
-                        submit_journals_after_update(frm, misc_accounts, update_results, retry_count + 1);
-                    } else {
-                        log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error fetching company abbreviation: ' + (err.message || 'Unknown error'));
-                        frappe.msgprint({
-                            title: __('Error'),
-                            message: 'Error fetching company abbreviation: ' + (err.message || 'Unknown error'),
-                            indicator: 'red'
-                        });
-                    }
+                } else {
+                    log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Failed to fetch company abbreviation');
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: 'Error fetching company abbreviation',
+                        indicator: 'red'
+                    });
+                    finalize_update(frm, true);
                 }
-            });
-        }).catch(err => {
-            if (retry_count < max_retries && err.message.includes('modified after you have opened it')) {
-                submit_journals_after_update(frm, misc_accounts, update_results, retry_count + 1);
-            } else {
-                log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error refreshing document: ' + err.message);
+            },
+            error: function(err) {
+                log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error fetching company abbreviation: ' + (err.message || 'Unknown error'));
                 frappe.msgprint({
                     title: __('Error'),
-                    message: 'Error refreshing document: ' + err.message,
+                    message: 'Error fetching company abbreviation: ' + (err.message || 'Unknown error'),
                     indicator: 'red'
                 });
+                finalize_update(frm, true);
             }
         });
     } catch (e) {
-        if (retry_count < max_retries && e.message.includes('modified after you have opened it')) {
-            submit_journals_after_update(frm, misc_accounts, update_results, retry_count + 1);
-        } else {
-            log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error submitting journals: ' + e.message);
-            frappe.msgprint({
-                title: __('Error'),
-                message: 'Error submitting journals: ' + e.message,
-                indicator: 'red'
-            });
-        }
+        log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error submitting journals: ' + e.message);
+        frappe.msgprint({
+            title: __('Error'),
+            message: 'Error submitting journals: ' + e.message,
+            indicator: 'red'
+        });
+        finalize_update(frm, true);
     }
 }
 
-// Update journal status with retry logic
-function update_journal_status_with_retry(frm, retry_count = 0) {
-    const max_retries = 3;
-    return new Promise((resolve, reject) => {
-        try {
-            frappe.call({
-                method: 'frappe.client.set_value',
-                args: {
-                    doctype: 'Vehicle Misc Sales',
-                    name: frm.doc.name,
-                    fieldname: { journal_status: 'Submitted' }
-                },
-                callback: function(r) {
-                    if (!r.exc) {
-                        resolve();
-                    } else if (retry_count < max_retries && r.exc.includes('modified after you have opened it')) {
-                        frm.reload_doc().then(() => {
-                            update_journal_status_with_retry(frm, retry_count + 1)
-                                .then(resolve)
-                                .catch(reject);
-                        });
-                    } else {
-                        reject(new Error(`Error updating journal_status: ${r.exc}`));
-                    }
-                },
-                error: function(err) {
-                    if (retry_count < max_retries && err.message.includes('modified after you have opened it')) {
-                        frm.reload_doc().then(() => {
-                            update_journal_status_with_retry(frm, retry_count + 1)
-                                .then(resolve)
-                                .catch(reject);
-                        });
-                    } else {
-                        reject(new Error(`Error updating journal_status: ${err.message || 'Unknown error'}`));
-                    }
-                }
-            });
-        } catch (e) {
-            if (retry_count < max_retries && e.message.includes('modified after you have opened it')) {
-                frm.reload_doc().then(() => {
-                    update_journal_status_with_retry(frm, retry_count + 1)
-                        .then(resolve)
-                        .catch(reject);
-                });
-            } else {
-                reject(new Error(`Error updating journal_status: ${e.message}`));
-            }
-        }
-    });
-}
-
 // Save document with retry logic
-function save_document_with_retry(frm, has_changes, callback, retry_count = 0) {
+function save_document_with_retry(frm, has_changes, callback, misc_accounts, retry_count = 0) {
     const max_retries = 3;
     try {
         frappe.call({
@@ -953,14 +1251,22 @@ function save_document_with_retry(frm, has_changes, callback, retry_count = 0) {
                     callback();
                 } else if (retry_count < max_retries && r.exc.includes('modified after you have opened it')) {
                     frm.reload_doc().then(() => {
-                        frm.doc.misc_accounts = frm.doc.misc_accounts.map(row => ({
+                        // Reapply misc_accounts to ensure consistency
+                        frm.doc.misc_accounts = misc_accounts.map(row => ({
                             name: row.name,
                             misc_account: row.misc_account,
                             amount: row.amount,
                             journal_entry_id: row.journal_entry_id,
-                            payment_status: row.payment_status
+                            payment_status: row.payment_status || 'Due'
                         }));
-                        save_document_with_retry(frm, has_changes, callback, retry_count + 1);
+                        save_document_with_retry(frm, has_changes, callback, misc_accounts, retry_count + 1);
+                    }).catch(err => {
+                        log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Error refreshing document on retry: ' + err.message);
+                        frappe.msgprint({
+                            title: __('Error'),
+                            message: 'Error refreshing document on retry: ' + err.message,
+                            indicator: 'red'
+                        });
                     });
                 } else {
                     log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Failed to update misc accounts: ' + (r.exc || 'Unknown error'));
@@ -974,14 +1280,22 @@ function save_document_with_retry(frm, has_changes, callback, retry_count = 0) {
             error: function(err) {
                 if (retry_count < max_retries && err.message.includes('modified after you have opened it')) {
                     frm.reload_doc().then(() => {
-                        frm.doc.misc_accounts = frm.doc.misc_accounts.map(row => ({
+                        // Reapply misc_accounts to ensure consistency
+                        frm.doc.misc_accounts = misc_accounts.map(row => ({
                             name: row.name,
                             misc_account: row.misc_account,
                             amount: row.amount,
                             journal_entry_id: row.journal_entry_id,
-                            payment_status: row.payment_status
+                            payment_status: row.payment_status || 'Due'
                         }));
-                        save_document_with_retry(frm, has_changes, callback, retry_count + 1);
+                        save_document_with_retry(frm, has_changes, callback, misc_accounts, retry_count + 1);
+                    }).catch(err => {
+                        log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Error refreshing document on retry: ' + err.message);
+                        frappe.msgprint({
+                            title: __('Error'),
+                            message: 'Error refreshing document on retry: ' + err.message,
+                            indicator: 'red'
+                        });
                     });
                 } else {
                     log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Error updating misc accounts: ' + (err.message || 'Unknown error'));
@@ -994,25 +1308,12 @@ function save_document_with_retry(frm, has_changes, callback, retry_count = 0) {
             }
         });
     } catch (e) {
-        if (retry_count < max_retries && e.message.includes('modified after you have opened it')) {
-            frm.reload_doc().then(() => {
-                frm.doc.misc_accounts = frm.doc.misc_accounts.map(row => ({
-                    name: row.name,
-                    misc_account: row.misc_account,
-                    amount: row.amount,
-                    journal_entry_id: row.journal_entry_id,
-                    payment_status: row.payment_status
-                }));
-                save_document_with_retry(frm, has_changes, callback, retry_count + 1);
-            });
-        } else {
-            log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Error saving document: ' + e.message);
-            frappe.msgprint({
-                title: __('Error'),
-                message: __('Error saving document: ') + e.message,
-                indicator: 'red'
-            });
-        }
+        log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Error saving document: ' + e.message);
+        frappe.msgprint({
+            title: __('Error'),
+            message: __('Error saving document: ') + e.message,
+            indicator: 'red'
+        });
     }
 }
 
@@ -1063,22 +1364,25 @@ function update_journal_entry(frm, journal, amount, company_abbr) {
     }
 }
 
-// Show payment dialog
+// Show payment dialog with single checkbox selection
 function show_payment_dialog(frm) {
     try {
-        let due_accounts = frm.doc.misc_accounts.filter(row => row.payment_status === 'Due');
+        let due_accounts = frm.doc.misc_accounts.filter(row => row.payment_status === 'Due' || row.payment_status === '' || row.payment_status === 'Pending');
         if (!due_accounts.length) {
-            log_vehicle_misc_activity(frm, 'Payment Attempted', 'Failed', 'No accounts with payment status Due.');
+            log_vehicle_misc_activity(frm, 'Payment Attempted', 'Failed', 'No accounts with payment status Due, Pending, or empty.');
             frappe.msgprint({
                 title: __('No Due Accounts'),
-                message: __('There are no accounts with payment status Due.'),
+                message: __('There are no accounts with payment status Due, Pending, or empty.'),
                 indicator: 'orange'
             });
             return;
         }
 
         let fields = [];
+        let checkbox_fieldnames = [];
         due_accounts.forEach((row, index) => {
+            let checkbox_fieldname = `selected_${row.name}`;
+            checkbox_fieldnames.push(checkbox_fieldname);
             fields.push({
                 fieldtype: 'Section Break',
                 label: __('Account') + ` ${index + 1}`
@@ -1099,9 +1403,19 @@ function show_payment_dialog(frm) {
             });
             fields.push({
                 fieldtype: 'Check',
-                fieldname: `selected_${row.name}`,
+                fieldname: checkbox_fieldname,
                 label: __('Select for Payment'),
-                default: 0
+                default: 0,
+                onchange: function() {
+                    let current_value = this.get_value();
+                    if (current_value) {
+                        checkbox_fieldnames.forEach(fieldname => {
+                            if (fieldname !== checkbox_fieldname) {
+                                dialog.set_value(fieldname, 0);
+                            }
+                        });
+                    }
+                }
             });
             fields.push({ fieldtype: 'Column Break' });
         });
@@ -1113,54 +1427,50 @@ function show_payment_dialog(frm) {
             primary_action: function(values) {
                 try {
                     let selected_accounts = due_accounts.filter(row => values[`selected_${row.name}`]);
-                    if (!selected_accounts.length) {
-                        log_vehicle_misc_activity(frm, 'Payment Attempted', 'Failed', 'No accounts selected for payment.');
-                        frappe.throw(__('Please select at least one account to proceed with payment.'));
+                    if (selected_accounts.length !== 1) {
+                        log_vehicle_misc_activity(frm, 'Payment Attempted', 'Failed', 'Exactly one account must be selected for payment.');
+                        frappe.throw(__('Please select exactly one account to proceed with payment.'));
                     }
 
-                    let total_amount = selected_accounts.reduce((sum, row) => sum + row.amount, 0);
-                    let account_names = selected_accounts.map(row => row.misc_account).join(', ');
+                    let selected_account = selected_accounts[0];
+                    let total_amount = selected_account.amount;
+                    let account_names = selected_account.misc_account;
 
                     frappe.call({
                         method: 'autowings_app.custom_scripts.utils.get_company_abbr',
                         callback: function(r) {
                             if (!r.exc && r.message) {
                                 let company_abbr = r.message;
-                                let checks = selected_accounts.map(row => {
-                                    let paid_to_account = `${row.misc_account} Payable - ${company_abbr}`;
-                                    return Promise.all([
-                                        frappe.call({
-                                            method: 'frappe.client.get_value',
-                                            args: {
-                                                doctype: 'Account',
-                                                fieldname: 'name',
-                                                filters: { name: paid_to_account }
-                                            }
-                                        }).then(r => ({
-                                            valid: !r.exc && !!r.message.name,
-                                            type: 'account',
-                                            value: paid_to_account,
-                                            row: row
-                                        })),
-                                        frappe.call({
-                                            method: 'frappe.client.get_value',
-                                            args: {
-                                                doctype: 'Supplier',
-                                                fieldname: 'name',
-                                                filters: { name: row.misc_account }
-                                            }
-                                        }).then(r => ({
-                                            valid: !r.exc && !!r.message.name,
-                                            type: 'supplier',
-                                            value: row.misc_account,
-                                            row: row
-                                        }))
-                                    ]);
-                                });
+                                let paid_to_account = `${selected_account.misc_account} Payable - ${company_abbr}`;
+                                let supplier = selected_account.misc_account;
 
-                                Promise.all(checks).then(results => {
-                                    let flat_results = results.flat();
-                                    let invalid_results = flat_results.filter(res => !res.valid);
+                                Promise.all([
+                                    frappe.call({
+                                        method: 'frappe.client.get_value',
+                                        args: {
+                                            doctype: 'Account',
+                                            fieldname: 'name',
+                                            filters: { name: paid_to_account }
+                                        }
+                                    }).then(r => ({
+                                        valid: !r.exc && !!r.message.name,
+                                        type: 'account',
+                                        value: paid_to_account
+                                    })),
+                                    frappe.call({
+                                        method: 'frappe.client.get_value',
+                                        args: {
+                                            doctype: 'Supplier',
+                                            fieldname: 'name',
+                                            filters: { name: supplier }
+                                        }
+                                    }).then(r => ({
+                                        valid: !r.exc && !!r.message.name,
+                                        type: 'supplier',
+                                        value: supplier
+                                    }))
+                                ]).then(results => {
+                                    let invalid_results = results.filter(res => !res.valid);
                                     if (invalid_results.length) {
                                         let error_message = invalid_results.map(res => 
                                             res.type === 'account' ? `Account ${res.value}` : `Supplier ${res.value}`
@@ -1173,10 +1483,6 @@ function show_payment_dialog(frm) {
                                         });
                                         return;
                                     }
-
-                                    let first_account = selected_accounts[0];
-                                    let paid_to_account = `${first_account.misc_account} Payable - ${company_abbr}`;
-                                    let supplier = first_account.misc_account;
 
                                     let payment_entry_url = `/app/payment-entry/new-payment-entry?` +
                                         `payment_type=Pay&` +
@@ -1246,11 +1552,12 @@ function show_payment_dialog(frm) {
 // Finalize update
 function finalize_update(frm, has_changes) {
     try {
-        frm.reload_doc();
-        frappe.msgprint({
-            title: has_changes ? __('Success') : __('No Changes'),
-            message: has_changes ? __('Misc accounts and journals updated successfully.') : __('No changes were made to the misc accounts.'),
-            indicator: has_changes ? 'green' : 'orange'
+        frm.reload_doc().then(() => {
+            frappe.msgprint({
+                title: has_changes ? __('Success') : __('No Changes'),
+                message: has_changes ? __('Misc accounts and journals updated successfully.') : __('No changes were made to the misc accounts.'),
+                indicator: has_changes ? 'green' : 'orange'
+            });
         });
     } catch (e) {
         log_vehicle_misc_activity(frm, 'Updated Misc Accounts', 'Failed', 'Error finalizing update: ' + e.message);

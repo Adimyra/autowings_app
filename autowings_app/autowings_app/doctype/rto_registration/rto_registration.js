@@ -1354,7 +1354,8 @@ function show_update_registration_dialog(frm) {
                     fieldtype: 'Link',
                     options: 'Account',
                     in_list_view: 1,
-                    reqd: 1
+                    reqd: 1,
+                    read_only: 1
                 },
                 {
                     label: __('Amount'),

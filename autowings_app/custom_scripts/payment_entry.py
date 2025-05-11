@@ -143,3 +143,238 @@ def update_rto_registration_on_payment(payment_entry_name, posting_date, referen
     except Exception as e:
         frappe.log_error(f"Error updating RTO Registration for Payment Entry {payment_entry_name}: {str(e)}", "RTO Registration Update")
         frappe.throw(_("Failed to update RTO Registration documents: {0}").format(str(e)))
+
+
+
+        # update journal on payment entry save
+
+#         import frappe
+
+# def update_journal_entries(doc, method):
+#     # Check if the references child table exists and has entries
+#     if doc.references:
+#         for ref in doc.references:
+#             # Check if the reference is a Journal Entry
+#             if ref.reference_doctype == "Journal Entry":
+#                 try:
+#                     # Execute MariaDB query to update custom fields in Journal Entry
+#                     frappe.db.sql("""
+#                         UPDATE `tabJournal Entry`
+#                         SET custom_payment_entry_id = %s,
+#                             custom_payment_status = 'Paid'
+#                         WHERE name = %s AND docstatus = 1
+#                     """, (doc.name, ref.reference_name))
+                    
+#                     frappe.db.commit()  # Commit the transaction
+                    
+#                     frappe.log_error(f"Updated Journal Entry {ref.reference_name} with Payment Entry {doc.name}", "Payment Entry Update")
+#                 except Exception as e:
+#                     frappe.log_error(f"Failed to update Journal Entry {ref.reference_name}: {str(e)}", "Payment Entry Update")
+#                     frappe.msgprint(
+#                         title="Error",
+#                         msg=f"Failed to update Journal Entry {ref.reference_name}: {str(e)}",
+#                         indicator="red"
+#                     )
+
+import frappe
+
+def update_vehicle_misc_sales(doc, method):
+    """
+    Hook to update Vehicle Misc Sales misc_accounts child table after Payment Entry submission.
+    Updates payment_entry_id and payment_status for matching journal entries.
+    Logs activity in misc_activity child table on successful payment.
+    Updates the parent document status to 'Completed' if all payments are completed.
+    """
+    try:
+        # Check if the references child table exists and has entries
+        if doc.references:
+            for ref in doc.references:
+                # Check if the reference is a Journal Entry
+                if ref.reference_doctype == "Journal Entry":
+                    try:
+                        # Update Misc Journal vsm child table in Vehicle Misc Sales
+                        frappe.db.sql("""
+                            UPDATE `tabMisc Journal vsm`
+                            SET payment_entry_id = %s,
+                                payment_status = 'Paid',
+                                modified = NOW(),
+                                modified_by = %s
+                            WHERE journal_entry_id = %s
+                            AND parenttype = 'Vehicle Misc Sales'
+                            AND parent IN (
+                                SELECT name FROM `tabVehicle Misc Sales`
+                                WHERE docstatus < 2
+                            )
+                        """, (doc.name, frappe.session.user, ref.reference_name))
+                        
+                        frappe.db.commit()  # Commit the transaction
+
+                        # Log activity in misc_activity child table
+                        vehicle_misc_sales = frappe.db.sql("""
+                            SELECT parent
+                            FROM `tabMisc Journal vsm`
+                            WHERE journal_entry_id = %s
+                            AND parenttype = 'Vehicle Misc Sales'
+                            AND parent IN (
+                                SELECT name FROM `tabVehicle Misc Sales`
+                                WHERE docstatus < 2
+                            )
+                        """, (ref.reference_name,), as_dict=True)
+                        
+                        for vms in vehicle_misc_sales:
+                            try:
+                                # Insert activity log
+                                activity_log = {
+                                    "doctype": "RTO Activity Log",
+                                    "activity": "Payment Recorded",
+                                    "status": "Success",
+                                    "user": frappe.session.user,
+                                    "update_on": frappe.utils.now_datetime(),
+                                    "remarks": f"Payment recorded via Payment Entry {doc.name} for Journal Entry {ref.reference_name}",
+                                    "parent": vms.parent,
+                                    "parentfield": "misc_activity",
+                                    "parenttype": "Vehicle Misc Sales"
+                                }
+                                frappe.get_doc(activity_log).insert(ignore_permissions=True)
+                                frappe.db.commit()
+                            except Exception as activity_error:
+                                frappe.log_error(
+                                    f"Failed to log activity for Vehicle Misc Sales {vms.parent}, Payment Entry {doc.name}: {str(activity_error)}",
+                                    "Payment Entry Activity Log"
+                                )
+                                # Continue processing despite activity logging failure
+
+                            # Check if all misc_accounts have payment_status 'Paid'
+                            all_paid = frappe.db.sql("""
+                                SELECT COUNT(*) as total, 
+                                       SUM(CASE WHEN payment_status = 'Paid' THEN 1 ELSE 0 END) as paid_count
+                                FROM `tabMisc Journal vsm`
+                                WHERE parent = %s
+                            """, (vms.parent,), as_dict=True)[0]
+                            
+                            if all_paid.total == all_paid.paid_count and all_paid.total > 0:
+                                frappe.db.set_value(
+                                    'Vehicle Misc Sales', 
+                                    vms.parent, 
+                                    {
+                                        'status': 'Completed',
+                                        'modified': frappe.utils.now(),
+                                        'modified_by': frappe.session.user
+                                    }
+                                )
+                                frappe.db.commit()
+
+                        frappe.log_error(
+                            f"Updated Vehicle Misc Sales misc_accounts for Journal Entry {ref.reference_name} with Payment Entry {doc.name}",
+                            "Payment Entry Update"
+                        )
+                    except Exception as e:
+                        frappe.log_error(
+                            f"Failed to update Vehicle Misc Sales for Journal Entry {ref.reference_name}: {str(e)}",
+                            "Payment Entry Update"
+                        )
+                        frappe.msgprint(
+                            title="Error",
+                            msg=f"Failed to update Vehicle Misc Sales for Journal Entry {ref.reference_name}: {str(e)}",
+                            indicator="red"
+                        )
+    except Exception as e:
+        frappe.log_error(
+            f"Error processing Payment Entry {doc.name}: {str(e)}",
+            "Payment Entry Update"
+        )
+        frappe.msgprint(
+            title="Error",
+            msg=f"Error processing Payment Entry {doc.name}: {str(e)}",
+            indicator="red"
+        )
+
+# import frappe
+
+# def update_vehicle_misc_sales(doc, method):
+#     """
+#     Hook to update Vehicle Misc Sales misc_accounts child table after Payment Entry submission.
+#     Updates payment_entry_id and payment_status for matching journal entries.
+#     Also updates the parent document status to 'Completed' if all payments are completed.
+#     """
+#     try:
+#         # Check if the references child table exists and has entries
+#         if doc.references:
+#             for ref in doc.references:
+#                 # Check if the reference is a Journal Entry
+#                 if ref.reference_doctype == "Journal Entry":
+#                     try:
+#                         # Update Misc Journal vsm child table in Vehicle Misc Sales
+#                         frappe.db.sql("""
+#                             UPDATE `tabMisc Journal vsm`
+#                             SET payment_entry_id = %s,
+#                                 payment_status = 'Paid',
+#                                 modified = NOW(),
+#                                 modified_by = %s
+#                             WHERE journal_entry_id = %s
+#                             AND parenttype = 'Vehicle Misc Sales'
+#                             AND parent IN (
+#                                 SELECT name FROM `tabVehicle Misc Sales`
+#                                 WHERE docstatus < 2
+#                             )
+#                         """, (doc.name, frappe.session.user, ref.reference_name))
+                        
+#                         frappe.db.commit()  # Commit the transaction
+
+#                         # Update parent Vehicle Misc Sales status if all payments are completed
+#                         vehicle_misc_sales = frappe.db.sql("""
+#                             SELECT parent
+#                             FROM `tabMisc Journal vsm`
+#                             WHERE journal_entry_id = %s
+#                             AND parenttype = 'Vehicle Misc Sales'
+#                             AND parent IN (
+#                                 SELECT name FROM `tabVehicle Misc Sales`
+#                                 WHERE docstatus < 2
+#                             )
+#                         """, (ref.reference_name,), as_dict=True)
+                        
+#                         for vms in vehicle_misc_sales:
+#                             # Check if all misc_accounts have payment_status 'Paid'
+#                             all_paid = frappe.db.sql("""
+#                                 SELECT COUNT(*) as total, 
+#                                        SUM(CASE WHEN payment_status = 'Paid' THEN 1 ELSE 0 END) as paid_count
+#                                 FROM `tabMisc Journal vsm`
+#                                 WHERE parent = %s
+#                             """, (vms.parent,), as_dict=True)[0]
+                            
+#                             if all_paid.total == all_paid.paid_count and all_paid.total > 0:
+#                                 frappe.db.set_value(
+#                                     'Vehicle Misc Sales', 
+#                                     vms.parent, 
+#                                     {
+#                                         'status': 'Completed',
+#                                         'modified': frappe.utils.now(),
+#                                         'modified_by': frappe.session.user
+#                                     }
+#                                 )
+#                                 frappe.db.commit()
+
+#                         frappe.log_error(
+#                             f"Updated Vehicle Misc Sales misc_accounts for Journal Entry {ref.reference_name} with Payment Entry {doc.name}",
+#                             "Payment Entry Update"
+#                         )
+#                     except Exception as e:
+#                         frappe.log_error(
+#                             f"Failed to update Vehicle Misc Sales for Journal Entry {ref.reference_name}: {str(e)}",
+#                             "Payment Entry Update"
+#                         )
+#                         frappe.msgprint(
+#                             title="Error",
+#                             msg=f"Failed to update Vehicle Misc Sales for Journal Entry {ref.reference_name}: {str(e)}",
+#                             indicator="red"
+#                         )
+#     except Exception as e:
+#         frappe.log_error(
+#             f"Error processing Payment Entry {doc.name}: {str(e)}",
+#             "Payment Entry Update"
+#         )
+#         frappe.msgprint(
+#             title="Error",
+#             msg=f"Error processing Payment Entry {doc.name}: {str(e)}",
+#             indicator="red"
+#         )
