@@ -12,6 +12,7 @@
   "journal_status",
   "customer",
   "column_break_sdit",
+  "status",
   "warranty_status",
   "extended_warranty_provider",
   "extended_warranty_amount",
@@ -19,7 +20,17 @@
   "section_break_onuq",
   "istart_date",
   "column_break_wkph",
-  "end_date"
+  "end_date",
+  "column_break_hvpm",
+  "validity_period",
+  "payment_info_section",
+  "payment_date",
+  "payment_reference",
+  "column_break_roow",
+  "payment_status",
+  "payment_entry_id",
+  "section_break_lrer",
+  "extended_warranty_activity"
  ],
  "fields": [
   {
@@ -27,7 +38,8 @@
    "fieldtype": "Link",
    "label": "Vehicle Sales Master",
    "options": "Vehicle Sales Master",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "sales_invoice",
@@ -49,7 +61,8 @@
    "fieldname": "journal_status",
    "fieldtype": "Select",
    "label": "Journal Status",
-   "options": "\nDraft\nSubmitted"
+   "options": "\nDraft\nSubmitted",
+   "read_only": 1
   },
   {
    "fieldname": "customer",
@@ -76,17 +89,20 @@
    "fieldname": "warranty_policy_number",
    "fieldtype": "Data",
    "label": "Warranty Policy Number",
+   "read_only": 1,
    "unique": 1
   },
   {
    "fieldname": "istart_date",
    "fieldtype": "Date",
-   "label": "Start Date"
+   "label": "Start Date",
+   "read_only": 1
   },
   {
    "fieldname": "end_date",
    "fieldtype": "Date",
-   "label": "End Date"
+   "label": "End Date",
+   "read_only": 1
   },
   {
    "fieldname": "extended_warranty_provider",
@@ -95,7 +111,8 @@
    "in_standard_filter": 1,
    "label": "Extended Warranty Provider",
    "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"Insurance\"]]",
-   "options": "Supplier"
+   "options": "Supplier",
+   "read_only": 1
   },
   {
    "fieldname": "warranty_status",
@@ -103,12 +120,77 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Warranty Status",
-   "options": "\nPending\nApplied\nPayment Due\nPaid\nActive\nExpired"
+   "options": "\nPending\nApplied\nPayment Due\nPaid\nActive\nExpired",
+   "read_only": 1
   },
   {
    "fieldname": "extended_warranty_amount",
    "fieldtype": "Currency",
-   "label": "Extended Warranty Amount"
+   "label": "Extended Warranty Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_info_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Info"
+  },
+  {
+   "fieldname": "payment_date",
+   "fieldtype": "Date",
+   "label": "Payment Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_reference",
+   "fieldtype": "Data",
+   "label": "Payment Reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_roow",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Due",
+   "fieldname": "payment_status",
+   "fieldtype": "Data",
+   "label": "Payment Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_entry_id",
+   "fieldtype": "Link",
+   "label": "Payment Entry Id",
+   "options": "Payment Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_lrer",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "extended_warranty_activity",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Extended Warranty Activity",
+   "options": "RTO Activity Log",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_hvpm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "validity_period",
+   "fieldtype": "Int",
+   "label": "Validity Period (In Year)",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -118,7 +200,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-04-21 00:33:18.479771",
+ "modified": "2025-05-11 01:37:39.979563",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Extended Warranty",

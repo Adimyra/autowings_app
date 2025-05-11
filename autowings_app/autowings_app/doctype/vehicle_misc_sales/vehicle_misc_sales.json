@@ -7,12 +7,15 @@
  "engine": "InnoDB",
  "field_order": [
   "customer",
-  "status",
-  "column_break_pgff",
   "vsm_id",
   "sales_invoice",
+  "column_break_pgff",
+  "status",
+  "journal_status",
   "section_break_bmxr",
-  "misc_accounts"
+  "misc_accounts",
+  "section_break_chfw",
+  "misc_activity"
  ],
  "fields": [
   {
@@ -58,12 +61,28 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "\nPending\nComplete"
+   "options": "\nPending\nDue Update\nDue Payment\nCompleted"
+  },
+  {
+   "fieldname": "section_break_chfw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "misc_activity",
+   "fieldtype": "Table",
+   "label": "Misc Activity",
+   "options": "RTO Activity Log"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "journal_status",
+   "fieldtype": "Data",
+   "label": "Journal Status"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-16 13:03:35.225890",
+ "modified": "2025-05-11 17:46:40.551382",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Misc Sales",

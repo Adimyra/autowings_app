@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:policy_name",
+ "creation": "2025-05-11 00:36:39.643389",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "policy_name",
+  "validity_period",
+  "coverage_details"
+ ],
+ "fields": [
+  {
+   "fieldname": "policy_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Policy Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "coverage_details",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Coverage Details"
+  },
+  {
+   "fieldname": "validity_period",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Validity Period (In Years)"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-11 00:37:01.053976",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "RSA Policy",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

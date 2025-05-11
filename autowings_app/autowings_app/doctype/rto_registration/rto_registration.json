@@ -367,7 +367,7 @@
   {
    "fieldname": "document_attachments_column",
    "fieldtype": "Column Break",
-   "label": "Document Attachments"
+   "label": "RC Document Attachments"
   },
   {
    "fieldname": "rc_document",
@@ -426,7 +426,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 18:37:49.743383",
+ "modified": "2025-05-10 17:16:44.273046",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

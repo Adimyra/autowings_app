@@ -411,17 +411,9 @@ function generate_activity_timeline(frm) {
     // Calculate progress percentage based on document status
     let progress_percentage = 0;
     switch (frm.doc.status) {
-        case 'Application Details Updated':
-            progress_percentage = 25;
-            break;
+
         case 'Due Payment to RTO':
-            progress_percentage = 50;
-            break;
-        case 'Due Updation in Vahan':
-            progress_percentage = 75;
-            break;
-        case 'Handover to Customer':
-            progress_percentage = 90;
+            progress_percentage = 80;
             break;
         case 'Completed':
             progress_percentage = 100;
@@ -456,8 +448,7 @@ function generate_activity_timeline(frm) {
             'Registration Updated',
             'Application Details Updated',
             'Journals and Smart Cards Updated',
-            'Vahan Update Completed',
-            'Handover Completed'
+            
         ].includes(row.status)) {
             status_class = 'status-success';
         }
@@ -744,18 +735,19 @@ frappe.ui.form.on('Vehicle Smart Card', {
         //     });
         // }
         // Add Update in Vahan button only if logged-in user has Sales Manager role
-        if (frm.doc.status === 'Due Updation in Vahan' && frappe.user_roles.includes('Sales Manager')) {
-            frm.add_custom_button(__('Update in Vahan'), function() {
-                show_update_vahan_dialog(frm);
-            });
-        }
+        
+        // if (frm.doc.status === 'Due Updation in Vahan' && frappe.user_roles.includes('Sales Manager')) {
+        //     frm.add_custom_button(__('Update in Vahan'), function() {
+        //         show_update_vahan_dialog(frm);
+        //     });
+        // }
 
-        // Add Handover to Customer button
-        if (frm.doc.status === 'Handover to Customer') {
-            frm.add_custom_button(__('Handover to Customer'), function() {
-                show_handover_dialog(frm);
-            });
-        }
+        // // Add Handover to Customer button
+        // if (frm.doc.status === 'Handover to Customer') {
+        //     frm.add_custom_button(__('Handover to Customer'), function() {
+        //         show_handover_dialog(frm);
+        //     });
+        // }
 
         // Set form status indicator
         frm.set_intro(__('Status: ') + frm.doc.status, 'blue');
@@ -906,182 +898,182 @@ function _rto_payment_entry_action(frm) {
     }
 }
 
-// Show dialog for updating Vahan details
-function show_update_vahan_dialog(frm) {
-    let dialog = new frappe.ui.Dialog({
-        title: __('Update in Vahan'),
-        fields: [
-            {
-                label: __('Vahan Update Date'),
-                fieldname: 'vahan_update_date',
-                fieldtype: 'Date',
-                default: frappe.datetime.now_date(),
-                reqd: 1
-            },
-            {
-                label: __('Remarks'),
-                fieldname: 'remarks',
-                fieldtype: 'Small Text',
-                reqd: 1
-            }
-        ],
-        primary_action_label: __('Update'),
-        primary_action: function(values) {
-            if (!values.vahan_update_date) {
-                frappe.throw(__('Vahan Update Date is mandatory.'));
-            }
-            if (!values.remarks) {
-                frappe.throw(__('Remarks are mandatory.'));
-            }
+// // Show dialog for updating Vahan details
+// function show_update_vahan_dialog(frm) {
+//     let dialog = new frappe.ui.Dialog({
+//         title: __('Update in Vahan'),
+//         fields: [
+//             {
+//                 label: __('Vahan Update Date'),
+//                 fieldname: 'vahan_update_date',
+//                 fieldtype: 'Date',
+//                 default: frappe.datetime.now_date(),
+//                 reqd: 1
+//             },
+//             {
+//                 label: __('Remarks'),
+//                 fieldname: 'remarks',
+//                 fieldtype: 'Small Text',
+//                 reqd: 1
+//             }
+//         ],
+//         primary_action_label: __('Update'),
+//         primary_action: function(values) {
+//             if (!values.vahan_update_date) {
+//                 frappe.throw(__('Vahan Update Date is mandatory.'));
+//             }
+//             if (!values.remarks) {
+//                 frappe.throw(__('Remarks are mandatory.'));
+//             }
 
-            // Update Vehicle Smart Card status
-            frappe.call({
-                method: 'frappe.client.set_value',
-                args: {
-                    doctype: 'Vehicle Smart Card',
-                    name: frm.doc.name,
-                    fieldname: {
-                        vahan_update_date: values.vahan_update_date,
-                        status: 'Handover to Customer',
-                        workflow_state: ''
-                    }
-                },
-                callback: function(r) {
-                    if (!r.exc) {
-                        // Log activity
-                        log_rto_activity(frm, 'Vahan Details Updated', 'Vahan Update Completed', values.remarks);
-                        frm.reload_doc();
-                        frappe.msgprint({
-                            title: __('Success'),
-                            message: __('Vahan details updated successfully.'),
-                            indicator: 'green'
-                        });
-                        dialog.hide();
-                    } else {
-                        log_rto_activity(frm, 'Vahan Details Updated', 'Vahan Update Failed', r.exc || JSON.stringify(r));
-                        frappe.msgprint({
-                            title: __('Error'),
-                            message: __('Error updating Vahan details: ') + (r.exc || JSON.stringify(r)),
-                            indicator: 'red'
-                        });
-                    }
-                },
-                error: function(err) {
-                    log_rto_activity(frm, 'Vahan Details Updated', 'Vahan Update Failed', err.message || 'Unknown error');
-                    frappe.msgprint({
-                        title: __('Error'),
-                        message: __('Error updating Vahan details: ') + (err.message || 'Unknown error'),
-                        indicator: 'red'
-                    });
-                }
-            });
-        },
-        secondary_action_label: __('Cancel'),
-        secondary_action: function() {
-            dialog.hide();
-            log_rto_activity(frm, 'Vahan Details Update Cancelled', 'Update Cancelled', 'User cancelled the Vahan update.');
-            frappe.msgprint({
-                title: __('Action Cancelled'),
-                message: __('Vahan update cancelled.'),
-                indicator: 'red'
-            });
-        }
-    });
-    dialog.show();
-}
+//             // Update Vehicle Smart Card status
+//             frappe.call({
+//                 method: 'frappe.client.set_value',
+//                 args: {
+//                     doctype: 'Vehicle Smart Card',
+//                     name: frm.doc.name,
+//                     fieldname: {
+//                         vahan_update_date: values.vahan_update_date,
+//                         status: 'Handover to Customer',
+//                         workflow_state: ''
+//                     }
+//                 },
+//                 callback: function(r) {
+//                     if (!r.exc) {
+//                         // Log activity
+//                         log_rto_activity(frm, 'Vahan Details Updated', 'Vahan Update Completed', values.remarks);
+//                         frm.reload_doc();
+//                         frappe.msgprint({
+//                             title: __('Success'),
+//                             message: __('Vahan details updated successfully.'),
+//                             indicator: 'green'
+//                         });
+//                         dialog.hide();
+//                     } else {
+//                         log_rto_activity(frm, 'Vahan Details Updated', 'Vahan Update Failed', r.exc || JSON.stringify(r));
+//                         frappe.msgprint({
+//                             title: __('Error'),
+//                             message: __('Error updating Vahan details: ') + (r.exc || JSON.stringify(r)),
+//                             indicator: 'red'
+//                         });
+//                     }
+//                 },
+//                 error: function(err) {
+//                     log_rto_activity(frm, 'Vahan Details Updated', 'Vahan Update Failed', err.message || 'Unknown error');
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Error updating Vahan details: ') + (err.message || 'Unknown error'),
+//                         indicator: 'red'
+//                     });
+//                 }
+//             });
+//         },
+//         secondary_action_label: __('Cancel'),
+//         secondary_action: function() {
+//             dialog.hide();
+//             log_rto_activity(frm, 'Vahan Details Update Cancelled', 'Update Cancelled', 'User cancelled the Vahan update.');
+//             frappe.msgprint({
+//                 title: __('Action Cancelled'),
+//                 message: __('Vahan update cancelled.'),
+//                 indicator: 'red'
+//             });
+//         }
+//     });
+//     dialog.show();
+// }
 
-// Show dialog for handing over to customer
-function show_handover_dialog(frm) {
-    let dialog = new frappe.ui.Dialog({
-        title: __('Handover to Customer'),
-        fields: [
-            {
-                label: __('Handover Date'),
-                fieldname: 'handover_date',
-                fieldtype: 'Datetime',
-                default: frappe.datetime.now_datetime(),
-                reqd: 1
-            },
-            {
-                label: __('Handed Over By'),
-                fieldname: 'handed_over_by',
-                fieldtype: 'Link',
-                options: 'User',
-                reqd: 1
-            },
-            {
-                label: __('Handover Remarks'),
-                fieldname: 'handover_remarks',
-                fieldtype: 'Small Text',
-                reqd: 1
-            }
-        ],
-        primary_action_label: __('Confirm'),
-        primary_action: function(values) {
-            if (!values.handover_date) {
-                frappe.throw(__('Handover Date is mandatory.'));
-            }
-            if (!values.handed_over_by) {
-                frappe.throw(__('Handed Over By is mandatory.'));
-            }
-            if (!values.handover_remarks) {
-                frappe.throw(__('Handover Remarks are mandatory.'));
-            }
+// // Show dialog for handing over to customer
+// function show_handover_dialog(frm) {
+//     let dialog = new frappe.ui.Dialog({
+//         title: __('Handover to Customer'),
+//         fields: [
+//             {
+//                 label: __('Handover Date'),
+//                 fieldname: 'handover_date',
+//                 fieldtype: 'Datetime',
+//                 default: frappe.datetime.now_datetime(),
+//                 reqd: 1
+//             },
+//             {
+//                 label: __('Handed Over By'),
+//                 fieldname: 'handed_over_by',
+//                 fieldtype: 'Link',
+//                 options: 'User',
+//                 reqd: 1
+//             },
+//             {
+//                 label: __('Handover Remarks'),
+//                 fieldname: 'handover_remarks',
+//                 fieldtype: 'Small Text',
+//                 reqd: 1
+//             }
+//         ],
+//         primary_action_label: __('Confirm'),
+//         primary_action: function(values) {
+//             if (!values.handover_date) {
+//                 frappe.throw(__('Handover Date is mandatory.'));
+//             }
+//             if (!values.handed_over_by) {
+//                 frappe.throw(__('Handed Over By is mandatory.'));
+//             }
+//             if (!values.handover_remarks) {
+//                 frappe.throw(__('Handover Remarks are mandatory.'));
+//             }
 
-            // Update Vehicle Smart Card status
-            frappe.call({
-                method: 'frappe.client.set_value',
-                args: {
-                    doctype: 'Vehicle Smart Card',
-                    name: frm.doc.name,
-                    fieldname: {
-                        status: 'Completed',
-                        handover_date: values.handover_date,
-                        handed_over_by: values.handed_over_by,
-                        handover_remarks: values.handover_remarks,
-                        workflow_state: ''
-                    }
-                },
-                callback: function(r) {
-                    if (!r.exc) {
-                        // Log activity
-                        log_rto_activity(frm, 'Handover to Customer', 'Handover Completed', `Handed over by ${values.handed_over_by} on ${values.handover_date}: ${values.handover_remarks}`);
-                        frm.reload_doc();
-                        frappe.msgprint({
-                            title: __('Success'),
-                            message: __('Smart Card handed over to customer successfully.'),
-                            indicator: 'green'
-                        });
-                        dialog.hide();
-                    } else {
-                        log_rto_activity(frm, 'Handover to Customer', 'Handover Failed', r.exc || JSON.stringify(r));
-                        frappe.msgprint({
-                            title: __('Error'),
-                            message: __('Error confirming handover: ') + (r.exc || JSON.stringify(r)),
-                            indicator: 'red'
-                        });
-                    }
-                },
-                error: function(err) {
-                    log_rto_activity(frm, 'Handover to Customer', 'Handover Failed', err.message || 'Unknown error');
-                    frappe.msgprint({
-                        title: __('Error'),
-                        message: __('Error confirming handover: ') + (err.message || 'Unknown error'),
-                        indicator: 'red'
-                    });
-                }
-            });
-        },
-        secondary_action_label: __('Cancel'),
-        secondary_action: function() {
-            dialog.hide();
-            log_rto_activity(frm, 'Handover to Customer Cancelled', 'Handover Cancelled', 'User cancelled the handover.');
-            frappe.msgprint({
-                title: __('Action Cancelled'),
-                message: __('Handover to customer cancelled.'),
-                indicator: 'red'
-            });
-        }
-    });
-    dialog.show();
-}
+//             // Update Vehicle Smart Card status
+//             frappe.call({
+//                 method: 'frappe.client.set_value',
+//                 args: {
+//                     doctype: 'Vehicle Smart Card',
+//                     name: frm.doc.name,
+//                     fieldname: {
+//                         status: 'Completed',
+//                         handover_date: values.handover_date,
+//                         handed_over_by: values.handed_over_by,
+//                         handover_remarks: values.handover_remarks,
+//                         workflow_state: ''
+//                     }
+//                 },
+//                 callback: function(r) {
+//                     if (!r.exc) {
+//                         // Log activity
+//                         log_rto_activity(frm, 'Handover to Customer', 'Handover Completed', `Handed over by ${values.handed_over_by} on ${values.handover_date}: ${values.handover_remarks}`);
+//                         frm.reload_doc();
+//                         frappe.msgprint({
+//                             title: __('Success'),
+//                             message: __('Smart Card handed over to customer successfully.'),
+//                             indicator: 'green'
+//                         });
+//                         dialog.hide();
+//                     } else {
+//                         log_rto_activity(frm, 'Handover to Customer', 'Handover Failed', r.exc || JSON.stringify(r));
+//                         frappe.msgprint({
+//                             title: __('Error'),
+//                             message: __('Error confirming handover: ') + (r.exc || JSON.stringify(r)),
+//                             indicator: 'red'
+//                         });
+//                     }
+//                 },
+//                 error: function(err) {
+//                     log_rto_activity(frm, 'Handover to Customer', 'Handover Failed', err.message || 'Unknown error');
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Error confirming handover: ') + (err.message || 'Unknown error'),
+//                         indicator: 'red'
+//                     });
+//                 }
+//             });
+//         },
+//         secondary_action_label: __('Cancel'),
+//         secondary_action: function() {
+//             dialog.hide();
+//             log_rto_activity(frm, 'Handover to Customer Cancelled', 'Handover Cancelled', 'User cancelled the handover.');
+//             frappe.msgprint({
+//                 title: __('Action Cancelled'),
+//                 message: __('Handover to customer cancelled.'),
+//                 indicator: 'red'
+//             });
+//         }
+//     });
+//     dialog.show();
+// }

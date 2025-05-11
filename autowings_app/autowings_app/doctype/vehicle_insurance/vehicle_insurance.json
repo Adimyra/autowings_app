@@ -12,6 +12,7 @@
   "journal_status",
   "customer",
   "column_break_sdit",
+  "status",
   "insurance_status",
   "insurance_provider",
   "policy_name",
@@ -21,7 +22,15 @@
   "insurance_start_date",
   "column_break_wkph",
   "od_end_date",
-  "tp_end_date"
+  "tp_end_date",
+  "insurance_payment_info_section",
+  "payment_date",
+  "payment_reference",
+  "column_break_qpjp",
+  "payment_status",
+  "payment_entry_id",
+  "section_break_oqus",
+  "insurance_activity"
  ],
  "fields": [
   {
@@ -40,23 +49,27 @@
    "in_standard_filter": 1,
    "label": "Insurance Provider",
    "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"Insurance\"]]",
-   "options": "Supplier"
+   "options": "Supplier",
+   "read_only": 1
   },
   {
    "fieldname": "insurance_policy_number",
    "fieldtype": "Data",
    "label": "Insurance Policy Number",
+   "read_only": 1,
    "unique": 1
   },
   {
    "fieldname": "insurance_amount",
    "fieldtype": "Currency",
-   "label": "Insurance Amount"
+   "label": "Insurance Amount",
+   "read_only": 1
   },
   {
    "fieldname": "insurance_start_date",
    "fieldtype": "Date",
-   "label": "Insurance Start Date"
+   "label": "Insurance Start Date",
+   "read_only": 1
   },
   {
    "fieldname": "insurance_status",
@@ -64,14 +77,16 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Insurance Status",
-   "options": "\nPending\nApplied\nPayment Due\nPaid\nActive\nExpired"
+   "options": "\nPending\nApplied\nPayment Due\nPaid\nActive\nExpired",
+   "read_only": 1
   },
   {
    "fieldname": "vsm_id",
    "fieldtype": "Link",
    "label": "Vehicle Sales Master",
    "options": "Vehicle Sales Master",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_sdit",
@@ -80,7 +95,8 @@
   {
    "fieldname": "policy_name",
    "fieldtype": "Data",
-   "label": "Policy Name"
+   "label": "Policy Name",
+   "read_only": 1
   },
   {
    "fieldname": "sales_invoice",
@@ -110,17 +126,73 @@
    "fieldname": "journal_status",
    "fieldtype": "Select",
    "label": "Journal Status",
-   "options": "\nDraft\nSubmitted"
+   "options": "\nDraft\nSubmitted",
+   "read_only": 1
   },
   {
    "fieldname": "od_end_date",
    "fieldtype": "Date",
-   "label": "OD End Date"
+   "label": "OD End Date",
+   "read_only": 1
   },
   {
    "fieldname": "tp_end_date",
    "fieldtype": "Date",
-   "label": "TP End Date"
+   "label": "TP End Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "insurance_payment_info_section",
+   "fieldtype": "Section Break",
+   "label": "Insurance Payment Info"
+  },
+  {
+   "fieldname": "payment_date",
+   "fieldtype": "Date",
+   "label": "Payment Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_reference",
+   "fieldtype": "Data",
+   "label": "Payment Reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_qpjp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Due",
+   "fieldname": "payment_status",
+   "fieldtype": "Data",
+   "label": "Payment Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_entry_id",
+   "fieldtype": "Link",
+   "label": "Payment Entry Id",
+   "options": "Payment Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_oqus",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "insurance_activity",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Insurance Activity",
+   "options": "RTO Activity Log",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -130,7 +202,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-04-21 01:14:17.535844",
+ "modified": "2025-05-11 00:34:43.748261",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",

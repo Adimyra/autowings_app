@@ -792,7 +792,7 @@ frappe.ui.form.on("Payment Entry", {
                                         smart_card_payment_status: "Paid",
                                         payment_entry_id: frm.doc.name,
                                         payment_reference: frm.doc.reference_no,
-                                        status: "Due Updation in Vahan"
+                                        status: "Completed"
                                     }
                                 },
                                 callback: function(update_r) {
@@ -889,207 +889,507 @@ function log_rto_activity(params) {
         }
     });
 }
-// frappe.ui.form.on("Payment Entry", {
-//     on_submit: function(frm) {
-//         try {
-//             // Extract Journal Entry references from Payment Entry
-//             let journal_entries = frm.doc.references
-//                 .filter(ref => ref.reference_doctype === "Journal Entry")
-//                 .map(ref => ref.reference_name);
 
-//             console.log("On submit triggered for Payment Entry:", frm.doc.name, "Journal Entries:", journal_entries);
 
-//             if (journal_entries.length === 0) {
-//                 console.log("No Journal Entry references found in Payment Entry.");
-//                 return;
-//             }
+// updated vehicle insurance on payment entry
 
-//             // Fetch RTO Registration documents with journal_entry_id or additional_accounts
-//             frappe.call({
-//                 method: "frappe.client.get_list",
-//                 args: {
-//                     doctype: "RTO Registration",
-//                     filters: {
-//                         journal_entry_id: ["in", journal_entries]
-//                     },
-//                     fields: ["name", "journal_entry_id", "additional_accounts"]
-//                 },
-//                 callback: function(r) {
-//                     if (r.message && r.message.length > 0) {
-//                         let rto_docs = r.message;
-//                         console.log("Found RTO Registration documents:", rto_docs.map(doc => doc.name));
+frappe.ui.form.on("Payment Entry", {
+    on_submit: function(frm) {
+        try {
+            // Extract Journal Entry references from Payment Entry
+            let journal_entries = frm.doc.references
+                .filter(ref => ref.reference_doctype === "Journal Entry")
+                .map(ref => ref.reference_name);
 
-//                         rto_docs.forEach(rto_doc => {
-//                             // Update main RTO Registration if journal_entry_id matches
-//                             if (journal_entries.includes(rto_doc.journal_entry_id)) {
-//                                 frappe.call({
-//                                     method: "frappe.client.set_value",
-//                                     args: {
-//                                         doctype: "RTO Registration",
-//                                         name: rto_doc.name,
-//                                         fieldname: {
-//                                             payment_date: frm.doc.posting_date,
-//                                             payment_status: "Paid",
-//                                             status: "Due Registration Number Entry",
-//                                             payment_entry_id: frm.doc.name,
-//                                             payment_reference: frm.doc.reference_no
-//                                         }
-//                                     },
-//                                     callback: function(update_r) {
-//                                         if (update_r.message) {
-//                                             console.log(`Updated RTO Registration ${rto_doc.name} with payment details.`);
-//                                             frappe.msgprint({
-//                                                 title: __('Success'),
-//                                                 message: __('RTO Registration document updated successfully.'),
-//                                                 indicator: 'green'
-//                                             });
-//                                         }
-//                                     },
-//                                     error: function(err) {
-//                                         console.error(`Error updating RTO Registration ${rto_doc.name}:`, err);
-//                                         frappe.msgprint({
-//                                             title: __('Error'),
-//                                             message: __('Failed to update RTO Registration document. Please check server logs.'),
-//                                             indicator: 'red'
-//                                         });
-//                                     }
-//                                 });
-//                             }
+            console.log("On submit triggered for Payment Entry:", frm.doc.name, "Journal Entries:", journal_entries);
 
-//                             // Update additional_accounts child table if journal_entry_id matches
-//                             if (rto_doc.additional_accounts && rto_doc.additional_accounts.length > 0) {
-//                                 rto_doc.additional_accounts.forEach(account => {
-//                                     if (journal_entries.includes(account.journal_entry_id)) {
-//                                         console.log(`Found matching journal_entry_id ${account.journal_entry_id} in RTO Additional AC ${account.name}`);
-//                                         frappe.call({
-//                                             method: "frappe.client.set_value",
-//                                             args: {
-//                                                 doctype: "RTO Additional AC",
-//                                                 name: account.name,
-//                                                 fieldname: {
-//                                                     payment_date: frm.doc.posting_date,
-//                                                     payment_status: "Paid",
-//                                                     status: "Due Registration Number Entry",
-//                                                     payment_entry_id: frm.doc.name,
-//                                                     payment_reference: frm.doc.reference_no
-//                                                 }
-//                                             },
-//                                             callback: function(child_update_r) {
-//                                                 if (child_update_r.message) {
-//                                                     console.log(`Successfully updated RTO Additional AC ${account.name} with payment details.`);
-//                                                     frappe.msgprint({
-//                                                         title: __('Success'),
-//                                                         message: __('RTO Additional AC updated successfully.'),
-//                                                         indicator: 'green'
-//                                                     });
-//                                                 } else {
-//                                                     console.warn(`No response for updating RTO Additional AC ${account.name}`);
-//                                                 }
-//                                             },
-//                                             error: function(err) {
-//                                                 console.error(`Error updating RTO Additional AC ${account.name}:`, err);
-//                                                 frappe.msgprint({
-//                                                     title: __('Error'),
-//                                                     message: __('Failed to update RTO Additional AC. Please check server logs.'),
-//                                                     indicator: 'red'
-//                                                 });
-//                                             }
-//                                         });
-//                                     }
-//                                 });
-//                             }
-//                         });
-//                     } else {
-//                         console.log("No matching RTO Registration documents found for journal_entry_id.");
-//                     }
+            if (journal_entries.length === 0) {
+                console.log("No Journal Entry references found in Payment Entry.");
+                return;
+            }
 
-//                     // Fetch RTO Registration documents for additional_accounts check (if not already covered)
-//                     frappe.call({
-//                         method: "frappe.client.get_list",
-//                         args: {
-//                             doctype: "RTO Registration",
-//                             filters: {
-//                                 journal_entry_id: ["not in", journal_entries] // Avoid re-fetching already processed documents
-//                             },
-//                             fields: ["name", "additional_accounts"]
-//                         },
-//                         callback: function(child_r) {
-//                             if (child_r.message && child_r.message.length > 0) {
-//                                 let rto_docs = child_r.message;
-//                                 console.log("Fetched RTO Registration documents for additional_accounts check:", rto_docs.map(doc => doc.name));
+            // Update Vehicle Insurance documents where journal_entry_id matches
+            frappe.call({
+                method: "frappe.client.get_list",
+                args: {
+                    doctype: "Vehicle Insurance",
+                    filters: {
+                        journal_entry_id: ["in", journal_entries],
+                        payment_status: "Due"
+                    },
+                    fields: ["name", "journal_entry_id", "status", "payment_status"]
+                },
+                callback: function(r) {
+                    if (r.message && r.message.length > 0) {
+                        let insurance_docs = r.message;
+                        console.log("Found Vehicle Insurance documents:", insurance_docs.map(doc => doc.name));
 
-//                                 rto_docs.forEach(rto_doc => {
-//                                     if (rto_doc.additional_accounts && rto_doc.additional_accounts.length > 0) {
-//                                         rto_doc.additional_accounts.forEach(account => {
-//                                             if (journal_entries.includes(account.journal_entry_id)) {
-//                                                 console.log(`Found matching journal_entry_id ${account.journal_entry_id} in RTO Additional AC ${account.name}`);
-//                                                 frappe.call({
-//                                                     method: "frappe.client.set_value",
-//                                                     args: {
-//                                                         doctype: "RTO Additional AC",
-//                                                         name: account.name,
-//                                                         fieldname: {
-//                                                             payment_date: frm.doc.posting_date,
-//                                                             payment_status: "Paid",
-//                                                             payment_entry_id: frm.doc.name,
-//                                                             payment_reference: frm.doc.reference_no
-//                                                         }
-//                                                     },
-//                                                     callback: function(child_update_r) {
-//                                                         if (child_update_r.message) {
-//                                                             console.log(`Successfully updated RTO Additional AC ${account.name} with payment details.`);
-//                                                             frappe.msgprint({
-//                                                                 title: __('Success'),
-//                                                                 message: __('RTO Additional AC updated successfully.'),
-//                                                                 indicator: 'green'
-//                                                             });
-//                                                         } else {
-//                                                             console.warn(`No response for updating RTO Additional AC ${account.name}`);
-//                                                         }
-//                                                     },
-//                                                     error: function(err) {
-//                                                         console.error(`Error updating RTO Additional AC ${account.name}:`, err);
-//                                                         frappe.msgprint({
-//                                                             title: __('Error'),
-//                                                             message: __('Failed to update RTO Additional AC. Please check server logs.'),
-//                                                             indicator: 'red'
-//                                                         });
-//                                                     }
-//                                                 });
-//                                             }
-//                                         });
-//                                     }
-//                                 });
-//                             } else {
-//                                 console.log("No additional RTO Registration documents found for additional_accounts check.");
-//                             }
-//                         },
-//                         error: function(err) {
-//                             console.error("Error fetching RTO Registration documents for additional_accounts:", err);
-//                             frappe.msgprint({
-//                                 title: __('Error'),
-//                                 message: __('Failed to fetch RTO Registration documents for additional_accounts. Please check server logs.'),
-//                                 indicator: 'red'
-//                             });
-//                         }
-//                     });
-//                 },
-//                 error: function(err) {
-//                     console.error("Error fetching RTO Registration documents:", err);
-//                     frappe.msgprint({
-//                         title: __('Error'),
-//                         message: __('Failed to fetch RTO Registration documents. Please check server logs.'),
-//                         indicator: 'red'
-//                     });
-//                 }
-//             });
-//         } catch (err) {
-//             console.error("Error in on_submit handler:", err);
-//             frappe.msgprint({
-//                 title: __('Error'),
-//                 message: __('An error occurred while processing the payment submission. Please check the console.'),
-//                 indicator: 'red'
-//             });
-//         }
-//     }
-// });
+                        insurance_docs.forEach(insurance_doc => {
+                            let new_status = insurance_doc.status === "Payment Due" ? "Completed" : insurance_doc.status;
+                            frappe.call({
+                                method: "frappe.client.set_value",
+                                args: {
+                                    doctype: "Vehicle Insurance",
+                                    name: insurance_doc.name,
+                                    fieldname: {
+                                        payment_date: frm.doc.posting_date,
+                                        payment_status: "Paid",
+                                        insurance_status: "Active",
+                                        payment_entry_id: frm.doc.name,
+                                        payment_reference: frm.doc.reference_no,
+                                        status: new_status
+                                    }
+                                },
+                                callback: function(update_r) {
+                                    if (update_r.message) {
+                                        console.log(`Updated Vehicle Insurance ${insurance_doc.name} with payment details and status: ${new_status}`);
+                                        // Log activity for Vehicle Insurance
+                                        log_insurance_activity({
+                                            doctype: "Vehicle Insurance",
+                                            name: insurance_doc.name,
+                                            parentfield: "insurance_activity",
+                                            activity: "Payment Recorded",
+                                            status: "Payment Recorded",
+                                            remarks: `Payment Entry ${frm.doc.name} submitted.`
+                                        });
+                                        frappe.msgprint({
+                                            title: __('Success'),
+                                            message: __('Vehicle Insurance document updated successfully.'),
+                                            indicator: 'green'
+                                        });
+                                    }
+                                },
+                                error: function(err) {
+                                    console.error(`Error updating Vehicle Insurance ${insurance_doc.name}:`, err);
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Failed to update Vehicle Insurance document. Please check server logs.'),
+                                        indicator: 'red'
+                                    });
+                                }
+                            });
+                        });
+                    } else {
+                        console.log("No matching Vehicle Insurance documents found with payment_status: Due.");
+                    }
+                },
+                error: function(err) {
+                    console.error("Error fetching Vehicle Insurance documents:", err);
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Failed to fetch Vehicle Insurance documents. Please check server logs.'),
+                        indicator: 'red'
+                    });
+                }
+            });
+        } catch (err) {
+            console.error("Error in on_submit handler:", err);
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('An error occurred while processing the payment submission. Please check the console.'),
+                indicator: 'red'
+            });
+        }
+    }
+});
+
+// Reusable function to log activity in insurance_activity child table
+function log_insurance_activity(params) {
+    let activity_log = {
+        doctype: "RTO Activity Log",
+        activity: params.activity,
+        status: params.status,
+        user: frappe.session.user,
+        update_on: frappe.datetime.now_datetime(),
+        remarks: params.remarks || "",
+        parent: params.name,
+        parentfield: params.parentfield,
+        parenttype: params.doctype
+    };
+
+    frappe.call({
+        method: "frappe.client.insert",
+        args: {
+            doc: activity_log
+        },
+        callback: function(r) {
+            if (r.exc) {
+                console.error(`Error logging activity for ${params.doctype} ${params.name}:`, r.exc);
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error logging activity: ') + (r.exc || JSON.stringify(r)),
+                    indicator: 'red'
+                });
+            } else {
+                console.log(`Activity logged for ${params.doctype} ${params.name}: ${params.activity}`);
+            }
+        },
+        error: function(err) {
+            console.error(`Error logging activity for ${params.doctype} ${params.name}:`, err);
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Error logging activity: ') + (err.message || JSON.stringify(err)),
+                indicator: 'red'
+            });
+        }
+    });
+}
+
+
+
+// updated vehicle rsa on payment entry
+
+frappe.ui.form.on("Payment Entry", {
+    on_submit: function(frm) {
+        try {
+            // Extract Journal Entry references from Payment Entry
+            let journal_entries = frm.doc.references
+                .filter(ref => ref.reference_doctype === "Journal Entry")
+                .map(ref => ref.reference_name);
+
+            console.log("On submit triggered for Payment Entry:", frm.doc.name, "Journal Entries:", journal_entries);
+
+            if (journal_entries.length === 0) {
+                console.log("No Journal Entry references found in Payment Entry.");
+                return;
+            }
+
+            // Update Vehicle RSA documents where journal_entry_id matches
+            frappe.call({
+                method: "frappe.client.get_list",
+                args: {
+                    doctype: "Vehicle RSA",
+                    filters: {
+                        journal_entry_id: ["in", journal_entries],
+                        payment_status: "Due"
+                    },
+                    fields: ["name", "journal_entry_id", "status", "payment_status"]
+                },
+                callback: function(r) {
+                    if (r.message && r.message.length > 0) {
+                        let rsa_docs = r.message;
+                        console.log("Found Vehicle RSA documents:", rsa_docs.map(doc => doc.name));
+
+                        rsa_docs.forEach(rsa_doc => {
+                            let new_status = rsa_doc.status === "Payment Due" ? "Completed" : rsa_doc.status;
+                            frappe.call({
+                                method: "frappe.client.set_value",
+                                args: {
+                                    doctype: "Vehicle RSA",
+                                    name: rsa_doc.name,
+                                    fieldname: {
+                                        payment_date: frm.doc.posting_date,
+                                        payment_status: "Paid",
+                                        rsa_status: "Active",
+                                        payment_entry_id: frm.doc.name,
+                                        payment_reference: frm.doc.reference_no,
+                                        status: new_status
+                                    }
+                                },
+                                callback: function(update_r) {
+                                    if (update_r.message) {
+                                        console.log(`Updated Vehicle RSA ${rsa_doc.name} with payment details and status: ${new_status}`);
+                                        // Log activity for Vehicle RSA
+                                        log_rsa_activity({
+                                            doctype: "Vehicle RSA",
+                                            name: rsa_doc.name,
+                                            parentfield: "rsa_activity",
+                                            activity: "Payment Recorded",
+                                            status: "Payment Recorded",
+                                            remarks: `Payment Entry ${frm.doc.name} submitted.`
+                                        });
+                                        frappe.msgprint({
+                                            title: __('Success'),
+                                            message: __('Vehicle RSA document updated successfully.'),
+                                            indicator: 'green'
+                                        });
+                                    }
+                                },
+                                error: function(err) {
+                                    console.error(`Error updating Vehicle RSA ${rsa_doc.name}:`, err);
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Failed to update Vehicle RSA document. Please check server logs.'),
+                                        indicator: 'red'
+                                    });
+                                }
+                            });
+                        });
+                    } else {
+                        console.log("No matching Vehicle RSA documents found with payment_status: Due.");
+                    }
+                },
+                error: function(err) {
+                    console.error("Error fetching Vehicle RSA documents:", err);
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Failed to fetch Vehicle RSA documents. Please check server logs.'),
+                        indicator: 'red'
+                    });
+                }
+            });
+        } catch (err) {
+            console.error("Error in on_submit handler:", err);
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('An error occurred while processing the payment submission. Please check the console.'),
+                indicator: 'red'
+            });
+        }
+    }
+});
+
+// Reusable function to log activity in rsa_activity child table
+function log_rsa_activity(params) {
+    let activity_log = {
+        doctype: "RTO Activity Log",
+        activity: params.activity,
+        status: params.status,
+        user: frappe.session.user,
+        update_on: frappe.datetime.now_datetime(),
+        remarks: params.remarks || "",
+        parent: params.name,
+        parentfield: params.parentfield,
+        parenttype: params.doctype
+    };
+
+    frappe.call({
+        method: "frappe.client.insert",
+        args: {
+            doc: activity_log
+        },
+        callback: function(r) {
+            if (r.exc) {
+                console.error(`Error logging activity for ${params.doctype} ${params.name}:`, r.exc);
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error logging activity: ') + (r.exc || JSON.stringify(r)),
+                    indicator: 'red'
+                });
+            } else {
+                console.log(`Activity logged for ${params.doctype} ${params.name}: ${params.activity}`);
+            }
+        },
+        error: function(err) {
+            console.error(`Error logging activity for ${params.doctype} ${params.name}:`, err);
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Error logging activity: ') + (err.message || JSON.stringify(err)),
+                indicator: 'red'
+            });
+        }
+    });
+}
+
+
+// updated vehicle extended warranty on payment entry
+
+frappe.ui.form.on("Payment Entry", {
+    on_submit: function(frm) {
+        try {
+            // Extract Journal Entry references from Payment Entry
+            let journal_entries = frm.doc.references
+                .filter(ref => ref.reference_doctype === "Journal Entry")
+                .map(ref => ref.reference_name);
+
+            console.log("On submit triggered for Payment Entry:", frm.doc.name, "Journal Entries:", journal_entries);
+
+            if (journal_entries.length === 0) {
+                console.log("No Journal Entry references found in Payment Entry.");
+                return;
+            }
+
+            // Update Vehicle Extended Warranty documents where journal_entry_id matches
+            frappe.call({
+                method: "frappe.client.get_list",
+                args: {
+                    doctype: "Vehicle Extended Warranty",
+                    filters: {
+                        journal_entry_id: ["in", journal_entries],
+                        payment_status: "Due"
+                    },
+                    fields: ["name", "journal_entry_id", "status", "payment_status"]
+                },
+                callback: function(r) {
+                    if (r.message && r.message.length > 0) {
+                        let warranty_docs = r.message;
+                        console.log("Found Vehicle Extended Warranty documents:", warranty_docs.map(doc => doc.name));
+
+                        warranty_docs.forEach(warranty_doc => {
+                            let new_status = warranty_doc.status === "Payment Due" ? "Completed" : warranty_doc.status;
+                            frappe.call({
+                                method: "frappe.client.set_value",
+                                args: {
+                                    doctype: "Vehicle Extended Warranty",
+                                    name: warranty_doc.name,
+                                    fieldname: {
+                                        payment_date: frm.doc.posting_date,
+                                        payment_status: "Paid",
+                                        warranty_status: "Active",
+                                        payment_entry_id: frm.doc.name,
+                                        payment_reference: frm.doc.reference_no,
+                                        status: new_status
+                                    }
+                                },
+                                callback: function(update_r) {
+                                    if (update_r.message) {
+                                        console.log(`Updated Vehicle Extended Warranty ${warranty_doc.name} with payment details and status: ${new_status}`);
+                                        // Log activity for Vehicle Extended Warranty
+                                        log_warranty_activity({
+                                            doctype: "Vehicle Extended Warranty",
+                                            name: warranty_doc.name,
+                                            parentfield: "extended_warranty_activity",
+                                            activity: "Payment Recorded",
+                                            status: "Payment Recorded",
+                                            remarks: `Payment Entry ${frm.doc.name} submitted.`
+                                        });
+                                        frappe.msgprint({
+                                            title: __('Success'),
+                                            message: __('Vehicle Extended Warranty document updated successfully.'),
+                                            indicator: 'green'
+                                        });
+                                    }
+                                },
+                                error: function(err) {
+                                    console.error(`Error updating Vehicle Extended Warranty ${warranty_doc.name}:`, err);
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Failed to update Vehicle Extended Warranty document. Please check server logs.'),
+                                        indicator: 'red'
+                                    });
+                                }
+                            });
+                        });
+                    } else {
+                        console.log("No matching Vehicle Extended Warranty documents found with payment_status: Due.");
+                    }
+                },
+                error: function(err) {
+                    console.error("Error fetching Vehicle Extended Warranty documents:", err);
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Failed to fetch Vehicle Extended Warranty documents. Please check server logs.'),
+                        indicator: 'red'
+                    });
+                }
+            });
+        } catch (err) {
+            console.error("Error in on_submit handler:", err);
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('An error occurred while processing the payment submission. Please check the console.'),
+                indicator: 'red'
+            });
+        }
+    }
+});
+
+// Reusable function to log activity in extended_warranty_activity child table
+function log_warranty_activity(params) {
+    let activity_log = {
+        doctype: "RTO Activity Log",
+        activity: params.activity,
+        status: params.status,
+        user: frappe.session.user,
+        update_on: frappe.datetime.now_datetime(),
+        remarks: params.remarks || "",
+        parent: params.name,
+        parentfield: params.parentfield,
+        parenttype: params.doctype
+    };
+
+    frappe.call({
+        method: "frappe.client.insert",
+        args: {
+            doc: activity_log
+        },
+        callback: function(r) {
+            if (r.exc) {
+                console.error(`Error logging activity for ${params.doctype} ${params.name}:`, r.exc);
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error logging activity: ') + (r.exc || JSON.stringify(r)),
+                    indicator: 'red'
+                });
+            } else {
+                console.log(`Activity logged for ${params.doctype} ${params.name}: ${params.activity}`);
+            }
+        },
+        error: function(err) {
+            console.error(`Error logging activity for ${params.doctype} ${params.name}:`, err);
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Error logging activity: ') + (err.message || JSON.stringify(err)),
+                indicator: 'red'
+            });
+        }
+    });
+}
+
+
+// for Vehicle Misc sales on update payment
+
+frappe.ui.form.on('Payment Entry', {
+    before_submit: function(frm) {
+        console.log("Before Submit triggered for Payment Entry:", frm.doc.name);
+        let references = frm.doc.references || [];
+        
+        if (!references.length) {
+            console.log("No references found in Payment Entry.");
+            return;
+        }
+
+        references.forEach(function(ref) {
+            if (ref.reference_doctype === "Journal Entry") {
+                console.log("Checking Journal Entry reference:", ref.reference_name);
+                frappe.call({
+                    method: "frappe.client.get_list",
+                    args: {
+                        doctype: "Vehicle Misc Sales",
+                        filters: {}, // Can add {"name": "MISC-25-050626"} for testing
+                        fields: ["name", "misc_accounts"],
+                        limit_page_length: 50
+                    },
+                    async: false, // Ensure synchronous call to block submit until check is complete
+                    callback: function(response) {
+                        console.log("Vehicle Misc Sales response:", response);
+                        let vehicle_misc_sales = response.message || [];
+                        
+                        if (!vehicle_misc_sales.length) {
+                            console.log("No Vehicle Misc Sales documents found.");
+                            return;
+                        }
+
+                        vehicle_misc_sales.forEach(function(vms) {
+                            let misc_accounts = vms.misc_accounts || [];
+                            if (!misc_accounts.length) {
+                                console.log("No misc_accounts in Vehicle Misc Sales:", vms.name);
+                                return;
+                            }
+
+                            misc_accounts.forEach(function(account) {
+                                console.log("Comparing journal_entry_id:", account.journal_entry_id, "with reference_name:", ref.reference_name);
+                                if (account.journal_entry_id === ref.reference_name) {
+                                    console.log("Match found:", account.journal_entry_id, vms.name);
+                                    frappe.msgprint({
+                                        title: __("Match Found"),
+                                        message: __("Matched Journal Entry ID: {0} in Vehicle Misc Sales: {1}", [account.journal_entry_id, vms.name]),
+                                        indicator: "green"
+                                    });
+                                }
+                            });
+                        });
+                    },
+                    error: function(err) {
+                        console.error("Error fetching Vehicle Misc Sales:", err);
+                        frappe.msgprint({
+                            title: __("Error"),
+                            message: __("Failed to fetch Vehicle Misc Sales documents. Check console for details."),
+                            indicator: "red"
+                        });
+                    }
+                });
+            }
+        });
+    }
+});

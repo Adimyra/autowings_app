@@ -2208,6 +2208,7 @@ def create_or_update_vehicle_insurance(doc, vsm_doc_name, company):
                 "policy_name": doc.custom_insurance_policy,
                 "insurance_amount": doc.custom_insurance_amount,
                 "insurance_status": "Pending",
+                "status": "Due Update",
                 "journal_status": "Draft"
             })
             insurance_doc.save()
@@ -2222,6 +2223,7 @@ def create_or_update_vehicle_insurance(doc, vsm_doc_name, company):
                 "policy_name": doc.custom_insurance_policy,
                 "insurance_amount": doc.custom_insurance_amount,
                 "insurance_status": "Pending",
+                "status": "Due Update",
                 "journal_status": "Draft"
             })
             insurance_doc.insert()
@@ -2283,6 +2285,7 @@ def create_or_update_vehicle_rsa(doc, vsm_doc_name, company):
                 "rsa_provider": doc.custom_rsa_provider,
                 "rsa_amount": doc.custom_rsa_amount,
                 "rsa_status": "Pending",
+                "status": "Due Update",
                 "journal_status": "Draft"
             })
             rsa_doc.save()
@@ -2296,6 +2299,7 @@ def create_or_update_vehicle_rsa(doc, vsm_doc_name, company):
                 "rsa_provider": doc.custom_rsa_provider,
                 "rsa_amount": doc.custom_rsa_amount,
                 "rsa_status": "Pending",
+                "status": "Due Update",
                 "journal_status": "Draft"
             })
             rsa_doc.insert()
@@ -2319,6 +2323,7 @@ def create_or_update_vehicle_extended_warranty(doc, vsm_doc_name, company):
                 "extended_warranty_provider": doc.custom_extended_warranty_provider,
                 "extended_warranty_amount": doc.custom_extended_warranty_amount,
                 "warranty_status": "Pending",
+                "status": "Due Update",
                 "journal_status": "Draft"
             })
             warranty_doc.save()
@@ -2332,6 +2337,7 @@ def create_or_update_vehicle_extended_warranty(doc, vsm_doc_name, company):
                 "extended_warranty_provider": doc.custom_extended_warranty_provider,
                 "extended_warranty_amount": doc.custom_extended_warranty_amount,
                 "warranty_status": "Pending",
+                "status": "Due Update",
                 "journal_status": "Draft"
             })
             warranty_doc.insert()
@@ -2360,6 +2366,7 @@ def create_or_update_vehicle_misc_sales(doc, vsm_doc_name, company):
             misc_sales_doc.update({
                 "customer": doc.customer,
                 "vsm_id": vsm_doc_name,
+                "status": "Due Update",
                 "misc_accounts": misc_accounts
             })
             misc_sales_doc.save()
@@ -2370,6 +2377,7 @@ def create_or_update_vehicle_misc_sales(doc, vsm_doc_name, company):
                 "customer": doc.customer,
                 "sales_invoice": doc.name,
                 "vsm_id": vsm_doc_name,
+                "status": "Due Update",
                 "misc_accounts": misc_accounts
             })
             misc_sales_doc.insert()

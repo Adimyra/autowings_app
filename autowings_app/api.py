@@ -181,3 +181,43 @@ def get_enabled_sales_types():
     # Extract sales_type values from the result
     sales_types = [entry.sales_type for entry in entries]
     return sales_types
+
+
+
+
+# for misc account journal entry payment entry
+import frappe
+from frappe import _
+
+@frappe.whitelist()
+def get_vehicle_misc_sales(journal_entries):
+    try:
+        # Fetch all Vehicle Misc Sales documents
+        misc_sales = frappe.get_all(
+            "Vehicle Misc Sales",
+            fields=["name"]
+        )
+
+        result = []
+        for sale in misc_sales:
+            # Fetch misc_accounts with matching journal_entry_id and payment_status
+            accounts = frappe.get_all(
+                "Misc Journal vsm",
+                filters={
+                    "parent": sale.name,
+                    "journal_entry_id": ["in", journal_entries],
+                    "payment_status": "Due",
+                    "journal_status": "Submitted"
+                },
+                fields=["name", "idx", "journal_entry_id", "payment_status", "journal_status"]
+            )
+            if accounts:
+                result.append({
+                    "name": sale.name,
+                    "misc_accounts": accounts
+                })
+
+        return result
+    except Exception as e:
+        frappe.log_error(f"Error fetching Vehicle Misc Sales: {str(e)}")
+        frappe.throw(_("Failed to fetch Vehicle Misc Sales. Please check server logs."))
