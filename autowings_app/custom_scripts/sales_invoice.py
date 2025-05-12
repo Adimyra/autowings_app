@@ -1609,6 +1609,7 @@ def after_insert_sales_invoice(doc, method):
 #     except Exception as e:
 #         frappe.log_error(f"Error creating/updating Vehicle Misc Sales: {str(e)}")
 #         raise
+
 import frappe
 from frappe.utils import getdate
 from autowings_app.custom_scripts.utils import get_autowings_settings
@@ -1955,7 +1956,8 @@ def on_submit_sales_invoice(doc, method):
                     je_misc.voucher_type = "Journal Entry"
                     je_misc.company = company
                     je_misc.posting_date = getdate()
-                    je_misc.title = f"Misc - {doc.customer} - {misc.misc_account}"
+                    # je_misc.title = f"Misc - {doc.customer} - {misc.misc_account}"
+                    je_misc.title = f"Misc - {doc.customer} - Multiple Accounts (Sales Invoice {doc.name})"
                     je_misc.remark = f"Miscellaneous charge of ₹{misc.amount} for Sales Invoice {doc.name} paid to {misc.misc_account}."
                     je_misc.append("accounts", {
                         "account": f"Debtors - {company_abbr}",
