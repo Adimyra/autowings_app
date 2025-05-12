@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:MISC-{YY}-{MM}{####}",
+ "autoname": "format:Misc-{YY}-{MM}{###}",
  "creation": "2025-04-15 16:07:28.289500",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -50,7 +50,8 @@
    "fieldname": "misc_accounts",
    "fieldtype": "Table",
    "label": "Misc Accounts",
-   "options": "Misc Journal vsm"
+   "options": "Misc Journal vsm",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_pgff",
@@ -60,8 +61,11 @@
    "default": "Pending",
    "fieldname": "status",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Status",
-   "options": "\nPending\nDue Update\nDue Payment\nCompleted"
+   "options": "\nPending\nDue Update\nDue Payment\nCompleted",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_chfw",
@@ -70,19 +74,24 @@
   {
    "fieldname": "misc_activity",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Misc Activity",
-   "options": "RTO Activity Log"
+   "options": "RTO Activity Log",
+   "read_only": 1
   },
   {
    "default": "Draft",
    "fieldname": "journal_status",
    "fieldtype": "Data",
-   "label": "Journal Status"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Journal Status",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-11 17:46:40.551382",
+ "modified": "2025-05-12 15:05:33.490644",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Misc Sales",
@@ -100,9 +109,34 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
 }

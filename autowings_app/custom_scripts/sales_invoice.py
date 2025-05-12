@@ -2248,6 +2248,8 @@ def create_or_update_vehicle_finance(doc, vsm_doc_name, company):
                 "loan_amount": doc.custom_finance_amount,
                 "loan_status": "Pending",
                 "journal_status": "Draft",
+                "payment_status": "Not Received",
+                "status": "Due Update",
                 "loan_type": "New Vehicle"
             })
             finance_doc.save()
@@ -2262,6 +2264,8 @@ def create_or_update_vehicle_finance(doc, vsm_doc_name, company):
                 "loan_amount": doc.custom_finance_amount,
                 "loan_status": "Pending",
                 "journal_status": "Draft",
+                "payment_status": "Not Received",
+                "status": "Due Update",
                 "loan_type": "New Vehicle"
             })
             finance_doc.insert()

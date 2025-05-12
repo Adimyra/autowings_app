@@ -275,50 +275,220 @@ frappe.ui.form.on("Payment Entry", {
     }
 });
 
+// frappe.ui.form.on("Payment Entry", {
+//     party: function(frm) {
+//         try {
+//             if (frm.doc.party && frm.doc.party_type) {
+//                 let doctype = frm.doc.party_type;
+//                 let field = doctype === "Customer" ? "customer_group" : doctype === "Supplier" ? "supplier_group" : null;
+//                 if (field) {
+//                     // Verify custom_party_group field exists
+//                     if (!frm.fields_dict.custom_party_group) {
+//                         console.warn('Custom field custom_party_group not found in Payment Entry.');
+//                         return;
+//                     }
+
+//                     frappe.db.get_value(doctype, frm.doc.party, field, (value) => {
+//                         let party_group = value[field] || "";
+//                         frm.set_value("custom_party_group", party_group);
+//                         // Check if custom_party_group is "Financer" and set paid_from
+//                         if (party_group === "Financer") {
+//                             get_company_abbr(function(abbr) {
+//                                 if (abbr) {
+//                                     frm.set_value("paid_from", `Finance Receivable - ${abbr}`);
+//                                     console.log(`Set paid_from to Finance Receivable - ${abbr} for Financer group`);
+//                                 } else {
+//                                     frm.set_value("paid_from", "");
+//                                     console.warn("No company abbreviation available for setting paid_from");
+//                                 }
+//                             }, function(err) {
+//                                 frm.set_value("paid_from", "");
+//                                 console.error('Failed to fetch company abbreviation:', err);
+//                                 frappe.msgprint({
+//                                     title: __('Error'),
+//                                     message: __('Failed to load company abbreviation for Financer group.'),
+//                                     indicator: 'red'
+//                                 });
+//                             });
+//                         }
+//                     });
+//                 } else {
+//                     frm.set_value("custom_party_group", "");
+//                     frm.set_value("paid_from", "");
+//                 }
+//             } else {
+//                 frm.set_value("custom_party_group", "");
+//                 frm.set_value("paid_from", "");
+//             }
+//         } catch (err) {
+//             console.error('Error in party handler:', err);
+//             frappe.msgprint({
+//                 title: __('Error'),
+//                 message: __('An error occurred while processing the party. Please check the console.'),
+//                 indicator: 'red'
+//             });
+//         }
+//     },
+
+//     party_type: function(frm) {
+//         try {
+//             if (frm.doc.party) {
+//                 frm.script_manager.trigger("party");
+//             } else {
+//                 frm.set_value("custom_party_group", "");
+//                 frm.set_value("paid_from", "");
+//             }
+//         } catch (err) {
+//             console.error('Error in party_type handler:', err);
+//         }
+//     }
+// });
+
+// // for supplier party type
+// frappe.ui.form.on("Payment Entry", {
+//     party: function(frm) {
+//         try {
+//             if (frm.doc.payment_type === "Pay" && frm.doc.party_type === "Supplier" && frm.doc.party) {
+//                 get_company_abbr(function(abbr) {
+//                     if (abbr) {
+//                         frappe.db.get_value("Supplier", frm.doc.party, "supplier_name", (value) => {
+//                             if (value && value.supplier_name) {
+//                                 let paid_to_account = `${value.supplier_name} Payable - ${abbr}`;
+//                                 frm.set_value("paid_to", paid_to_account);
+//                                 console.log(`Set paid_to to ${paid_to_account} for Supplier: ${frm.doc.party}`);
+
+//                                 // Validate that the paid_to account exists
+//                                 frappe.db.get_value('Account', paid_to_account, 'name')
+//                                     .then(r => {
+//                                         if (!r.message.name) {
+//                                             frappe.msgprint({
+//                                                 title: __('Validation Error'),
+//                                                 message: __('Account ') + paid_to_account + __(' does not exist. Please create the account first.'),
+//                                                 indicator: 'red'
+//                                             });
+//                                             frm.set_value("paid_to", "");
+//                                         }
+//                                     })
+//                                     .catch(err => {
+//                                         console.error(`Error validating account ${paid_to_account}:`, err);
+//                                         frappe.msgprint({
+//                                             title: __('Error'),
+//                                             message: __('Error validating account: ') + (err.message || JSON.stringify(err)),
+//                                             indicator: 'red'
+//                                         });
+//                                         frm.set_value("paid_to", "");
+//                                     });
+//                             } else {
+//                                 console.warn(`No supplier_name found for Supplier: ${frm.doc.party}`);
+//                                 frm.set_value("paid_to", "");
+//                             }
+//                         });
+//                     } else {
+//                         console.warn("No company abbreviation available for setting paid_to");
+//                         frm.set_value("paid_to", "");
+//                     }
+//                 }, function(err) {
+//                     console.error('Failed to fetch company abbreviation:', err);
+//                     frm.set_value("paid_to", "");
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Failed to load company abbreviation for Supplier account.'),
+//                         indicator: 'red'
+//                     });
+//                 });
+//             }
+//         } catch (err) {
+//             console.error('Error in party handler:', err);
+//             frappe.msgprint({
+//                 title: __('Error'),
+//                 message: __('An error occurred while processing the party. Please check the console.'),
+//                 indicator: 'red'
+//             });
+//         }
+//     }
+// });
+
 frappe.ui.form.on("Payment Entry", {
     party: function(frm) {
         try {
-            if (frm.doc.party && frm.doc.party_type) {
-                let doctype = frm.doc.party_type;
-                let field = doctype === "Customer" ? "customer_group" : doctype === "Supplier" ? "supplier_group" : null;
-                if (field) {
-                    // Verify custom_party_group field exists
-                    if (!frm.fields_dict.custom_party_group) {
-                        console.warn('Custom field custom_party_group not found in Payment Entry.');
-                        return;
-                    }
+            if (!frm.doc.party || !frm.doc.party_type) {
+                frm.set_value("custom_party_group", "");
+                frm.set_value("paid_from", "");
+                frm.set_value("paid_to", "");
+                return;
+            }
 
-                    frappe.db.get_value(doctype, frm.doc.party, field, (value) => {
-                        let party_group = value[field] || "";
-                        frm.set_value("custom_party_group", party_group);
-                        // Check if custom_party_group is "Financer" and set paid_from
-                        if (party_group === "Financer") {
-                            get_company_abbr(function(abbr) {
-                                if (abbr) {
-                                    frm.set_value("paid_from", `Finance Receivable - ${abbr}`);
-                                    console.log(`Set paid_from to Finance Receivable - ${abbr} for Financer group`);
-                                } else {
-                                    frm.set_value("paid_from", "");
-                                    console.warn("No company abbreviation available for setting paid_from");
-                                }
-                            }, function(err) {
+            let doctype = frm.doc.party_type;
+            let field = doctype === "Customer" ? "customer_group" : doctype === "Supplier" ? "supplier_group" : null;
+            let name_field = doctype === "Customer" ? "customer_name" : doctype === "Supplier" ? "supplier_name" : null;
+
+            // Handle party group for Customer or Supplier
+            if (field && frm.fields_dict.custom_party_group && name_field) {
+                frappe.db.get_value(doctype, frm.doc.party, [field, name_field], (value) => {
+                    let party_group = value[field] || "";
+                    let party_name = value[name_field] || frm.doc.party; // Fallback to party if name not found
+                    frm.set_value("custom_party_group", party_group);
+
+                    // Handle Financer group for payment_type "Receive"
+                    if (party_group === "Financer" && frm.doc.payment_type === "Receive") {
+                        get_company_abbr(function(abbr) {
+                            if (abbr) {
+                                let paid_from_account = `${party_name} - ${abbr}`;
+                                frm.set_value("paid_from", paid_from_account);
+                                console.log(`Set paid_from to ${paid_from_account} for Financer group`);
+
+                                // Validate paid_from account
+                                validate_account(paid_from_account, frm, "paid_from");
+                            } else {
                                 frm.set_value("paid_from", "");
-                                console.error('Failed to fetch company abbreviation:', err);
-                                frappe.msgprint({
-                                    title: __('Error'),
-                                    message: __('Failed to load company abbreviation for Financer group.'),
-                                    indicator: 'red'
-                                });
+                                console.warn("No company abbreviation available for setting paid_from");
+                            }
+                        }, function(err) {
+                            frm.set_value("paid_from", "");
+                            console.error('Failed to fetch company abbreviation:', err);
+                            frappe.msgprint({
+                                title: __('Error'),
+                                message: __('Failed to load company abbreviation for Financer group.'),
+                                indicator: 'red'
                             });
-                        }
-                    });
-                } else {
-                    frm.set_value("custom_party_group", "");
-                    frm.set_value("paid_from", "");
-                }
+                        });
+                    }
+                });
             } else {
                 frm.set_value("custom_party_group", "");
                 frm.set_value("paid_from", "");
+            }
+
+            // Handle Supplier-specific logic for payment_type "Pay"
+            if (frm.doc.payment_type === "Pay" && frm.doc.party_type === "Supplier" && frm.doc.party) {
+                get_company_abbr(function(abbr) {
+                    if (abbr) {
+                        frappe.db.get_value("Supplier", frm.doc.party, "supplier_name", (value) => {
+                            if (value && value.supplier_name) {
+                                let paid_to_account = `${value.supplier_name} Payable - ${abbr}`;
+                                frm.set_value("paid_to", paid_to_account);
+                                console.log(`Set paid_to to ${paid_to_account} for Supplier: ${frm.doc.party}`);
+
+                                // Validate paid_to account
+                                validate_account(paid_to_account, frm, "paid_to");
+                            } else {
+                                frm.set_value("paid_to", "");
+                                console.warn(`No supplier_name found for Supplier: ${frm.doc.party}`);
+                            }
+                        });
+                    } else {
+                        frm.set_value("paid_to", "");
+                        console.warn("No company abbreviation available for setting paid_to");
+                    }
+                }, function(err) {
+                    frm.set_value("paid_to", "");
+                    console.error('Failed to fetch company abbreviation:', err);
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Failed to load company abbreviation for Supplier account.'),
+                        indicator: 'red'
+                    });
+                });
             }
         } catch (err) {
             console.error('Error in party handler:', err);
@@ -337,6 +507,7 @@ frappe.ui.form.on("Payment Entry", {
             } else {
                 frm.set_value("custom_party_group", "");
                 frm.set_value("paid_from", "");
+                frm.set_value("paid_to", "");
             }
         } catch (err) {
             console.error('Error in party_type handler:', err);
@@ -344,69 +515,40 @@ frappe.ui.form.on("Payment Entry", {
     }
 });
 
-// for supplier party type
-frappe.ui.form.on("Payment Entry", {
-    party: function(frm) {
-        try {
-            if (frm.doc.payment_type === "Pay" && frm.doc.party_type === "Supplier" && frm.doc.party) {
-                get_company_abbr(function(abbr) {
-                    if (abbr) {
-                        frappe.db.get_value("Supplier", frm.doc.party, "supplier_name", (value) => {
-                            if (value && value.supplier_name) {
-                                let paid_to_account = `${value.supplier_name} Payable - ${abbr}`;
-                                frm.set_value("paid_to", paid_to_account);
-                                console.log(`Set paid_to to ${paid_to_account} for Supplier: ${frm.doc.party}`);
+// Helper function to get company abbreviation
+function get_company_abbr(callback, error_callback) {
+    frappe.db.get_value("Company", frappe.sys_defaults.company, "abbr", (value) => {
+        if (value && value.abbr) {
+            callback(value.abbr);
+        } else {
+            error_callback(new Error("Company abbreviation not found"));
+        }
+    }).catch(error_callback);
+}
 
-                                // Validate that the paid_to account exists
-                                frappe.db.get_value('Account', paid_to_account, 'name')
-                                    .then(r => {
-                                        if (!r.message.name) {
-                                            frappe.msgprint({
-                                                title: __('Validation Error'),
-                                                message: __('Account ') + paid_to_account + __(' does not exist. Please create the account first.'),
-                                                indicator: 'red'
-                                            });
-                                            frm.set_value("paid_to", "");
-                                        }
-                                    })
-                                    .catch(err => {
-                                        console.error(`Error validating account ${paid_to_account}:`, err);
-                                        frappe.msgprint({
-                                            title: __('Error'),
-                                            message: __('Error validating account: ') + (err.message || JSON.stringify(err)),
-                                            indicator: 'red'
-                                        });
-                                        frm.set_value("paid_to", "");
-                                    });
-                            } else {
-                                console.warn(`No supplier_name found for Supplier: ${frm.doc.party}`);
-                                frm.set_value("paid_to", "");
-                            }
-                        });
-                    } else {
-                        console.warn("No company abbreviation available for setting paid_to");
-                        frm.set_value("paid_to", "");
-                    }
-                }, function(err) {
-                    console.error('Failed to fetch company abbreviation:', err);
-                    frm.set_value("paid_to", "");
-                    frappe.msgprint({
-                        title: __('Error'),
-                        message: __('Failed to load company abbreviation for Supplier account.'),
-                        indicator: 'red'
-                    });
+// Helper function to validate account existence
+function validate_account(account_name, frm, field) {
+    frappe.db.get_value('Account', account_name, 'name')
+        .then(r => {
+            if (!r.message.name) {
+                frappe.msgprint({
+                    title: __('Validation Error'),
+                    message: __('Account ') + account_name + __(' does not exist. Please create the account first.'),
+                    indicator: 'red'
                 });
+                frm.set_value(field, "");
             }
-        } catch (err) {
-            console.error('Error in party handler:', err);
+        })
+        .catch(err => {
+            console.error(`Error validating account ${account_name}:`, err);
             frappe.msgprint({
                 title: __('Error'),
-                message: __('An error occurred while processing the party. Please check the console.'),
+                message: __('Error validating account: ') + (err.message || JSON.stringify(err)),
                 indicator: 'red'
             });
-        }
-    }
-});
+            frm.set_value(field, "");
+        });
+}
 
 // // Log to confirm script is loaded
 // console.log("Custom Payment Entry script loaded");
@@ -1327,7 +1469,7 @@ function log_warranty_activity(params) {
 }
 
 
-// for Vehicle Misc sales on update payment
+// for Vehicle Misc sales on update payment in ----- %%%%%$$$####@. .py check
 
 // frappe.ui.form.on('Payment Entry', {
 //     on_submit: function(frm) {
@@ -1370,3 +1512,145 @@ function log_warranty_activity(params) {
 //         }
 //     }
 // });
+
+frappe.ui.form.on("Payment Entry", {
+    on_submit: function(frm) {
+        try {
+            // Extract Journal Entry references from Payment Entry
+            let journal_entries = frm.doc.references
+                .filter(ref => ref.reference_doctype === "Journal Entry")
+                .map(ref => ref.reference_name);
+
+            console.log("On submit triggered for Payment Entry:", frm.doc.name, "Journal Entries:", journal_entries);
+
+            if (journal_entries.length === 0) {
+                console.log("No Journal Entry references found in Payment Entry.");
+                return;
+            }
+
+            // Update Vehicle Finance documents where journal_entry_id matches
+            frappe.call({
+                method: "frappe.client.get_list",
+                args: {
+                    doctype: "Vehicle Finance",
+                    filters: {
+                        journal_entry_id: ["in", journal_entries],
+                        payment_status: "Not Received"
+                    },
+                    fields: ["name", "journal_entry_id", "status", "payment_status"]
+                },
+                callback: function(r) {
+                    if (r.message && r.message.length > 0) {
+                        let finance_docs = r.message;
+                        console.log("Found Vehicle Finance documents:", finance_docs.map(doc => doc.name));
+
+                        finance_docs.forEach(finance_doc => {
+                            let new_status = finance_doc.status === "Payment Not Received" ? "Completed" : finance_doc.status;
+                            frappe.call({
+                                method: "frappe.client.set_value",
+                                args: {
+                                    doctype: "Vehicle Finance",
+                                    name: finance_doc.name,
+                                    fieldname: {
+                                        payment_date: frm.doc.posting_date,
+                                        payment_status: "Received",
+                                        loan_status: "Approved",
+                                        payment_entry_id: frm.doc.name,
+                                        payment_reference: frm.doc.reference_no,
+                                        status: new_status
+                                    }
+                                },
+                                callback: function(update_r) {
+                                    if (update_r.message) {
+                                        console.log(`Updated Vehicle Finance ${finance_doc.name} with payment details and status: ${new_status}`);
+                                        // Log activity for Vehicle Finance
+                                        log_finance_activity({
+                                            doctype: "Vehicle Finance",
+                                            name: finance_doc.name,
+                                            parentfield: "finance_activity",
+                                            activity: "Payment Recorded",
+                                            status: "Payment Recorded",
+                                            remarks: `Payment Entry ${frm.doc.name} submitted.`
+                                        });
+                                        frappe.msgprint({
+                                            title: __('Success'),
+                                            message: __('Vehicle Finance document updated successfully.'),
+                                            indicator: 'green'
+                                        });
+                                    }
+                                },
+                                error: function(err) {
+                                    console.error(`Error updating Vehicle Finance ${finance_doc.name}:`, err);
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Failed to update Vehicle Finance document. Please check server logs.'),
+                                        indicator: 'red'
+                                    });
+                                }
+                            });
+                        });
+                    } else {
+                        console.log("No matching Vehicle Finance documents found with payment_status: Not Received.");
+                    }
+                },
+                error: function(err) {
+                    console.error("Error fetching Vehicle Finance documents:", err);
+                    frappe.msgprint({
+                        title: __('Error'),
+                        message: __('Failed to fetch Vehicle Finance documents. Please check server logs.'),
+                        indicator: 'red'
+                    });
+                }
+            });
+        } catch (err) {
+            console.error("Error in on_submit handler:", err);
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('An error occurred while processing the payment submission. Please check the console.'),
+                indicator: 'red'
+            });
+        }
+    }
+});
+
+// Reusable function to log activity in finance_activity child table
+function log_finance_activity(params) {
+    let activity_log = {
+        doctype: "RTO Activity Log",
+        activity: params.activity,
+        status: params.status,
+        user: frappe.session.user,
+        update_on: frappe.datetime.now_datetime(),
+        remarks: params.remarks || "",
+        parent: params.name,
+        parentfield: params.parentfield,
+        parenttype: params.doctype
+    };
+
+    frappe.call({
+        method: "frappe.client.insert",
+        args: {
+            doc: activity_log
+        },
+        callback: function(r) {
+            if (r.exc) {
+                console.error(`Error logging activity for ${params.doctype} ${params.name}:`, r.exc);
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error logging activity: ') + (r.exc || JSON.stringify(r)),
+                    indicator: 'red'
+                });
+            } else {
+                console.log(`Activity logged for ${params.doctype} ${params.name}: ${params.activity}`);
+            }
+        },
+        error: function(err) {
+            console.error(`Error logging activity for ${params.doctype} ${params.name}:`, err);
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Error logging activity: ') + (err.message || JSON.stringify(err)),
+                indicator: 'red'
+            });
+        }
+    });
+}

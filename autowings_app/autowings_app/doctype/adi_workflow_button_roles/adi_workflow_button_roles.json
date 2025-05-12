@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{link_doc}-{button_name}",
+ "creation": "2025-05-12 05:04:18.743012",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "button_name",
+  "link_doc",
+  "role"
+ ],
+ "fields": [
+  {
+   "fieldname": "button_name",
+   "fieldtype": "Data",
+   "label": "Button Name"
+  },
+  {
+   "fieldname": "link_doc",
+   "fieldtype": "Link",
+   "label": "Link Doc",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "label": "Role",
+   "options": "Role"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-12 05:10:22.797441",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Adi Workflow Button Roles",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

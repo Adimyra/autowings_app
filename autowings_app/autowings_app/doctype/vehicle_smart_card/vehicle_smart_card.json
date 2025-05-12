@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:SCARD-{YYYY}-{MM}-{####}",
+ "autoname": "format:SCARD-{YY}-{MM}-{####}",
  "creation": "2025-05-03 01:50:11.336761",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -175,7 +175,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 14:35:57.906597",
+ "modified": "2025-05-12 15:08:09.504452",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Smart Card",

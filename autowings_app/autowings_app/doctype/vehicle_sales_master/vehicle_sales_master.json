@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:VSM-{YYYY}-{MM}-{#####}",
+ "autoname": "format:VSM-{YY}-{MM}-{####}",
  "creation": "2025-03-11 11:39:54.553789",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -465,7 +465,7 @@
    "link_fieldname": "vsm_id"
   }
  ],
- "modified": "2025-05-03 02:06:51.571655",
+ "modified": "2025-05-12 15:08:59.587707",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",
@@ -483,9 +483,34 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
 }

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:INS-{YYYY}-{MM}-{#####}",
+ "autoname": "format:RSA-{YY}-{MM}-{####}",
  "creation": "2025-04-21 00:28:26.425716",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -193,7 +193,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-05-11 01:00:47.591858",
+ "modified": "2025-05-12 15:06:57.569412",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle RSA",
@@ -211,9 +211,34 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
 }

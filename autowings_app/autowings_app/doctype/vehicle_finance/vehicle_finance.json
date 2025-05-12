@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:FIN-{YYYY}-{MM}{####}",
+ "autoname": "format:FIN-{YY}-{MM}{####}",
  "creation": "2025-03-06 17:07:55.287417",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,14 +13,19 @@
   "customer",
   "loan_type",
   "column_break_hrsx",
+  "status",
   "loan_status",
   "finance_provider",
   "loan_amount",
+  "loan_details",
   "payment_info",
   "payment_received_date",
   "payment_reference",
   "column_break_dnwj",
-  "payment_status"
+  "payment_status",
+  "payment_entry_id",
+  "section_break_qjlt",
+  "finance_activity"
  ],
  "fields": [
   {
@@ -34,13 +39,15 @@
   {
    "fieldname": "loan_amount",
    "fieldtype": "Currency",
-   "label": "Loan Amount"
+   "label": "Loan Amount",
+   "read_only": 1
   },
   {
    "fieldname": "loan_type",
    "fieldtype": "Select",
    "label": "Loan Type",
-   "options": "\nNew Vehicle\nUsed Vehicle\nRefinance"
+   "options": "\nNew Vehicle\nUsed Vehicle\nRefinance",
+   "read_only": 1
   },
   {
    "fieldname": "loan_status",
@@ -48,14 +55,16 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Loan Status",
-   "options": "\nPending\nApplied\nApproved\nRejected\nDisbursed\nClosed"
+   "options": "\nPending\nApplied\nApproved\nRejected\nDisbursed\nClosed",
+   "read_only": 1
   },
   {
    "fieldname": "vsm_id",
    "fieldtype": "Link",
    "label": "Vehicle Sales Master",
    "options": "Vehicle Sales Master",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "finance_provider",
@@ -64,7 +73,8 @@
    "in_standard_filter": 1,
    "label": "Finance Provider",
    "link_filters": "[[\"Customer\",\"customer_group\",\"=\",\"Financer\"]]",
-   "options": "Customer"
+   "options": "Customer",
+   "read_only": 1
   },
   {
    "fieldname": "sales_invoice",
@@ -94,7 +104,8 @@
    "fieldname": "journal_status",
    "fieldtype": "Select",
    "label": "Journal Status",
-   "options": "\nDraft\nSubmitted"
+   "options": "\nDraft\nSubmitted",
+   "read_only": 1
   },
   {
    "fieldname": "payment_info",
@@ -104,22 +115,56 @@
   {
    "fieldname": "payment_received_date",
    "fieldtype": "Date",
-   "label": "Payment Received Date"
+   "label": "Payment Received Date",
+   "read_only": 1
   },
   {
    "fieldname": "payment_reference",
    "fieldtype": "Data",
-   "label": "Payment Reference"
+   "label": "Payment Reference",
+   "read_only": 1
   },
   {
    "fieldname": "payment_status",
-   "fieldtype": "Select",
-   "label": "Payment Status"
+   "fieldtype": "Data",
+   "label": "Payment Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_entry_id",
+   "fieldtype": "Link",
+   "label": "Payment Entry Id",
+   "options": "Payment Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_qjlt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "finance_activity",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Finance Activity",
+   "options": "RTO Activity Log",
+   "read_only": 1
+  },
+  {
+   "fieldname": "loan_details",
+   "fieldtype": "Small Text",
+   "label": "Loan Details",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-21 00:25:47.417861",
+ "modified": "2025-05-12 15:04:29.290038",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Finance",
@@ -137,9 +182,34 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
 }
