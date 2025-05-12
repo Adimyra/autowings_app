@@ -854,79 +854,221 @@ function log_vehicle_misc_activity(frm, activity, status, remarks, retry_count =
 }
 
 // Show dialog to update misc accounts
+// function show_update_misc_dialog(frm) {
+//     try {
+//         let current_row_index = 0;
+//         let misc_accounts = frm.doc.misc_accounts.map(row => ({
+//             name: row.name,
+//             misc_account: row.misc_account,
+//             amount: row.amount,
+//             journal_entry_id: row.journal_entry_id,
+//             payment_status: row.payment_status || 'Due'
+//         }));
+
+//         function show_row_dialog() {
+//             if (current_row_index >= misc_accounts.length) {
+//                 frappe.confirm(
+//                     __('Do you want to submit the journal entries? This action cannot be undone.'),
+//                     function() {
+//                         submit_journals(frm, misc_accounts);
+//                     },
+//                     function() {
+//                         prompt_for_remarks(frm, misc_accounts);
+//                     }
+//                 );
+//                 return;
+//             }
+
+//             let row = misc_accounts[current_row_index];
+//             let dialog = new frappe.ui.Dialog({
+//                 title: __('Update Misc Account') + ` (${current_row_index + 1}/${misc_accounts.length})`,
+//                 fields: [
+//                     {
+//                         label: __('Account Name'),
+//                         fieldname: 'misc_account',
+//                         fieldtype: 'Data',
+//                         default: row.misc_account,
+//                         reqd: 1,
+//                         read_only: 1
+//                     },
+//                     {
+//                         label: __('Account Amount'),
+//                         fieldname: 'amount',
+//                         fieldtype: 'Currency',
+//                         default: row.amount,
+//                         reqd: 1
+//                     }
+//                 ],
+//                 primary_action_label: current_row_index === misc_accounts.length - 1 ? __('Update & Finish') : __('Update & Next'),
+//                 primary_action: function(values) {
+//                     if (!values.misc_account) {
+//                         frappe.throw(__('Account Name is mandatory.'));
+//                     }
+//                     if (!values.amount || values.amount <= 0) {
+//                         frappe.throw(__('Account Amount must be greater than zero.'));
+//                     }
+
+//                     misc_accounts[current_row_index] = {
+//                         ...row,
+//                         misc_account: values.misc_account,
+//                         amount: values.amount
+//                     };
+
+//                     current_row_index++;
+//                     dialog.hide();
+//                     show_row_dialog();
+//                 },
+//                 secondary_action_label: __('Cancel'),
+//                 secondary_action: function() {
+//                     dialog.hide();
+//                 }
+//             });
+//             dialog.show();
+//         }
+
+//         show_row_dialog();
+//     } catch (e) {
+//         log_vehicle_misc_activity(frm, 'Update Misc Accounts', 'Failed', 'Failed to create dialog: ' + e.message);
+//         frappe.msgprint({
+//             title: __('Error'),
+//             message: __('Failed to create dialog: ') + e.message,
+//             indicator: 'red'
+//         });
+//     }
+// }
+
+// // Initiate journal submission
+// function submit_journals(frm, misc_accounts) {
+//     try {
+//         update_document_and_journals(frm, misc_accounts, true);
+//     } catch (e) {
+//         log_vehicle_misc_activity(frm, 'Journals Submitted', 'Failed', 'Error initiating journal submission: ' + e.message);
+//         frappe.msgprint({
+//             title: __('Error'),
+//             message: __('Error initiating journal submission: ') + e.message,
+//             indicator: 'red'
+//         });
+//     }
+// }
 function show_update_misc_dialog(frm) {
     try {
-        let current_row_index = 0;
+        // Prepare misc_accounts data
         let misc_accounts = frm.doc.misc_accounts.map(row => ({
             name: row.name,
             misc_account: row.misc_account,
             amount: row.amount,
             journal_entry_id: row.journal_entry_id,
-            payment_status: row.payment_status || 'Due'
+            payment_status: row.payment_status || 'Due',
+            confirmed: 0 // Default checkbox to unchecked
         }));
 
-        function show_row_dialog() {
-            if (current_row_index >= misc_accounts.length) {
+        // Handle empty misc_accounts
+        if (!misc_accounts.length) {
+            frappe.msgprint({
+                title: __('No Accounts'),
+                message: __('No misc accounts to update.'),
+                indicator: 'orange'
+            });
+            return;
+        }
+
+        // Create dialog fields dynamically
+        let fields = [];
+        misc_accounts.forEach((row, index) => {
+            // Add section header for each account
+            fields.push({
+                fieldtype: 'Section Break',
+                label: __('Account') + ` ${index + 1}`
+            });
+            // Read-only misc_account
+            fields.push({
+                label: __('Account Name'),
+                fieldname: `misc_account_${index}`,
+                fieldtype: 'Data',
+                default: row.misc_account,
+                reqd: 1,
+                read_only: 1
+            });
+            // Editable amount
+            fields.push({
+                label: __('Account Amount'),
+                fieldname: `amount_${index}`,
+                fieldtype: 'Currency',
+                default: row.amount,
+                reqd: 1
+            });
+            // Confirmed checkbox
+            fields.push({
+                label: __('Confirmed'),
+                fieldname: `confirmed_${index}`,
+                fieldtype: 'Check',
+                default: 0
+            });
+            // Column break for layout (optional, for better spacing)
+            fields.push({
+                fieldtype: 'Column Break'
+            });
+        });
+
+        // Create dialog
+        let dialog = new frappe.ui.Dialog({
+            title: __('Update Misc Accounts'),
+            fields: fields,
+            primary_action_label: __('Update & Submit'),
+            primary_action: function(values) {
+                // Validate and collect updated data
+                let updated_accounts = misc_accounts.map((row, index) => {
+                    let amount = values[`amount_${index}`];
+                    let confirmed = values[`confirmed_${index}`];
+
+                    // Validate fields
+                    if (!values[`misc_account_${index}`]) {
+                        frappe.throw(__('Account Name is mandatory for all accounts.'));
+                    }
+                    if (!amount || amount <= 0) {
+                        frappe.throw(__('Account Amount must be greater than zero for all accounts.'));
+                    }
+                    if (confirmed === undefined) {
+                        frappe.throw(__('Please confirm the amount for all accounts.'));
+                    }
+                    return {
+                        misc_account: row.misc_account,
+                        amount: amount,
+                        journal_entry_id: row.journal_entry_id,
+                        payment_status: row.payment_status || 'Due',
+                        confirmed: confirmed
+                    };
+                });
+
+                // Check if all confirmed checkboxes are checked
+                if (!updated_accounts.every(row => row.confirmed)) {
+                    frappe.msgprint({
+                        title: __('Validation Error'),
+                        message: __('Please confirm the amount for all accounts before submitting.'),
+                        indicator: 'red'
+                    });
+                    return;
+                }
+
+                // Confirm submission
                 frappe.confirm(
                     __('Do you want to submit the journal entries? This action cannot be undone.'),
                     function() {
-                        submit_journals(frm, misc_accounts);
+                        dialog.hide();
+                        submit_journals(frm, updated_accounts);
                     },
                     function() {
-                        prompt_for_remarks(frm, misc_accounts);
+                        prompt_for_remarks(frm, updated_accounts);
                     }
                 );
-                return;
+            },
+            secondary_action_label: __('Cancel'),
+            secondary_action: function() {
+                dialog.hide();
             }
+        });
 
-            let row = misc_accounts[current_row_index];
-            let dialog = new frappe.ui.Dialog({
-                title: __('Update Misc Account') + ` (${current_row_index + 1}/${misc_accounts.length})`,
-                fields: [
-                    {
-                        label: __('Account Name'),
-                        fieldname: 'misc_account',
-                        fieldtype: 'Data',
-                        default: row.misc_account,
-                        reqd: 1,
-                        read_only: 1
-                    },
-                    {
-                        label: __('Account Amount'),
-                        fieldname: 'amount',
-                        fieldtype: 'Currency',
-                        default: row.amount,
-                        reqd: 1
-                    }
-                ],
-                primary_action_label: current_row_index === misc_accounts.length - 1 ? __('Update & Finish') : __('Update & Next'),
-                primary_action: function(values) {
-                    if (!values.misc_account) {
-                        frappe.throw(__('Account Name is mandatory.'));
-                    }
-                    if (!values.amount || values.amount <= 0) {
-                        frappe.throw(__('Account Amount must be greater than zero.'));
-                    }
-
-                    misc_accounts[current_row_index] = {
-                        ...row,
-                        misc_account: values.misc_account,
-                        amount: values.amount
-                    };
-
-                    current_row_index++;
-                    dialog.hide();
-                    show_row_dialog();
-                },
-                secondary_action_label: __('Cancel'),
-                secondary_action: function() {
-                    dialog.hide();
-                }
-            });
-            dialog.show();
-        }
-
-        show_row_dialog();
+        dialog.show();
     } catch (e) {
         log_vehicle_misc_activity(frm, 'Update Misc Accounts', 'Failed', 'Failed to create dialog: ' + e.message);
         frappe.msgprint({
@@ -937,7 +1079,7 @@ function show_update_misc_dialog(frm) {
     }
 }
 
-// Initiate journal submission
+// Initiate journal submission (unchanged)
 function submit_journals(frm, misc_accounts) {
     try {
         update_document_and_journals(frm, misc_accounts, true);

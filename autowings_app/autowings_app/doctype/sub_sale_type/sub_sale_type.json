@@ -9,7 +9,9 @@
   "sub_sale_type",
   "enabled",
   "section_break_lcmd",
-  "misc_accounts"
+  "misc_accounts",
+  "column_break_vhom",
+  "rto_other_accounts"
  ],
  "fields": [
   {
@@ -37,11 +39,21 @@
    "fieldtype": "Check",
    "label": "Enabled",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_vhom",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rto_other_accounts",
+   "fieldtype": "Table",
+   "label": "RTO Other Accounts",
+   "options": "RTO Other Accounts"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-20 03:00:48.464559",
+ "modified": "2025-05-12 23:48:46.018896",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Sub Sale Type",

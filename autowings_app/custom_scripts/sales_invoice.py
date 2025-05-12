@@ -961,11 +961,64 @@ def before_submit(doc, method):
 #     else:
 #         frappe.log_error(f"custom_miscellaneous already populated for Sales Invoice {doc.name}, skipping supplier addition", "after_insert_sales_invoice")
 
+# ********************************************** this is correct code bellow
+# import frappe
 
+# def after_insert_sales_invoice(doc, method):
+#     """Add suppliers to custom_miscellaneous child table based on custom_sub_sales_type's misc_accounts."""
+#     if not doc.custom_sub_sales_type:
+#         frappe.log_error(f"No custom_sub_sales_type found for Sales Invoice {doc.name}", "after_insert_sales_invoice")
+#         return
+
+#     # Fetch Sub Sale Type document where sub_sale_type matches custom_sub_sales_type and enabled = 1
+#     try:
+#         sub_sale_type_doc = frappe.get_doc("Sub Sale Type", {"sub_sale_type": doc.custom_sub_sales_type, "enabled": 1})
+#     except frappe.DoesNotExistError:
+#         frappe.log_error(f"Sub Sale Type {doc.custom_sub_sales_type} not found or not enabled for Sales Invoice {doc.name}", "after_insert_sales_invoice")
+#         return
+
+#     # Get misc_account values from Sub Sale Type's misc_accounts child table
+#     misc_accounts = [account.misc_account for account in sub_sale_type_doc.get("misc_accounts", [])]
+#     if not misc_accounts:
+#         frappe.log_error(f"No misc_accounts found in Sub Sale Type {doc.custom_sub_sales_type} for Sales Invoice {doc.name}", "after_insert_sales_invoice")
+#         return
+
+#     # Only add suppliers if custom_miscellaneous is empty
+#     if not doc.custom_miscellaneous:
+#         # Fetch suppliers where supplier_name matches misc_account and supplier_group is 'Misc Group'
+#         suppliers = frappe.get_all(
+#             "Supplier",
+#             filters={
+#                 "supplier_name": ["in", misc_accounts],
+#                 "supplier_group": "Misc Group"
+#             },
+#             fields=["supplier_name"]
+#         )
+
+#         if not suppliers:
+#             frappe.log_error(f"No suppliers found in 'Misc Group' for misc_accounts {misc_accounts} in Sales Invoice {doc.name}", "after_insert_sales_invoice")
+#             return
+
+#         # Add matching suppliers to custom_miscellaneous child table
+#         for supplier in suppliers:
+#             doc.append("custom_miscellaneous", {
+#                 "misc_account": supplier.supplier_name,
+#                 "amount": 0
+#             })
+
+#         # Save the document to persist changes
+#         try:
+#             doc.save()
+#             frappe.log_error(f"Successfully added {len(suppliers)} suppliers to custom_miscellaneous for Sales Invoice {doc.name}", "after_insert_sales_invoice")
+#         except Exception as e:
+#             frappe.log_error(f"Failed to save Sales Invoice {doc.name}: {str(e)}", "after_insert_sales_invoice")
+#     else:
+#         frappe.log_error(f"custom_miscellaneous already populated for Sales Invoice {doc.name}, skipping supplier addition", "after_insert_sales_invoice")
+        
 import frappe
 
 def after_insert_sales_invoice(doc, method):
-    """Add suppliers to custom_miscellaneous child table based on custom_sub_sales_type's misc_accounts."""
+    """Add suppliers to custom_miscellaneous and custom_rto_additional_accounts child tables based on custom_sub_sales_type's misc_accounts and rto_other_accounts."""
     if not doc.custom_sub_sales_type:
         frappe.log_error(f"No custom_sub_sales_type found for Sales Invoice {doc.name}", "after_insert_sales_invoice")
         return
@@ -977,44 +1030,72 @@ def after_insert_sales_invoice(doc, method):
         frappe.log_error(f"Sub Sale Type {doc.custom_sub_sales_type} not found or not enabled for Sales Invoice {doc.name}", "after_insert_sales_invoice")
         return
 
-    # Get misc_account values from Sub Sale Type's misc_accounts child table
+    # Flag to track if any updates were made
+    updates_made = False
+
+    # --- Handle misc_accounts for custom_miscellaneous ---
     misc_accounts = [account.misc_account for account in sub_sale_type_doc.get("misc_accounts", [])]
     if not misc_accounts:
         frappe.log_error(f"No misc_accounts found in Sub Sale Type {doc.custom_sub_sales_type} for Sales Invoice {doc.name}", "after_insert_sales_invoice")
-        return
+    else:
+        # Only add suppliers if custom_miscellaneous is empty
+        if not doc.custom_miscellaneous:
+            # Fetch suppliers where supplier_name matches misc_account and supplier_group is 'Misc Group'
+            suppliers = frappe.get_all(
+                "Supplier",
+                filters={
+                    "supplier_name": ["in", misc_accounts],
+                    "supplier_group": "Misc Group"
+                },
+                fields=["supplier_name"]
+            )
 
-    # Only add suppliers if custom_miscellaneous is empty
-    if not doc.custom_miscellaneous:
-        # Fetch suppliers where supplier_name matches misc_account and supplier_group is 'Misc Group'
-        suppliers = frappe.get_all(
-            "Supplier",
-            filters={
-                "supplier_name": ["in", misc_accounts],
-                "supplier_group": "Misc Group"
-            },
-            fields=["supplier_name"]
-        )
+            if not suppliers:
+                frappe.log_error(f"No suppliers found in 'Misc Group' for misc_accounts {misc_accounts} in Sales Invoice {doc.name}", "after_insert_sales_invoice")
+            else:
+                # Add matching suppliers to custom_miscellaneous child table
+                for supplier in suppliers:
+                    doc.append("custom_miscellaneous", {
+                        "misc_account": supplier.supplier_name,
+                        "amount": 0
+                    })
+                updates_made = True
+                frappe.msgprint(f"Misc accounts head updated", title="Success")
 
-        if not suppliers:
-            frappe.log_error(f"No suppliers found in 'Misc Group' for misc_accounts {misc_accounts} in Sales Invoice {doc.name}", "after_insert_sales_invoice")
-            return
+                # frappe.msgprint(f"Successfully added {len(suppliers)} suppliers to custom_miscellaneous for Sales Invoice {doc.name}", title="Success")
+                # write short msg print inshort
 
-        # Add matching suppliers to custom_miscellaneous child table
-        for supplier in suppliers:
-            doc.append("custom_miscellaneous", {
-                "misc_account": supplier.supplier_name,
-                "amount": 0
-            })
+        else:
+            frappe.log_error(f"custom_miscellaneous already populated for Sales Invoice {doc.name}, skipping supplier addition", "after_insert_sales_invoice")
 
-        # Save the document to persist changes
+    # --- Handle rto_other_accounts for custom_rto_additional_accounts ---
+    rto_other_accounts = [account.rto_other_account for account in sub_sale_type_doc.get("rto_other_accounts", [])]
+    if not rto_other_accounts:
+        frappe.log_error(f"No rto_other_accounts found in Sub Sale Type {doc.custom_sub_sales_type} for Sales Invoice {doc.name}", "after_insert_sales_invoice")
+    else:
+        # Only add accounts if custom_rto_additional_accounts is empty
+        if not doc.custom_rto_additional_accounts:
+            # Note: If supplier validation is needed for rto_other_accounts, add similar logic to misc_accounts here
+            for rto_account in rto_other_accounts:
+                doc.append("custom_rto_additional_accounts", {
+                    "account": rto_account,  # Corrected field name from rto_additional_account to account
+                    "amount": 0
+                })
+            updates_made = True
+            # frappe.msgprint(f"Successfully added {len(rto_other_accounts)} accounts to custom_rto_additional_accounts for Sales Invoice {doc.name}", title="Success")
+            frappe.msgprint(f"RTO other accounts head updated", title="Success")
+
+        else:
+            frappe.log_error(f"custom_rto_additional_accounts already populated for Sales Invoice {doc.name}, skipping account addition", "after_insert_sales_invoice")
+
+    # Save the document to persist changes if any updates were made
+    if updates_made:
         try:
             doc.save()
-            frappe.log_error(f"Successfully added {len(suppliers)} suppliers to custom_miscellaneous for Sales Invoice {doc.name}", "after_insert_sales_invoice")
+            frappe.msgprint(f"Successfully saved Sales Invoice {doc.name} with updated child tables", title="Success")
         except Exception as e:
             frappe.log_error(f"Failed to save Sales Invoice {doc.name}: {str(e)}", "after_insert_sales_invoice")
-    else:
-        frappe.log_error(f"custom_miscellaneous already populated for Sales Invoice {doc.name}, skipping supplier addition", "after_insert_sales_invoice")
-        
+
 # import frappe
 # from frappe.utils import getdate
 
