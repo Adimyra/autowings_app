@@ -433,7 +433,7 @@ frappe.ui.form.on("Payment Entry", {
                     if (party_group === "Financer" && frm.doc.payment_type === "Receive") {
                         get_company_abbr(function(abbr) {
                             if (abbr) {
-                                let paid_from_account = `${party_name} - ${abbr}`;
+                                let paid_from_account = `${party_name} Receivable - ${abbr}`;
                                 frm.set_value("paid_from", paid_from_account);
                                 console.log(`Set paid_from to ${paid_from_account} for Financer group`);
 
