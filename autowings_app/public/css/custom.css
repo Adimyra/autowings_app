@@ -92,3 +92,13 @@
 .vehicle-type .grid-custom-buttons {
     display: none !important;
 }
+
+
+
+
+.dropdown-item[data-label="Cancel%20Journal%20Entry"] {
+    color: red !important; /* Red text */
+}
+.dropdown-item[data-label="Cancel%20Journal%20Entry"]:hover {
+    color: red !important; /* Red text on hover */
+}

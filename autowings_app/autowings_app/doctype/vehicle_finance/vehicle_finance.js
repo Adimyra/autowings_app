@@ -1432,7 +1432,10 @@ function restrict_custom_buttons_by_role(frm) {
 
 frappe.ui.form.on("Vehicle Finance", {
     refresh: function(frm) {
+        // Restrict custom buttons based on role
         restrict_custom_buttons_by_role(frm);
+
+        // Add custom button under "Actions" dropdown
         frm.add_custom_button(__("Cancel Journal Entry"), function() {
             // Prompt for confirmation
             frappe.confirm(
@@ -1459,7 +1462,6 @@ frappe.ui.form.on("Vehicle Finance", {
         }, __("Actions"));
     }
 });
-
 // ----------------------------------************************************----------------------------------
 frappe.ui.form.on("Vehicle Finance", {
     refresh: function(frm) {
@@ -1542,3 +1544,5 @@ frappe.ui.form.on("Vehicle Finance", {
         }, __("Actions"));
     }
 });
+
+
