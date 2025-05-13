@@ -661,6 +661,7 @@ function generate_activity_timeline(frm) {
 
 frappe.ui.form.on('Vehicle Finance', {
     refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
         try {
             // Clear workflow_state if present
             if (frm.doc.workflow_state) {
@@ -1393,3 +1394,151 @@ function _finance_payment_entry_action(frm) {
         });
     }
 }
+
+
+// Function to restrict custom buttons based on roles
+function restrict_custom_buttons_by_role(frm) {
+    // Store the original add_custom_button method
+    const original_add_custom_button = frm.add_custom_button;
+
+    // Override add_custom_button
+    frm.add_custom_button = function(label, callback, group) {
+        // Check role-based visibility
+        frappe.call({
+            method: 'autowings_app.custom_scripts.utils.can_show_button',
+            args: {
+                link_doc: frm.doc.doctype,
+                button_name: label
+            },
+            callback: function(r) {
+                if (r.message) {
+                    // User is authorized; call the original method
+                    original_add_custom_button.call(frm, label, callback, group);
+                }
+            },
+            error: function(err) {
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error checking button visibility for ') + label + ': ' + err.message,
+                    indicator: 'red'
+                });
+            }
+        });
+    };
+}
+
+// ----------------------------------************************************----------------------------------
+
+
+frappe.ui.form.on("Vehicle Finance", {
+    refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
+        frm.add_custom_button(__("Cancel Journal Entry"), function() {
+            // Prompt for confirmation
+            frappe.confirm(
+                __("Are you sure you want to cancel or delete the linked Journal Entry?"),
+                function() {
+                    // Proceed with the server-side call if confirmed
+                    frappe.call({
+                        method: "autowings_app.custom_scripts.vehicle_sales_journal_cancel.cancel_journal_entry_finance",
+                        args: {
+                            doc: frm.doc
+                        },
+                        callback: function(r) {
+                            if (r.message) {
+                                frm.reload_doc();
+                            }
+                        }
+                    });
+                },
+                function() {
+                    // Do nothing if the user cancels the prompt
+                    frappe.msgprint(__("Action aborted."));
+                }
+            );
+        }, __("Actions"));
+    }
+});
+
+// ----------------------------------************************************----------------------------------
+frappe.ui.form.on("Vehicle Finance", {
+    refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
+        // Add custom button "Create Vehicle Finance"
+        frm.add_custom_button(__("Create Vehicle Finance"), function() {
+            // Create a dialog for Sales Invoice, Loan Type, Finance Provider, and Loan Amount
+            let d = new frappe.ui.Dialog({
+                title: __("Create Vehicle Finance"),
+                fields: [
+                    {
+                        label: __("Sales Invoice"),
+                        fieldname: "sales_invoice",
+                        fieldtype: "Link",
+                        options: "Sales Invoice",
+                        reqd: 1,
+                        get_query: function() {
+                            return {
+                                filters: {
+                                    docstatus: 1  // Only submitted Sales Invoices
+                                }
+                            };
+                        }
+                    },
+                    {
+                        label: __("Loan Type"),
+                        fieldname: "loan_type",
+                        fieldtype: "Select",
+                        options: ["New Vehicle", "Used Vehicle"],
+                        default: "New Vehicle",
+                        reqd: 1
+                    },
+                    {
+                        label: __("Finance Provider"),
+                        fieldname: "finance_provider",
+                        fieldtype: "Link",
+                        options: "Customer",
+                        reqd: 1,
+                        get_query: function() {
+                            return {
+                                filters: {
+                                    customer_group: "Financer"
+                                }
+                            };
+                        }
+                    },
+                    {
+                        label: __("Loan Amount"),
+                        fieldname: "loan_amount",
+                        fieldtype: "Float",
+                        reqd: 1
+                    }
+                ],
+                primary_action_label: __("Create"),
+                primary_action(values) {
+                    // Call server-side method to create Vehicle Finance
+                    frappe.call({
+                        method: "autowings_app.autowings_app.doctype.vehicle_finance.vehicle_finance.create_vehicle_finance_from_sales_invoice",
+                        args: {
+                            sales_invoice: values.sales_invoice,
+                            loan_type: values.loan_type,
+                            finance_provider: values.finance_provider,
+                            loan_amount: values.loan_amount
+                        },
+                        callback: function(r) {
+                            if (r.message) {
+                                // Redirect to the new Vehicle Finance document
+                                frappe.set_route("Form", "Vehicle Finance", r.message);
+                                frappe.msgprint(__("Vehicle Finance {0} created successfully.").format(r.message));
+                            }
+                        },
+                        error: function(e) {
+                            frappe.msgprint(__("Error creating Vehicle Finance: {0}").format(e.message));
+                        }
+                    });
+                    d.hide();
+                }
+            });
+            d.show();
+        }, __("Actions"));
+    }
+});

@@ -843,6 +843,8 @@ function generate_activity_timeline(frm) {
 
 frappe.ui.form.on('RTO Registration', {
     refresh: function(frm) {
+
+        restrict_custom_buttons_by_role(frm);
         // Clear workflow_state if present
         if (frm.doc.workflow_state) {
             frappe.call({
@@ -2875,3 +2877,70 @@ function prompt_for_remarks(frm, activity, status) {
     });
     remark_dialog.show();
 }
+
+
+
+// role based permissions for custom buttons
+// Function to restrict custom buttons based on roles
+function restrict_custom_buttons_by_role(frm) {
+    // Store the original add_custom_button method
+    const original_add_custom_button = frm.add_custom_button;
+
+    // Override add_custom_button
+    frm.add_custom_button = function(label, callback, group) {
+        // Check role-based visibility
+        frappe.call({
+            method: 'autowings_app.custom_scripts.utils.can_show_button',
+            args: {
+                link_doc: frm.doc.doctype,
+                button_name: label
+            },
+            callback: function(r) {
+                if (r.message) {
+                    // User is authorized; call the original method
+                    original_add_custom_button.call(frm, label, callback, group);
+                }
+            },
+            error: function(err) {
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error checking button visibility for ') + label + ': ' + err.message,
+                    indicator: 'red'
+                });
+            }
+        });
+    };
+}
+
+
+
+frappe.ui.form.on("RTO Registration", {
+    refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
+        
+        frm.add_custom_button(__("Cancel Journal Entry"), function() {
+            // Prompt for confirmation
+            frappe.confirm(
+                __("Are you sure you want to cancel or delete the linked Journal Entry?"),
+                function() {
+                    // Proceed with the server-side call if confirmed
+                    frappe.call({
+                        method: "autowings_app.custom_scripts.vehicle_sales_journal_cancel.cancel_journal_entry_rto",
+                        args: {
+                            doc: frm.doc
+                        },
+                        callback: function(r) {
+                            if (r.message) {
+                                frm.reload_doc();
+                            }
+                        }
+                    });
+                },
+                function() {
+                    // Do nothing if the user cancels the prompt
+                    frappe.msgprint(__("Action aborted."));
+                }
+            );
+        }, __("Actions"));
+    }
+});

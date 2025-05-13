@@ -37,7 +37,8 @@
    "fieldtype": "Link",
    "label": "Vehicle Sales Master",
    "options": "Vehicle Sales Master",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "sales_invoice",
@@ -57,9 +58,8 @@
   },
   {
    "fieldname": "journal_status",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "label": "Journal Status",
-   "options": "\nDraft\nSubmitted",
    "read_only": 1
   },
   {
@@ -85,11 +85,10 @@
   },
   {
    "fieldname": "rsa_status",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "RSA Status",
-   "options": "\nPending\nApplied\nPayment Due\nPaid\nActive\nExpired",
    "read_only": 1
   },
   {
@@ -161,6 +160,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Due",
    "fieldname": "payment_status",
    "fieldtype": "Data",
    "label": "Payment Status",
@@ -193,7 +193,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-05-12 15:06:57.569412",
+ "modified": "2025-05-14 01:11:47.155029",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle RSA",

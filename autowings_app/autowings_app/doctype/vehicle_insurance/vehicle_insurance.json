@@ -73,11 +73,10 @@
   },
   {
    "fieldname": "insurance_status",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Insurance Status",
-   "options": "\nPending\nApplied\nPayment Due\nPaid\nActive\nExpired",
    "read_only": 1
   },
   {
@@ -124,9 +123,8 @@
   },
   {
    "fieldname": "journal_status",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "label": "Journal Status",
-   "options": "\nDraft\nSubmitted",
    "read_only": 1
   },
   {
@@ -202,7 +200,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-05-12 15:07:38.317864",
+ "modified": "2025-05-14 01:10:59.592538",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",

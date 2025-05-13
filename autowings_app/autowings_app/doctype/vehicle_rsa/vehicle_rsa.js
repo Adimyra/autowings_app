@@ -11,6 +11,7 @@
 
 frappe.ui.form.on('Vehicle RSA', {
     refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
         console.log('Form refresh, checking rsa_activity');
         // Add View Activities button if rsa_activity has rows
         if (frm.doc.rsa_activity && frm.doc.rsa_activity.length > 0) {
@@ -404,6 +405,7 @@ function generate_activity_timeline(frm) {
 
 frappe.ui.form.on('Vehicle RSA', {
     refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
         try {
             // Clear workflow_state if present
             if (frm.doc.workflow_state) {
@@ -430,39 +432,146 @@ frappe.ui.form.on('Vehicle RSA', {
             }
 
             // Add Update Form button
+            // if (frm.doc.status === 'Due Update') {
+            //     frm.add_custom_button(__('Update Form'), function() {
+            //         try {
+            //             show_update_rsa_dialog(frm);
+            //         } catch (e) {
+            //             frappe.msgprint({
+            //                 title: __('Error'),
+            //                 message: __('Failed to open update dialog: ') + e.message,
+            //                 indicator: 'red'
+            //             });
+            //         }
+            //     });
+            // }
             if (frm.doc.status === 'Due Update') {
-                frm.add_custom_button(__('Update Form'), function() {
-                    try {
-                        show_update_rsa_dialog(frm);
-                    } catch (e) {
-                        frappe.msgprint({
-                            title: __('Error'),
-                            message: __('Failed to open update dialog: ') + e.message,
-                            indicator: 'red'
-                        });
+                frappe.call({
+                    method: 'autowings_app.custom_scripts.utils.can_show_button',
+                    args: {
+                        link_doc: frm.doc.doctype,
+                        button_name: 'Update Form'
+                    },
+                    callback: function(r) {
+                        if (r.message) {
+                            frm.add_custom_button(__('Update Form'), function() {
+                                try {
+                                    show_update_rsa_dialog(frm);
+                                } catch (e) {
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Failed to open update dialog: ') + e.message,
+                                        indicator: 'red'
+                                    });
+                                }
+                            });
+                        }
                     }
                 });
             }
 
+        //         if (frm.doc.status === 'Due Updation in Vahan' && frappe.user_roles.includes('Sales Manager')) {
+        //     frm.add_custom_button(__('Update in Vahan'), function() {
+        //         show_update_vahan_dialog(frm);
+        //     });
+        // }
+
+            // Add Verify Form button
+            // if (frm.doc.status === 'Due Verification') {
+            //     frm.add_custom_button(__('Verify Form'), function() {
+            //         frappe.confirm(
+            //             __('Do you want to submit the linked journal? This action cannot be undone.'),
+            //             function() {
+            //                 verify_and_submit_journal(frm);
+            //             },
+            //             function() {
+            //                 prompt_for_remarks_no_verify(frm);
+            //             }
+            //         );
+            //     });
+            // }
+
             // Add Verify Form button
             if (frm.doc.status === 'Due Verification') {
-                frm.add_custom_button(__('Verify Form'), function() {
-                    frappe.confirm(
-                        __('Do you want to submit the linked journal? This action cannot be undone.'),
-                        function() {
-                            verify_and_submit_journal(frm);
-                        },
-                        function() {
-                            prompt_for_remarks_no_verify(frm);
+                frappe.call({
+                    method: 'autowings_app.custom_scripts.utils.can_show_button',
+                    args: {
+                        link_doc: frm.doc.doctype,
+                        button_name: 'Verify Form'
+                    },
+                    callback: function(r) {
+                        if (r.message) {
+                            frm.add_custom_button(__('Verify Form'), function() {
+                                frappe.confirm(
+                                    __('Do you want to submit the linked journal? This action cannot be undone.'),
+                                    function() {
+                                        verify_and_submit_journal(frm);
+                                    },
+                                    function() {
+                                        prompt_for_remarks_no_verify(frm);
+                                    }
+                                );
+                            });
                         }
-                    );
+                    }
                 });
             }
 
+            // if (frm.doc.status === 'Due Verification') {
+            //     frappe.db.get_list('Adi Workflow Button Roles', {
+            //         filters: {
+            //             link_doc: frm.doc.doctype,
+            //             button_name: 'Verify Form'
+            //         },
+            //         fields: ['role']
+            //     }).then(records => {
+            //         let can_add_button = false;
+            //         if (records.length > 0) {
+            //             // Check if user has any of the roles specified in Adi Workflow Button Roles
+            //             can_add_button = records.some(record => frappe.user_roles.includes(record.role));
+            //         } else {
+            //             // Fallback: Show button to Sales Manager if no entry in Adi Workflow Button Roles
+            //             can_add_button = frappe.user_roles.includes('Sales User');
+            //         }
+
+            //         if (can_add_button) {
+            //             frm.add_custom_button(__('Verify Form'), function() {
+            //                 frappe.confirm(
+            //                     __('Do you want to submit the linked journal? This action cannot be undone.'),
+            //                     function() {
+            //                         verify_and_submit_journal(frm);
+            //                     },
+            //                     function() {
+            //                         prompt_for_remarks_no_verify(frm);
+            //                     }
+            //                 );
+            //             });
+            //         }
+            //     }).catch(err => {
+            //         frappe.msgprint({
+            //             title: __('Error'),
+            //             message: __('Error checking button visibility: ') + err.message,
+            //             indicator: 'red'
+            //         });
+            //     });
+            // }
+
             // Add Make Payment button
             if (frm.doc.status === 'Payment Due' && frm.doc.payment_status === 'Due') {
+                frappe.call({
+                    method: 'autowings_app.custom_scripts.utils.can_show_button',
+                    args: {
+                        link_doc: frm.doc.doctype,
+                        button_name: 'Make Payment'
+                    },
+                    callback: function(r) {
+                        if (r.message) {
+
                 frm.add_custom_button(__('Make Payment'), function() {
                     _rsa_payment_entry_action(frm);
+                });
+            }
+            }
                 });
             }
 
@@ -1271,4 +1380,69 @@ function _rsa_payment_entry_action(frm) {
             indicator: 'red'
         });
     }
+}
+
+
+// for vehicle_rsa.js
+frappe.ui.form.on("Vehicle RSA", {
+    refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
+        frm.add_custom_button(__("Cancel Journal Entry"), function() {
+            // Prompt for confirmation
+            frappe.confirm(
+                __("Are you sure you want to cancel or delete the linked Journal Entry?"),
+                function() {
+                    // Proceed with the server-side call if confirmed
+                    frappe.call({
+                        method: "autowings_app.custom_scripts.vehicle_sales_journal_cancel.cancel_journal_entry_rsa",
+                        args: {
+                            doc: frm.doc
+                        },
+                        callback: function(r) {
+                            if (r.message) {
+                                frm.reload_doc();
+                            }
+                        }
+                    });
+                },
+                function() {
+                    // Do nothing if the user cancels the prompt
+                    frappe.msgprint(__("Action aborted."));
+                }
+            );
+        }, __("Actions"));
+    }
+});
+
+
+
+// Function to restrict custom buttons based on roles
+function restrict_custom_buttons_by_role(frm) {
+    // Store the original add_custom_button method
+    const original_add_custom_button = frm.add_custom_button;
+
+    // Override add_custom_button
+    frm.add_custom_button = function(label, callback, group) {
+        // Check role-based visibility
+        frappe.call({
+            method: 'autowings_app.custom_scripts.utils.can_show_button',
+            args: {
+                link_doc: frm.doc.doctype,
+                button_name: label
+            },
+            callback: function(r) {
+                if (r.message) {
+                    // User is authorized; call the original method
+                    original_add_custom_button.call(frm, label, callback, group);
+                }
+            },
+            error: function(err) {
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error checking button visibility for ') + label + ': ' + err.message,
+                    indicator: 'red'
+                });
+            }
+        });
+    };
 }

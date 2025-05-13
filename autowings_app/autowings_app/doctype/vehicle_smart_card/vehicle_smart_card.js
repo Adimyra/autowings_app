@@ -700,6 +700,7 @@ function generate_activity_timeline(frm) {
 // for status
 frappe.ui.form.on('Vehicle Smart Card', {
     refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
         // Clear workflow_state if present
         if (frm.doc.workflow_state) {
             frappe.call({
@@ -1077,3 +1078,34 @@ function _rto_payment_entry_action(frm) {
 //     });
 //     dialog.show();
 // }
+
+// Function to restrict custom buttons based on roles
+function restrict_custom_buttons_by_role(frm) {
+    // Store the original add_custom_button method
+    const original_add_custom_button = frm.add_custom_button;
+
+    // Override add_custom_button
+    frm.add_custom_button = function(label, callback, group) {
+        // Check role-based visibility
+        frappe.call({
+            method: 'autowings_app.custom_scripts.utils.can_show_button',
+            args: {
+                link_doc: frm.doc.doctype,
+                button_name: label
+            },
+            callback: function(r) {
+                if (r.message) {
+                    // User is authorized; call the original method
+                    original_add_custom_button.call(frm, label, callback, group);
+                }
+            },
+            error: function(err) {
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error checking button visibility for ') + label + ': ' + err.message,
+                    indicator: 'red'
+                });
+            }
+        });
+    };
+}

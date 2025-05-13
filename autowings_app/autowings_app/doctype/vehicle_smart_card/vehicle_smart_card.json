@@ -10,6 +10,7 @@
   "customer",
   "sales_invoice",
   "journal_entry_id",
+  "journal_status",
   "chassis_number",
   "column_break_vdgb",
   "status",
@@ -130,11 +131,10 @@
   },
   {
    "fieldname": "smart_card_status",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Smart Card Status",
-   "options": "\nPending\nApplied\nPayment Due\nPaid\nOrdered\nDispatched\nReceived\nDelivered",
    "read_only": 1
   },
   {
@@ -156,7 +156,8 @@
   {
    "fieldname": "status",
    "fieldtype": "Data",
-   "label": "Status"
+   "label": "Status",
+   "read_only": 1
   },
   {
    "fieldname": "journal_account",
@@ -170,12 +171,19 @@
    "default": "Due",
    "fieldname": "smart_card_payment_status",
    "fieldtype": "Data",
-   "label": "Payment Status"
+   "label": "Payment Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "journal_status",
+   "fieldtype": "Data",
+   "label": "Journal Status",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-12 15:08:09.504452",
+ "modified": "2025-05-14 03:16:00.925481",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Smart Card",

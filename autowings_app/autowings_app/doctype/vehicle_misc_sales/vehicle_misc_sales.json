@@ -60,11 +60,10 @@
   {
    "default": "Pending",
    "fieldname": "status",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "\nPending\nDue Update\nDue Payment\nCompleted",
    "read_only": 1
   },
   {
@@ -91,7 +90,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-12 15:05:33.490644",
+ "modified": "2025-05-14 00:43:00.681020",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Misc Sales",

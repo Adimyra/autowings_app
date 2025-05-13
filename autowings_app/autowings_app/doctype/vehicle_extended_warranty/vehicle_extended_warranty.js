@@ -2,6 +2,7 @@
 
 frappe.ui.form.on('Vehicle Extended Warranty', {
     refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
         console.log('Form refresh, checking extended_warranty_activity');
         // Add View Activities button if extended_warranty_activity has rows
         if (frm.doc.extended_warranty_activity && frm.doc.extended_warranty_activity.length > 0) {
@@ -394,6 +395,7 @@ function generate_activity_timeline(frm) {
 // code begins here
 frappe.ui.form.on('Vehicle Extended Warranty', {
     refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
         try {
             // Clear workflow_state if present
             if (frm.doc.workflow_state) {
@@ -1182,3 +1184,67 @@ function _warranty_payment_entry_action(frm) {
         });
     }
 }
+
+
+// Function to restrict custom buttons based on roles
+function restrict_custom_buttons_by_role(frm) {
+    // Store the original add_custom_button method
+    const original_add_custom_button = frm.add_custom_button;
+
+    // Override add_custom_button
+    frm.add_custom_button = function(label, callback, group) {
+        // Check role-based visibility
+        frappe.call({
+            method: 'autowings_app.custom_scripts.utils.can_show_button',
+            args: {
+                link_doc: frm.doc.doctype,
+                button_name: label
+            },
+            callback: function(r) {
+                if (r.message) {
+                    // User is authorized; call the original method
+                    original_add_custom_button.call(frm, label, callback, group);
+                }
+            },
+            error: function(err) {
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: __('Error checking button visibility for ') + label + ': ' + err.message,
+                    indicator: 'red'
+                });
+            }
+        });
+    };
+}
+
+
+
+frappe.ui.form.on("Vehicle Extended Warranty", {
+    refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm);
+        frm.add_custom_button(__("Cancel Journal Entry"), function() {
+            // Prompt for confirmation
+            frappe.confirm(
+                __("Are you sure you want to cancel or delete the linked Journal Entry?"),
+                function() {
+                    // Proceed with the server-side call if confirmed
+                    frappe.call({
+                        method: "autowings_app.custom_scripts.vehicle_sales_journal_cancel.cancel_journal_entry_extended_warranty",
+                        args: {
+                            doc: frm.doc
+                        },
+                        callback: function(r) {
+                            if (r.message) {
+                                frm.reload_doc();
+                            }
+                        }
+                    });
+                },
+                function() {
+                    // Do nothing if the user cancels the prompt
+                    frappe.msgprint(__("Action aborted."));
+                }
+            );
+        }, __("Actions"));
+    }
+});

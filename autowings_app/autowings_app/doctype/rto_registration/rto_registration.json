@@ -98,7 +98,6 @@
    "fieldname": "registration_status",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Registration Status",
    "read_only": 1
   },
@@ -206,9 +205,8 @@
   },
   {
    "fieldname": "journal_status",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "label": "Journal Status",
-   "options": "\nDraft\nSubmitted",
    "read_only": 1
   },
   {
@@ -239,7 +237,9 @@
   {
    "fieldname": "status",
    "fieldtype": "Data",
-   "label": "Status"
+   "in_list_view": 1,
+   "label": "Status",
+   "read_only": 1
   },
   {
    "fieldname": "number_plate_details_section",
@@ -426,7 +426,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-10 17:16:44.273046",
+ "modified": "2025-05-14 01:10:44.072829",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",
@@ -442,6 +442,29 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
    "share": 1,
    "write": 1
   }

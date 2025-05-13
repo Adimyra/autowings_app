@@ -69,3 +69,62 @@ def validate_accounts(accounts, company):
         frappe.throw(_("Invalid JSON format for accounts."))
     except Exception as e:
         frappe.throw(_("Error validating accounts: {0}").format(str(e)))
+
+
+# role based custom button visibility
+
+import frappe
+from frappe import _
+
+# // Function to restrict custom buttons based on roles. _______(((use this in js file)))
+# function restrict_custom_buttons_by_role(frm) {
+#     // Store the original add_custom_button method
+#     const original_add_custom_button = frm.add_custom_button;
+
+#     // Override add_custom_button
+#     frm.add_custom_button = function(label, callback, group) {
+#         // Check role-based visibility
+#         frappe.call({
+#             method: 'autowings_app.custom_scripts.utils.can_show_button',
+#             args: {
+#                 link_doc: frm.doc.doctype,
+#                 button_name: label
+#             },
+#             callback: function(r) {
+#                 if (r.message) {
+#                     // User is authorized; call the original method
+#                     original_add_custom_button.call(frm, label, callback, group);
+#                 }
+#             },
+#             error: function(err) {
+#                 frappe.msgprint({
+#                     title: __('Error'),
+#                     message: __('Error checking button visibility for ') + label + ': ' + err.message,
+#                     indicator: 'red'
+#                 });
+#             }
+#         });
+#     };
+# }
+
+@frappe.whitelist()
+def can_show_button(link_doc, button_name):
+    try:
+        roles = frappe.get_all(
+            'Adi Workflow Button Roles',
+            filters={
+                'link_doc': link_doc,
+                'button_name': button_name
+            },
+            fields=['role']
+        )
+        if roles:
+            user_roles = frappe.get_roles(frappe.session.user)
+            return any(role.role in user_roles for role in roles)
+        else:
+            return 'Sales User' in frappe.get_roles(frappe.session.user)
+    except Exception as e:
+        frappe.log_error(f"Error checking button visibility for {link_doc}/{button_name}: {str(e)}")
+        return False
+    
+    # -__________________________________------

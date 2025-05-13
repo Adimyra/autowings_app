@@ -12,14 +12,19 @@
   "vehicle_type",
   "vehicle_class",
   "fuel_used",
+  "status",
   "column_break_gnfz",
   "sales_invoice",
-  "is_delivered",
+  "invoice_status",
   "delivery_note",
+  "is_delivered",
+  "section_break_himi",
   "rto_registration",
   "is_smart_card",
+  "column_break_fjxm",
   "is_finance",
   "is_insurance",
+  "column_break_nszg",
   "is_rsa",
   "is_extended_warranty",
   "vehicle_info_section",
@@ -37,6 +42,8 @@
   "rto_status",
   "section_break_iwxj",
   "smart_card_id",
+  "column_break_yfms",
+  "smart_card_status",
   "insurance_details_section",
   "insurance_id",
   "insurance_provider",
@@ -61,7 +68,9 @@
   "loan_amount",
   "loan_status",
   "misc_accounts_section",
-  "vehicle_misc_sales_id"
+  "vehicle_misc_sales_id",
+  "column_break_rzrs",
+  "misc_sales_status"
  ],
  "fields": [
   {
@@ -328,7 +337,8 @@
    "fieldname": "vehicle_misc_sales_id",
    "fieldtype": "Link",
    "label": "Vehicle Misc Sales Id",
-   "options": "Vehicle Misc Sales"
+   "options": "Vehicle Misc Sales",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -423,13 +433,62 @@
   },
   {
    "fieldname": "section_break_iwxj",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Smart Card Details"
   },
   {
    "fieldname": "smart_card_id",
    "fieldtype": "Link",
    "label": "Smart Card Id",
    "options": "Vehicle Smart Card"
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_yfms",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "smart_card_id.smart_card_status",
+   "fieldname": "smart_card_status",
+   "fieldtype": "Data",
+   "label": "Smart Card Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rzrs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "vehicle_misc_sales_id.status",
+   "fieldname": "misc_sales_status",
+   "fieldtype": "Data",
+   "label": "Misc Sales Status",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "sales_invoice.status",
+   "fieldname": "invoice_status",
+   "fieldtype": "Data",
+   "label": "Invoice Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_himi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fjxm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_nszg",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -437,6 +496,11 @@
   {
    "group": "RTO Registration",
    "link_doctype": "RTO Registration",
+   "link_fieldname": "vsm_id"
+  },
+  {
+   "group": "Smart Card",
+   "link_doctype": "Vehicle Smart Card",
    "link_fieldname": "vsm_id"
   },
   {
@@ -465,7 +529,7 @@
    "link_fieldname": "vsm_id"
   }
  ],
- "modified": "2025-05-12 15:08:59.587707",
+ "modified": "2025-05-14 01:35:49.095154",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",

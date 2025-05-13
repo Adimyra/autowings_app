@@ -63,7 +63,8 @@ doc_events = {
     "Sales Invoice": {
         "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit",
         "after_insert": "autowings_app.custom_scripts.sales_invoice.after_insert_sales_invoice",
-        "on_submit": "autowings_app.custom_scripts.sales_invoice.on_submit_sales_invoice"
+        "on_submit": "autowings_app.custom_scripts.sales_invoice.on_submit_sales_invoice",
+        "on_cancel": "autowings_app.custom_scripts.sales_invoice.on_cancel_sales_invoice"
     },
      "Purchase Invoice": {
         "validate": "autowings_app.custom_scripts.serial_no_validation.validate_chassis_and_engine_number"
