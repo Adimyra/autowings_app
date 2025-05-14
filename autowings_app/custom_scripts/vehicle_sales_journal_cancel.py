@@ -298,7 +298,7 @@ def cancel_journal_entry_insurance(doc):
 
         # for vehicle finance
 
-        import frappe
+import frappe
 from frappe import _
 
 @frappe.whitelist()
