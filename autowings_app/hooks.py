@@ -10,7 +10,9 @@ app_license = "mit"
 
 # required_apps = []
 app_include_js = [
-    "/assets/autowings_app/js/lib/chart.min.js"
+    "/assets/autowings_app/js/lib/chart.min.js",
+    "/assets/autowings_app/js/rto_registration_list.js"
+
     # "/assets/autowings_app/js/firebase_auth.js"
 ]
 app_include_css = [
@@ -34,6 +36,7 @@ doctype_js = {
     "Delivery Note": "public/js/delivery_note.js",
     "Supplier": "public/js/supplier.js",
     "Payment Entry": "public/js/payment_entry.js"
+
 
 }
 
@@ -117,9 +120,9 @@ web_routes = [
 ]
 
 
-# fixtures = [
-#     {"dt": "Custom HTML Block"}
-# ]
+fixtures = [
+    {"dt": "Client Script"}
+]
 # fixtures = [
 #     {"dt": "Party Type", "filters": [["name", "in", ["Financer"]]]},
 # ]
@@ -127,9 +130,9 @@ web_routes = [
 #     {"dt": "Account", "filters": [["name", "in", ["RTO Charges Payable - A", "Insurance Charges Payable - A", "Finance Receivable - A"]]]},
 #     {"dt": "Supplier Group", "filters": [["name", "in", ["Insurance", "RTO"]]]}
 # ]
-fixtures = [
-    {"doctype": "Customer Group", "filters": {"name": ["in", ["Financer"]]}}
-]
+# fixtures = [
+#     {"doctype": "Customer Group", "filters": {"name": ["in", ["Financer"]]}}
+# ]
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
 # 	{

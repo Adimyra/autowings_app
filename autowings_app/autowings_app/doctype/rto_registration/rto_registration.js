@@ -2437,6 +2437,7 @@ if (frm.doc.status === 'Due Number Plate Installation' && frm.doc.number_plate_r
         //         dialog.show();
         //     });
         // }
+
 if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate_installed && !frm.doc.document_submitted_to_dto) {
     frm.add_custom_button(__('Submit Documents to DTO'), function() {
         // Validate smart card payment status
@@ -2944,3 +2945,8 @@ frappe.ui.form.on("RTO Registration", {
         }, __("Actions"));
     }
 });
+
+
+
+
+// list view 

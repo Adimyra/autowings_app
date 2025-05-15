@@ -817,7 +817,6 @@ function validate_account(account_name, frm, field) {
 //     }
 // });
 
-
 frappe.ui.form.on("Payment Entry", {
     on_submit: function(frm) {
         try {
@@ -916,7 +915,7 @@ frappe.ui.form.on("Payment Entry", {
                         journal_entry_id: ["in", journal_entries],
                         smart_card_payment_status: "Due"
                     },
-                    fields: ["name", "journal_entry_id", "smart_card_payment_status"]
+                    fields: ["name", "journal_entry_id", "smart_card_payment_status", "rto_registration_id"]
                 },
                 callback: function(r) {
                     if (r.message && r.message.length > 0) {
@@ -924,6 +923,7 @@ frappe.ui.form.on("Payment Entry", {
                         console.log("Found Vehicle Smart Card documents:", smart_card_docs.map(doc => doc.name));
 
                         smart_card_docs.forEach(smart_card_doc => {
+                            // Update Vehicle Smart Card document
                             frappe.call({
                                 method: "frappe.client.set_value",
                                 args: {
@@ -939,7 +939,8 @@ frappe.ui.form.on("Payment Entry", {
                                 },
                                 callback: function(update_r) {
                                     if (update_r.message) {
-                                        console.log(`Updated Vehicle Smart Card ${smart_card_doc.name} with payment details and status: Due Updation in Vahan`);
+                                        console.log(`Updated Vehicle Smart Card ${smart_card_doc.name} with payment details and status: Completed`);
+
                                         // Log activity for Vehicle Smart Card
                                         log_rto_activity({
                                             doctype: "Vehicle Smart Card",
@@ -949,6 +950,91 @@ frappe.ui.form.on("Payment Entry", {
                                             status: "Payment Recorded",
                                             remarks: `Payment Entry ${frm.doc.name} submitted.`
                                         });
+
+                                        // Update RTO Registration's additional_accounts child table
+                                        if (smart_card_doc.rto_registration_id) {
+                                            frappe.call({
+                                                method: "frappe.client.get",
+                                                args: {
+                                                    doctype: "RTO Registration",
+                                                    name: smart_card_doc.rto_registration_id,
+                                                    fields: ["name", "additional_accounts"]
+                                                },
+                                                callback: function(rto_r) {
+                                                    if (rto_r.message) {
+                                                        let rto_doc = rto_r.message;
+                                                        let additional_accounts = rto_doc.additional_accounts || [];
+                                                        let updated = false;
+
+                                                        // Find and update the matching child table entry
+                                                        additional_accounts.forEach(account => {
+                                                            if (account.smart_card_id === smart_card_doc.name && account.payment_status !== "Paid") {
+                                                                account.payment_status = "Paid";
+                                                                updated = true;
+                                                            }
+                                                        });
+
+                                                        if (updated) {
+                                                            // Update RTO Registration with modified child table
+                                                            frappe.call({
+                                                                method: "frappe.client.set_value",
+                                                                args: {
+                                                                    doctype: "RTO Registration",
+                                                                    name: rto_doc.name,
+                                                                    fieldname: {
+                                                                        additional_accounts: additional_accounts
+                                                                    }
+                                                                },
+                                                                callback: function(update_rto_r) {
+                                                                    if (update_rto_r.message) {
+                                                                        console.log(`Updated RTO Registration ${rto_doc.name} additional_accounts payment_status to Paid for smart_card_id ${smart_card_doc.name}`);
+
+                                                                        // Log activity for RTO Registration
+                                                                        log_rto_activity({
+                                                                            doctype: "RTO Registration",
+                                                                            name: rto_doc.name,
+                                                                            parentfield: "rto_activity",
+                                                                            activity: "Smart Card Payment Status Updated",
+                                                                            status: "Payment Recorded",
+                                                                            remarks: `Smart Card ${smart_card_doc.name} payment recorded via Payment Entry ${frm.doc.name}.`
+                                                                        });
+
+                                                                        frappe.msgprint({
+                                                                            title: __('Success'),
+                                                                            message: __('RTO Registration additional accounts updated successfully.'),
+                                                                            indicator: 'green'
+                                                                        });
+                                                                    }
+                                                                },
+                                                                error: function(err) {
+                                                                    console.error(`Error updating RTO Registration ${rto_doc.name} additional_accounts:`, err);
+                                                                    frappe.msgprint({
+                                                                        title: __('Error'),
+                                                                        message: __('Failed to update RTO Registration additional accounts. Please check server logs.'),
+                                                                        indicator: 'red'
+                                                                    });
+                                                                }
+                                                            });
+                                                        } else {
+                                                            console.log(`No matching additional_accounts found in RTO Registration ${rto_doc.name} for smart_card_id ${smart_card_doc.name} or already Paid.`);
+                                                        }
+                                                    } else {
+                                                        console.log(`RTO Registration ${smart_card_doc.rto_registration_id} not found.`);
+                                                    }
+                                                },
+                                                error: function(err) {
+                                                    console.error(`Error fetching RTO Registration ${smart_card_doc.rto_registration_id}:`, err);
+                                                    frappe.msgprint({
+                                                        title: __('Error'),
+                                                        message: __('Failed to fetch RTO Registration document. Please check server logs.'),
+                                                        indicator: 'red'
+                                                    });
+                                                }
+                                            });
+                                        } else {
+                                            console.log(`No rto_registration_id found in Vehicle Smart Card ${smart_card_doc.name}.`);
+                                        }
+
                                         frappe.msgprint({
                                             title: __('Success'),
                                             message: __('Vehicle Smart Card updated successfully.'),
@@ -967,7 +1053,7 @@ frappe.ui.form.on("Payment Entry", {
                             });
                         });
                     } else {
-                        console.log("No matching Vehicle Smart Card documents found with payment_status: Due.");
+                        console.log("No matching Vehicle Smart Card documents found with smart_card_payment_status: Due.");
                     }
                 },
                 error: function(err) {
@@ -992,10 +1078,21 @@ frappe.ui.form.on("Payment Entry", {
 
 // Reusable function to log activity in rto_activity child table for any doctype
 function log_rto_activity(params) {
+    // Validate required parameters
+    if (!params.doctype || !params.name || !params.parentfield) {
+        console.error("Missing required parameters for log_rto_activity:", params);
+        frappe.msgprint({
+            title: __('Error'),
+            message: __('Cannot log activity: Missing doctype, name, or parentfield.'),
+            indicator: 'red'
+        });
+        return;
+    }
+
     let activity_log = {
         doctype: "RTO Activity Log",
-        activity: params.activity,
-        status: params.status,
+        activity: params.activity || "Activity Recorded",
+        status: params.status || "Recorded",
         user: frappe.session.user,
         update_on: frappe.datetime.now_datetime(),
         remarks: params.remarks || "",
@@ -1003,6 +1100,8 @@ function log_rto_activity(params) {
         parentfield: params.parentfield,
         parenttype: params.doctype
     };
+
+    console.log("Attempting to log activity:", activity_log);
 
     frappe.call({
         method: "frappe.client.insert",
@@ -1031,6 +1130,219 @@ function log_rto_activity(params) {
         }
     });
 }
+// frappe.ui.form.on("Payment Entry", {
+//     on_submit: function(frm) {
+//         try {
+//             // Extract Journal Entry references from Payment Entry
+//             let journal_entries = frm.doc.references
+//                 .filter(ref => ref.reference_doctype === "Journal Entry")
+//                 .map(ref => ref.reference_name);
+
+//             console.log("On submit triggered for Payment Entry:", frm.doc.name, "Journal Entries:", journal_entries);
+
+//             if (journal_entries.length === 0) {
+//                 console.log("No Journal Entry references found in Payment Entry.");
+//                 return;
+//             }
+
+//             // Update RTO Registration documents where journal_entry_id matches
+//             frappe.call({
+//                 method: "frappe.client.get_list",
+//                 args: {
+//                     doctype: "RTO Registration",
+//                     filters: {
+//                         journal_entry_id: ["in", journal_entries],
+//                         payment_status: "Due"
+//                     },
+//                     fields: ["name", "journal_entry_id", "status", "payment_status"]
+//                 },
+//                 callback: function(r) {
+//                     if (r.message && r.message.length > 0) {
+//                         let rto_docs = r.message;
+//                         console.log("Found RTO Registration documents:", rto_docs.map(doc => doc.name));
+
+//                         rto_docs.forEach(rto_doc => {
+//                             let new_status = rto_doc.status === "Due Payment to RTO" ? "Due Registration Number Entry" : rto_doc.status;
+//                             frappe.call({
+//                                 method: "frappe.client.set_value",
+//                                 args: {
+//                                     doctype: "RTO Registration",
+//                                     name: rto_doc.name,
+//                                     fieldname: {
+//                                         payment_date: frm.doc.posting_date,
+//                                         payment_status: "Paid",
+//                                         payment_entry_id: frm.doc.name,
+//                                         payment_reference: frm.doc.reference_no,
+//                                         status: new_status
+//                                     }
+//                                 },
+//                                 callback: function(update_r) {
+//                                     if (update_r.message) {
+//                                         console.log(`Updated RTO Registration ${rto_doc.name} with payment details and status: ${new_status}`);
+//                                         // Log activity for RTO Registration
+//                                         log_rto_activity({
+//                                             doctype: "RTO Registration",
+//                                             name: rto_doc.name,
+//                                             parentfield: "rto_activity",
+//                                             activity: "Payment to RTO Recorded",
+//                                             status: "Payment Recorded",
+//                                             remarks: `Payment Entry ${frm.doc.name} submitted.`
+//                                         });
+//                                         frappe.msgprint({
+//                                             title: __('Success'),
+//                                             message: __('RTO Registration document updated successfully.'),
+//                                             indicator: 'green'
+//                                         });
+//                                     }
+//                                 },
+//                                 error: function(err) {
+//                                     console.error(`Error updating RTO Registration ${rto_doc.name}:`, err);
+//                                     frappe.msgprint({
+//                                         title: __('Error'),
+//                                         message: __('Failed to update RTO Registration document. Please check server logs.'),
+//                                         indicator: 'red'
+//                                     });
+//                                 }
+//                             });
+//                         });
+//                     } else {
+//                         console.log("No matching RTO Registration documents found with payment_status: Due.");
+//                     }
+//                 },
+//                 error: function(err) {
+//                     console.error("Error fetching RTO Registration documents:", err);
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Failed to fetch RTO Registration documents. Please check server logs.'),
+//                         indicator: 'red'
+//                     });
+//                 }
+//             });
+
+//             // Update Vehicle Smart Card documents where journal_entry_id matches
+//             frappe.call({
+//                 method: "frappe.client.get_list",
+//                 args: {
+//                     doctype: "Vehicle Smart Card",
+//                     filters: {
+//                         journal_entry_id: ["in", journal_entries],
+//                         smart_card_payment_status: "Due"
+//                     },
+//                     fields: ["name", "journal_entry_id", "smart_card_payment_status"]
+//                 },
+//                 callback: function(r) {
+//                     if (r.message && r.message.length > 0) {
+//                         let smart_card_docs = r.message;
+//                         console.log("Found Vehicle Smart Card documents:", smart_card_docs.map(doc => doc.name));
+
+//                         smart_card_docs.forEach(smart_card_doc => {
+//                             frappe.call({
+//                                 method: "frappe.client.set_value",
+//                                 args: {
+//                                     doctype: "Vehicle Smart Card",
+//                                     name: smart_card_doc.name,
+//                                     fieldname: {
+//                                         payment_date: frm.doc.posting_date,
+//                                         smart_card_payment_status: "Paid",
+//                                         payment_entry_id: frm.doc.name,
+//                                         payment_reference: frm.doc.reference_no,
+//                                         status: "Completed"
+//                                     }
+//                                 },
+//                                 callback: function(update_r) {
+//                                     if (update_r.message) {
+//                                         console.log(`Updated Vehicle Smart Card ${smart_card_doc.name} with payment details and status: Due Updation in Vahan`);
+//                                         // Log activity for Vehicle Smart Card
+//                                         log_rto_activity({
+//                                             doctype: "Vehicle Smart Card",
+//                                             name: smart_card_doc.name,
+//                                             parentfield: "rto_activity",
+//                                             activity: "Payment for Smart Card Recorded",
+//                                             status: "Payment Recorded",
+//                                             remarks: `Payment Entry ${frm.doc.name} submitted.`
+//                                         });
+//                                         frappe.msgprint({
+//                                             title: __('Success'),
+//                                             message: __('Vehicle Smart Card updated successfully.'),
+//                                             indicator: 'green'
+//                                         });
+//                                     }
+//                                 },
+//                                 error: function(err) {
+//                                     console.error(`Error updating Vehicle Smart Card ${smart_card_doc.name}:`, err);
+//                                     frappe.msgprint({
+//                                         title: __('Error'),
+//                                         message: __('Failed to update Vehicle Smart Card. Please check server logs.'),
+//                                         indicator: 'red'
+//                                     });
+//                                 }
+//                             });
+//                         });
+//                     } else {
+//                         console.log("No matching Vehicle Smart Card documents found with payment_status: Due.");
+//                     }
+//                 },
+//                 error: function(err) {
+//                     console.error("Error fetching Vehicle Smart Card documents:", err);
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Failed to fetch Vehicle Smart Card documents. Please check server logs.'),
+//                         indicator: 'red'
+//                     });
+//                 }
+//             });
+//         } catch (err) {
+//             console.error("Error in on_submit handler:", err);
+//             frappe.msgprint({
+//                 title: __('Error'),
+//                 message: __('An error occurred while processing the payment submission. Please check the console.'),
+//                 indicator: 'red'
+//             });
+//         }
+//     }
+// });
+
+// // Reusable function to log activity in rto_activity child table for any doctype
+// function log_rto_activity(params) {
+//     let activity_log = {
+//         doctype: "RTO Activity Log",
+//         activity: params.activity,
+//         status: params.status,
+//         user: frappe.session.user,
+//         update_on: frappe.datetime.now_datetime(),
+//         remarks: params.remarks || "",
+//         parent: params.name,
+//         parentfield: params.parentfield,
+//         parenttype: params.doctype
+//     };
+
+//     frappe.call({
+//         method: "frappe.client.insert",
+//         args: {
+//             doc: activity_log
+//         },
+//         callback: function(r) {
+//             if (r.exc) {
+//                 console.error(`Error logging activity for ${params.doctype} ${params.name}:`, r.exc);
+//                 frappe.msgprint({
+//                     title: __('Error'),
+//                     message: __('Error logging activity: ') + (r.exc || JSON.stringify(r)),
+//                     indicator: 'red'
+//                 });
+//             } else {
+//                 console.log(`Activity logged for ${params.doctype} ${params.name}: ${params.activity}`);
+//             }
+//         },
+//         error: function(err) {
+//             console.error(`Error logging activity for ${params.doctype} ${params.name}:`, err);
+//             frappe.msgprint({
+//                 title: __('Error'),
+//                 message: __('Error logging activity: ') + (err.message || JSON.stringify(err)),
+//                 indicator: 'red'
+//             });
+//         }
+//     });
+// }
 
 
 // updated vehicle insurance on payment entry
