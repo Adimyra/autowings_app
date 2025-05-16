@@ -1,0 +1,30 @@
+{
+ "cards": [
+  {
+   "card": "Due Update | Extended Warranty"
+  },
+  {
+   "card": "Payment Due | Extended Warranty"
+  },
+  {
+   "card": "Completed | Extended Warranty"
+  }
+ ],
+ "charts": [
+  {
+   "width": "Half"
+  }
+ ],
+ "creation": "2025-05-16 03:09:08.122246",
+ "dashboard_name": "Vehicle Extended Warranty Dashboard",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2025-05-16 03:16:36.806514",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Vehicle Extended Warranty Dashboard",
+ "owner": "Administrator"
+}

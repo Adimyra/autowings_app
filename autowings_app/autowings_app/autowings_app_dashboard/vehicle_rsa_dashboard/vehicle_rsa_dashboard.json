@@ -1,0 +1,30 @@
+{
+ "cards": [
+  {
+   "card": "Due Update | RSA"
+  },
+  {
+   "card": "Payment Due | RSA"
+  },
+  {
+   "card": "Completed | RSA"
+  }
+ ],
+ "charts": [
+  {
+   "width": "Half"
+  }
+ ],
+ "creation": "2025-05-16 03:08:13.453236",
+ "dashboard_name": "Vehicle RSA Dashboard",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2025-05-16 03:21:00.149137",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Vehicle RSA Dashboard",
+ "owner": "Administrator"
+}

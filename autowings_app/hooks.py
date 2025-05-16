@@ -121,7 +121,7 @@ web_routes = [
 
 
 fixtures = [
-    {"dt": "Client Script"}
+    {"dt": "Custom HTML Block"}
 ]
 # fixtures = [
 #     {"dt": "Party Type", "filters": [["name", "in", ["Financer"]]]},
