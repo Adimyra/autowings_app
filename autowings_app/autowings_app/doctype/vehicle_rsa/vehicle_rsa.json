@@ -129,6 +129,8 @@
   {
    "fieldname": "status",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Status",
    "read_only": 1
   },
@@ -193,7 +195,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-05-14 01:11:47.155029",
+ "modified": "2025-05-16 18:14:11.457951",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle RSA",

@@ -7,6 +7,9 @@
    "card": "Due Verification of Application | RTO Registration"
   },
   {
+   "card": "Due Payment to RTO | RTO Registration"
+  },
+  {
    "card": "Due Registration Number Entry | RTO Registration"
   },
   {
@@ -14,6 +17,9 @@
   },
   {
    "card": "Number Plate Not Received | RTO Registration"
+  },
+  {
+   "card": "Due Number Plate Installation | RTO Registration"
   },
   {
    "card": "Due Documents Submission to DTO | RTO Registration"
@@ -43,7 +49,7 @@
  "idx": 0,
  "is_default": 0,
  "is_standard": 1,
- "modified": "2025-05-16 02:54:06.271231",
+ "modified": "2025-05-16 18:11:19.895625",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration Dashboard",
