@@ -1,19 +1,19 @@
-{
-  "name": "autowings_app",
-  "version": "1.0.0",
-  "description": "Automobile",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tailwindcss -i ./src/input.css -o ./public/output.css",
-    "watch": "tailwindcss -i ./src/input.css -o ./public/output.css --watch"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.4"
-  }
-}
+// {
+//   "name": "autowings_app",
+//   "version": "1.0.0",
+//   "description": "Automobile",
+//   "main": "index.js",
+//   "scripts": {
+//     "test": "echo \"Error: no test specified\" && exit 1",
+//     "build": "tailwindcss -i ./src/input.css -o ./public/output.css",
+//     "watch": "tailwindcss -i ./src/input.css -o ./public/output.css --watch"
+//   },
+//   "keywords": [],
+//   "author": "",
+//   "license": "ISC",
+//   "devDependencies": {
+//     "autoprefixer": "^10.4.21",
+//     "postcss": "^8.5.3",
+//     "tailwindcss": "^4.1.4"
+//   }
+// }
