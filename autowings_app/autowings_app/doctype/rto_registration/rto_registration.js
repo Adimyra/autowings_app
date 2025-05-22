@@ -1035,7 +1035,8 @@ function _rto_payment_entry_action(frm) {
                                 name: frm.doc.name,
                                 fieldname: {
                                     registration_number: values.registration_number,
-                                    status: 'Due Number Plate Ordering'
+                                    status: 'Due Number Plate Ordering',
+                                    registration_status: "Due Documents Submission to DTO"
                                 }
                             },
                             callback: function(r) {
@@ -2521,7 +2522,9 @@ if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate
                                 doc_sub_date: values.doc_sub_date,
                                 doc_sub_remarks: values.doc_sub_remarks,
                                 document_submitted_to_dto: 1,
-                                status: 'Documents Not Received from DTO'
+                                status: 'Documents Not Received from DTO',
+                                registration_status: 'Documents Not Received from DTO'
+
                             }
                         },
                         callback: function(r) {
@@ -2589,7 +2592,8 @@ if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate
                                     doc_rec_date: values.doc_rec_date,
                                     doc_rec_remarks: values.doc_rec_remarks,
                                     document_received_from_dto: 1,
-                                    status: 'Due Scanning RC'
+                                    status: 'Due Scanning RC',
+                                    registration_status: 'Applied'
                                 }
                             },
                             callback: function(r) {
