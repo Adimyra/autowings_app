@@ -2280,7 +2280,99 @@ frappe.ui.form.on('RTO Registration', {
             });
         }
 
-        // Add Number Plate Installation button
+//         // Add Number Plate Installation button
+// if (frm.doc.status === 'Due Number Plate Installation' && frm.doc.number_plate_received && !frm.doc.number_plate_installed) {
+//     frm.add_custom_button(__('Number Plate Installation'), function() {
+//         let dialog = new frappe.ui.Dialog({
+//             title: __('Number Plate Installation'),
+//             fields: [
+//                 {
+//                     label: __('Installation Details'),
+//                     fieldname: 'installation_details',
+//                     fieldtype: 'Small Text',
+//                     reqd: 1
+//                 },
+//                 {
+//                     label: __('Installed By'),
+//                     fieldname: 'installed_by',
+//                     fieldtype: 'Link',
+//                     options: 'User',
+//                     reqd: 1
+//                 },
+//                 {
+//                     label: __('Installation Date'),
+//                     fieldname: 'installation_date',
+//                     fieldtype: 'Datetime',
+//                     reqd: 1,
+//                     default: frappe.datetime.now_datetime()
+//                 },
+//                 {
+//                     label: __('Number Plate Image'),
+//                     fieldname: 'number_plate_image',
+//                     fieldtype: 'Attach Image',
+//                     reqd: 1
+//                 }
+//             ],
+//             primary_action_label: __('Install'),
+//             primary_action: function(values) {
+//                 if (!values.installation_details) {
+//                     frappe.throw(__('Installation Details are mandatory.'));
+//                 }
+//                 if (!values.installed_by) {
+//                     frappe.throw(__('Installed By is mandatory.'));
+//                 }
+//                 if (!values.installation_date) {
+//                     frappe.throw(__('Installation Date is mandatory.'));
+//                 }
+//                 if (!values.number_plate_image) {
+//                     frappe.throw(__('Number Plate Image is mandatory.'));
+//                 }
+//                 frappe.call({
+//                     method: 'frappe.client.set_value',
+//                     args: {
+//                         doctype: 'RTO Registration',
+//                         name: frm.doc.name,
+//                         fieldname: {
+//                             number_plate_installed: 1,
+//                             number_plate_installation_details: values.installation_details,
+//                             installed_by: values.installed_by,
+//                             installation_date: values.installation_date,
+//                             number_plate_image: values.number_plate_image,
+//                             status: 'Due Documents Submission to DTO'
+//                         }
+//                     },
+//                     callback: function(r) {
+//                         if (!r.exc) {
+//                             log_rto_activity(frm, 'Number Plate Installed', 'Installation Completed', `Installed by ${values.installed_by} on ${values.installation_date}`);
+//                             frm.reload_doc();
+//                             frappe.msgprint({
+//                                 title: __('Success'),
+//                                 message: __('Number Plate installed successfully.'),
+//                                 indicator: 'green'
+//                             });
+//                             dialog.hide();
+//                         } else {
+//                             log_rto_activity(frm, 'Number Plate Installed', 'Installation Failed', r.exc || JSON.stringify(r));
+//                             frappe.msgprint({
+//                                 title: __('Error'),
+//                                 message: __('Error confirming Number Plate installation: ') + (r.exc || JSON.stringify(r)),
+//                                 indicator: 'red'
+//                             });
+//                         }
+//                     }
+//                 });
+//             },
+//             secondary_action_label: __('Cancel'),
+//             secondary_action: function() {
+//                 dialog.hide();
+//                 prompt_for_remarks(frm, 'Number Plate Installation Cancelled', 'Installation Cancelled');
+//             }
+//         });
+//         dialog.show();
+//     });
+// }
+
+// Add Number Plate Installation button
 if (frm.doc.status === 'Due Number Plate Installation' && frm.doc.number_plate_received && !frm.doc.number_plate_installed) {
     frm.add_custom_button(__('Number Plate Installation'), function() {
         let dialog = new frappe.ui.Dialog({
@@ -2327,6 +2419,17 @@ if (frm.doc.status === 'Due Number Plate Installation' && frm.doc.number_plate_r
                 if (!values.number_plate_image) {
                     frappe.throw(__('Number Plate Image is mandatory.'));
                 }
+
+                // Determine the status based on document_submitted_to_dto and document_received_from_dto
+                let new_status;
+                if (!frm.doc.document_submitted_to_dto) {
+                    new_status = 'Due Documents Submission to DTO';
+                } else if (!frm.doc.document_received_from_dto) {
+                    new_status = 'Documents Not Received from DTO';
+                } else {
+                    new_status = 'Due Scanning RC';
+                }
+
                 frappe.call({
                     method: 'frappe.client.set_value',
                     args: {
@@ -2338,7 +2441,7 @@ if (frm.doc.status === 'Due Number Plate Installation' && frm.doc.number_plate_r
                             installed_by: values.installed_by,
                             installation_date: values.installation_date,
                             number_plate_image: values.number_plate_image,
-                            status: 'Due Documents Submission to DTO'
+                            status: new_status
                         }
                     },
                     callback: function(r) {

@@ -98,8 +98,7 @@
    "fieldname": "registration_status",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Registration Status",
-   "read_only": 1
+   "label": "Registration Status"
   },
   {
    "fieldname": "registration_charge",
@@ -184,8 +183,7 @@
   {
    "fieldname": "registration_number",
    "fieldtype": "Data",
-   "label": "Registration Number",
-   "read_only": 1
+   "label": "Registration Number"
   },
   {
    "fieldname": "column_break_qqpc",
@@ -426,7 +424,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-15 14:11:21.272498",
+ "modified": "2025-05-23 16:53:45.809964",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",
