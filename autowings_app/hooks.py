@@ -12,7 +12,8 @@ app_license = "mit"
 app_include_js = [
     "/assets/autowings_app/js/lib/chart.min.js",
     "/assets/autowings_app/js/rto_registration_list.js",
-    "/assets/autowings_app/js/serial_no.js"
+    "/assets/autowings_app/js/serial_no.js",
+    "/assets/autowings_app/js/customer.js"
 
 
     # "/assets/autowings_app/js/firebase_auth.js"
@@ -38,19 +39,20 @@ doctype_js = {
     "Delivery Note": "public/js/delivery_note.js",
     "Supplier": "public/js/supplier.js",
     "Payment Entry": "public/js/payment_entry.js",
-    "Serial No": "public/js/serial_no.js"
+    "Serial No": "public/js/serial_no.js",
+    "Customer": "public/js/customer.js"
 
 
 
 }
+override_doctype_class = {
+    "Customer": "autowings_app.custom_scripts.customer_mobile_no_validation.Customer"
+}
 
 doc_events = {
-    # hooks.py for autowings_app
-
-    # "Payment Entry": {
-    #     "validate": "autowings_app.custom_scripts.payment_entry.validate_payment_entry",
-    #     "before_save": "autowings_app.custom_scripts.payment_entry.before_save_payment_entry"
-    # },
+# "Customer": {
+#         "before_save": "autowings_app.custom_scripts.customer_mobile_no_validation.before_save"
+#     },
     "Purchase Receipt": {
         "before_save": "autowings_app.custom_scripts.purchase_receipt.before_save",
         "before_submit": "autowings_app.custom_scripts.purchase_receipt.before_submit",
