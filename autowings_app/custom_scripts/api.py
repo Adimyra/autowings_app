@@ -493,3 +493,16 @@ def get_date_range(filter_type, date_range):
             date_range = json.loads(date_range)
         return date_range['start'], date_range['end']
     return add_days(today, -30), today  # Default to monthly
+
+
+
+# udpate document flag due documents submission to dto
+
+def update_due_documents_flag(doc, method):
+    if (
+        doc.status == "Due Documents Submission to DTO"
+        or doc.registration_status == "Due Documents Submission to DTO"
+    ):
+        doc.due_documents_flag = 1
+    else:
+        doc.due_documents_flag = 0

@@ -15,6 +15,7 @@
   "column_break_vdgb",
   "status",
   "registration_status",
+  "due_documents_flag",
   "rto_office",
   "registration_charge",
   "application_entry_date",
@@ -420,11 +421,18 @@
    "fieldtype": "Image",
    "label": "Preview",
    "options": "number_plate_image"
+  },
+  {
+   "default": "0",
+   "fieldname": "due_documents_flag",
+   "fieldtype": "Check",
+   "label": "Due Documents Flag",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-23 16:53:45.809964",
+ "modified": "2025-05-26 14:41:32.681463",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

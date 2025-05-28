@@ -11,7 +11,9 @@ app_license = "mit"
 # required_apps = []
 app_include_js = [
     "/assets/autowings_app/js/lib/chart.min.js",
-    "/assets/autowings_app/js/rto_registration_list.js"
+    "/assets/autowings_app/js/rto_registration_list.js",
+    "/assets/autowings_app/js/serial_no.js"
+
 
     # "/assets/autowings_app/js/firebase_auth.js"
 ]
@@ -35,7 +37,9 @@ doctype_js = {
     "Purchase Invoice": "public/js/purchase_invoice.js",
     "Delivery Note": "public/js/delivery_note.js",
     "Supplier": "public/js/supplier.js",
-    "Payment Entry": "public/js/payment_entry.js"
+    "Payment Entry": "public/js/payment_entry.js",
+    "Serial No": "public/js/serial_no.js"
+
 
 
 }
@@ -107,7 +111,9 @@ doc_events = {
         # "after_insert": "autowings_app.custom_scripts.payment_entry.update_journal_entries",
         "after_insert": "autowings_app.custom_scripts.payment_entry.update_vehicle_misc_sales"
     },
-
+    "RTO Registration": {
+        "Validate": "autowings_app.custom_scripts.api.update_due_documents_flag"
+    }
     # "Payment Entry": {
     #     "on_submit": "autowings_app.custom_scripts.payment_entry.on_payment_entry_submit"
     # }
