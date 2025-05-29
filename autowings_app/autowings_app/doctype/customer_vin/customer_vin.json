@@ -8,9 +8,9 @@
  "field_order": [
   "vsm_id",
   "chassis_number",
-  "view_details",
   "engine_number",
-  "item"
+  "item",
+  "view_details"
  ],
  "fields": [
   {
@@ -25,7 +25,8 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Chassis Number",
-   "options": "Serial No"
+   "options": "Serial No",
+   "read_only": 1
   },
   {
    "fetch_from": "chassis_number.custom_engine_number",
@@ -51,7 +52,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-29 11:23:04.332694",
+ "modified": "2025-05-29 12:36:57.246365",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Customer VIN",
