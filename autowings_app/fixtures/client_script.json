@@ -2,6 +2,17 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 1,
+  "modified": "2025-05-29 11:29:23.697033",
+  "module": null,
+  "name": "customer mobile no dup",
+  "script": "// frappe.ui.form.on('Customer', {\n//     validate: function(frm) {\n//         if (frm.doc.mobile_no) {\n//             frappe.call({\n//                 method: \"frappe.client.get_list\",\n//                 args: {\n//                     doctype: \"Customer\",\n//                     filters: {\n//                         mobile_no: frm.doc.mobile_no,\n//                         name: [\"!=\", frm.doc.name]\n//                     },\n//                     limit_page_length: 1\n//                 },\n//                 async: false,  // important to block save\n//                 callback: function(r) {\n//                     if (r.message && r.message.length > 0) {\n//                         frappe.throw(__('A customer with this mobile number already exists: {0}', [r.message[0].name]));\n//                     }\n//                 }\n//             });\n//         }\n//     }\n// });\n\nfrappe.ui.form.on('Customer VIN', {\n    view_details: function(frm, cdt, cdn) {\n        // Get the child table row data\n        let row = locals[cdt][cdn];\n\n        // Check if chassis_number exists\n        if (row.chassis_number) {\n            // Redirect to the Customer VIN form view for the specific chassis_number\n            frappe.set_route('Form', 'serial-no', row.chassis_number);\n        } else {\n            frappe.msgprint(__('Chassis Number is not set in this Customer VIN record.'));\n        }\n    }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "RTO Registration",
   "enabled": 0,
   "modified": "2025-05-15 16:52:55.259804",

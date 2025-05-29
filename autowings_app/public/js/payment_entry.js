@@ -206,74 +206,79 @@ frappe.ui.form.on("Payment Entry Reference", {
     }
 });
 
-frappe.ui.form.on("Payment Entry", {
-    get_outstanding_documents: function(frm, filters, get_outstanding_invoices, get_orders_to_be_billed) {
-        try {
-            console.log("Custom get_outstanding_documents triggered");
-            frappe.call({
-                method: "erpnext.accounts.doctype.payment_entry.payment_entry.get_outstanding_reference_documents",
-                args: {
-                    args: {
-                        posting_date: frm.doc.posting_date,
-                        company: frm.doc.company,
-                        party_type: frm.doc.party_type,
-                        payment_type: frm.doc.payment_type,
-                        party: frm.doc.party,
-                        party_account: frm.doc.payment_type == "Receive" ? frm.doc.paid_from : frm.doc.paid_to,
-                        cost_center: frm.doc.cost_center,
-                        get_outstanding_invoices: get_outstanding_invoices || false,
-                        get_orders_to_be_billed: get_orders_to_be_billed || false,
-                        book_advance_payments_in_separate_party_account: frm.doc.book_advance_payments_in_separate_party_account || false
-                    }
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frm.clear_table("references");
-                        $.each(r.message, function(i, d) {
-                            var c = frm.add_child("references");
-                            c.reference_doctype = d.voucher_type;
-                            c.reference_name = d.voucher_no;
-                            c.due_date = d.due_date;
-                            c.total_amount = d.invoice_amount;
-                            c.outstanding_amount = d.outstanding_amount;
-                            c.bill_no = d.bill_no;
-                            c.payment_term = d.payment_term;
-                            c.payment_term_outstanding = d.payment_term_outstanding;
-                            c.allocated_amount = d.allocated_amount;
-                            c.account = d.account;
+// frappe.ui.form.on("Payment Entry", {
+//     get_outstanding_documents: function(frm, filters, get_outstanding_invoices, get_orders_to_be_billed) {
+//         try {
+//             console.log("Custom get_outstanding_documents triggered");
+//             frappe.call({
+//                 method: "erpnext.accounts.doctype.payment_entry.payment_entry.get_outstanding_reference_documents",
+//                 args: {
+//                     args: {
+//                         posting_date: frm.doc.posting_date,
+//                         company: frm.doc.company,
+//                         party_type: frm.doc.party_type,
+//                         payment_type: frm.doc.payment_type,
+//                         party: frm.doc.party,
+//                         party_account: frm.doc.payment_type == "Receive" ? frm.doc.paid_from : frm.doc.paid_to,
+//                         cost_center: frm.doc.cost_center,
+//                         get_outstanding_invoices: get_outstanding_invoices || false,
+//                         get_orders_to_be_billed: get_orders_to_be_billed || false,
+//                         book_advance_payments_in_separate_party_account: frm.doc.book_advance_payments_in_separate_party_account || false
+//                     }
+//                 },
+//                 callback: function(r) {
+//                     if (r.message) {
+//                         frm.clear_table("references");
+//                         $.each(r.message, function(i, d) {
+//                             var c = frm.add_child("references");
+//                             c.reference_doctype = d.voucher_type;
+//                             c.reference_name = d.voucher_no;
+//                             c.due_date = d.due_date;
+//                             c.total_amount = d.invoice_amount;
+//                             c.outstanding_amount = d.outstanding_amount;
+//                             c.bill_no = d.bill_no;
+//                             c.payment_term = d.payment_term;
+//                             c.payment_term_outstanding = d.payment_term_outstanding;
+//                             c.allocated_amount = d.allocated_amount;
+//                             c.account = d.account;
 
-                            // Trigger reference_name to populate custom_party_name
-                            frm.script_manager.trigger("reference_name", c.doctype, c.name);
-                        });
-                        frm.refresh_field("references");
-                    } else {
-                        console.warn("No outstanding documents returned");
-                        frappe.msgprint({
-                            title: __('Warning'),
-                            message: __('No outstanding documents found.'),
-                            indicator: 'orange'
-                        });
-                    }
-                },
-                error: function(err) {
-                    console.error("Error in get_outstanding_documents:", err);
-                    frappe.msgprint({
-                        title: __('Error'),
-                        message: __('Error fetching outstanding documents. Please check server logs.'),
-                        indicator: 'red'
-                    });
-                }
-            });
-        } catch (err) {
-            console.error('Error in get_outstanding_documents handler:', err);
-            frappe.msgprint({
-                title: __('Error'),
-                message: __('An error occurred while fetching outstanding documents. Please check the console.'),
-                indicator: 'red'
-            });
-        }
-    }
-});
+//                             // Trigger reference_name to populate custom_party_name
+//                             frm.script_manager.trigger("reference_name", c.doctype, c.name);
+//                         });
+//                         frm.refresh_field("references");
+//                     } else {
+//                         console.warn("No outstanding documents returned");
+//                         frappe.msgprint({
+//                             title: __('Warning'),
+//                             message: __('No outstanding documents found.'),
+//                             indicator: 'orange'
+//                         });
+//                     }
+//                 },
+//                 error: function(err) {
+//                     console.error("Error in get_outstanding_documents:", err);
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: __('Error fetching outstanding documents. Please check server logs.'),
+//                         indicator: 'red'
+//                     });
+//                 }
+//             });
+//         } catch (err) {
+//             console.error('Error in get_outstanding_documents handler:', err);
+//             frappe.msgprint({
+//                 title: __('Error'),
+//                 message: __('An error occurred while fetching outstanding documents. Please check the console.'),
+//                 indicator: 'red'
+//             });
+//         }
+//     }
+// });
+
+
+
+
+// -------##########################-----------------------------
 
 // frappe.ui.form.on("Payment Entry", {
 //     party: function(frm) {
