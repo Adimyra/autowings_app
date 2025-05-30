@@ -367,7 +367,7 @@ frappe.ui.form.on('Serial No', {
 
                             // Initialize modal content with VSM and Vehicle Information
                             let modal_content = `
-                                <div class="vsm-modal-container flex flex-col w-full p-6 bg-white rounded-lg shadow-lg">
+<div class="vsm-details-modal-content flex flex-col w-4/5 mx-auto">
                                     <div class="vsm-section mb-6">
                                         <h2 class="text-2xl font-bold text-gray-800 mb-4">Vehicle Sales Master Details</h2>
                                         <div class="grid grid-cols-1 gap-2">
@@ -776,7 +776,7 @@ frappe.ui.form.on('Serial No', {
                                 }
 
                                 function showModal() {
-                                    modal_content += '</div>'; // Close vsm-modal-container
+                                    modal_content += '</div>'; // Close vsm-details-modal-container
 
                                     // Display warnings if any
                                     if (warnings.length > 0) {
@@ -795,7 +795,7 @@ frappe.ui.form.on('Serial No', {
                                                 fieldtype: 'HTML',
                                                 options: `
                                                     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-                                                    <div class="vsm-modal-content flex flex-col w-full" style="font-family: Arial, sans-serif;">${modal_content}</div>
+                                                    <div class="vsm-details-modal-content flex flex-col w-full" style="font-family: Arial, sans-serif;">${modal_content}</div>
                                                 `
                                             }
                                         ],
@@ -804,6 +804,7 @@ frappe.ui.form.on('Serial No', {
                                             dialog.hide();
                                         }
                                     });
+                                    dialog.$wrapper.find('.modal-dialog').addClass('w-full max-w-full flex');
                                     dialog.show();
                                 }
                             }
@@ -812,7 +813,7 @@ frappe.ui.form.on('Serial No', {
                             warnings.push(__('Failed to fetch Sales Invoice details.'));
                             // Display modal with VSM data only
                             modal_content = `
-                                <div class="vsm-modal-container flex flex-col w-full p-6 bg-white rounded-lg shadow-lg">
+                                <div class="vsm-details-modal-container flex flex-col w-full p-6 bg-white rounded-lg shadow-lg">
                                     <div class="vsm-section mb-6">
                                         <h2 class="text-2xl font-bold text-gray-800 mb-4">Vehicle Sales Master Details</h2>
                                         <div class="grid grid-cols-1 gap-2">
@@ -910,7 +911,7 @@ frappe.ui.form.on('Serial No', {
                                         fieldtype: 'HTML',
                                         options: `
                                             <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-                                            <div class="vsm-modal-content flex flex-col w-full" style="font-family: Arial, sans-serif;">${modal_content}</div>
+                                            <div class="vsm-details-modal-content flex flex-col w-full" style="font-family: Arial, sans-serif;">${modal_content}</div>
                                         `
                                     }
                                 ],
@@ -919,6 +920,7 @@ frappe.ui.form.on('Serial No', {
                                     dialog.hide();
                                 }
                             });
+                            dialog.$wrapper.find('.modal-dialog').addClass('w-full max-w-full flex');
                             dialog.show();
                         }
                     });
