@@ -1,0 +1,38 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-30 15:10:07.770056",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_issue",
+  "supervisor_review"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer_issue",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Issue"
+  },
+  {
+   "fieldname": "supervisor_review",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Supervisor Review"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-30 15:10:35.757699",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Vehicle Issues",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

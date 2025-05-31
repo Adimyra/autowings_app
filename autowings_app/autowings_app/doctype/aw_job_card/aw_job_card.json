@@ -7,17 +7,20 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
-  "employee",
-  "customer",
   "chassis_number",
+  "customer",
   "column_break_4",
   "posting_date",
   "company",
+  "employee",
   "scheduled_time_section",
   "expected_start_date",
   "time_required",
   "column_break_jkir",
   "expected_end_date",
+  "fuel_in_vehicle",
+  "section_break_wyfc",
+  "issues",
   "section_break_05am",
   "scheduled_time_logs",
   "timing_detail",
@@ -27,54 +30,19 @@
   "total_time_in_mins",
   "column_break_15",
   "actual_end_date",
-  "production_section",
-  "operation",
-  "wip_warehouse",
-  "column_break_12",
-  "workstation_type",
-  "workstation",
-  "quality_inspection_section",
-  "quality_inspection_template",
-  "column_break_fcmp",
-  "quality_inspection",
-  "section_break_21",
-  "sub_operations",
   "section_break_8",
   "items",
   "scrap_items_section",
   "scrap_items",
-  "corrective_operation_section",
-  "for_job_card",
-  "is_corrective_job_card",
-  "column_break_33",
-  "hour_rate",
-  "for_operation",
-  "more_information",
-  "project",
-  "item_name",
-  "transferred_qty",
-  "requested_qty",
-  "status",
-  "column_break_20",
-  "operation_row_number",
-  "operation_id",
-  "sequence_id",
-  "remarks",
-  "serial_and_batch_bundle",
-  "batch_no",
-  "serial_no",
-  "barcode",
-  "job_started",
-  "started_time",
-  "current_time",
-  "amended_from",
-  "connections_tab"
+  "connections_tab",
+  "amended_from"
  ],
  "fields": [
   {
    "default": "PO-JOB.#####",
    "fieldname": "naming_series",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Naming Series",
    "options": "PO-JOB.#####",
    "reqd": 1
@@ -98,6 +66,7 @@
   {
    "fieldname": "company",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Company",
    "options": "Company",
    "reqd": 1
@@ -177,82 +146,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "production_section",
-   "fieldtype": "Tab Break",
-   "label": "Operation & Workstation"
-  },
-  {
-   "fieldname": "operation",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Operation",
-   "options": "Operation",
-   "reqd": 1
-  },
-  {
-   "fieldname": "wip_warehouse",
-   "fieldtype": "Link",
-   "label": "WIP Warehouse",
-   "options": "Warehouse",
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_12",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "workstation_type",
-   "fieldtype": "Link",
-   "label": "Workstation Type",
-   "options": "Workstation Type"
-  },
-  {
-   "fieldname": "workstation",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Workstation",
-   "options": "Workstation",
-   "reqd": 1
-  },
-  {
-   "fieldname": "quality_inspection_section",
-   "fieldtype": "Section Break",
-   "label": "Quality Inspection"
-  },
-  {
-   "fetch_from": "operation.quality_inspection_template",
-   "fieldname": "quality_inspection_template",
-   "fieldtype": "Link",
-   "label": "Quality Inspection Template",
-   "options": "Quality Inspection Template"
-  },
-  {
-   "fieldname": "column_break_fcmp",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:!doc.__islocal;",
-   "fieldname": "quality_inspection",
-   "fieldtype": "Link",
-   "label": "Quality Inspection",
-   "no_copy": 1,
-   "options": "Quality Inspection"
-  },
-  {
-   "fieldname": "section_break_21",
-   "fieldtype": "Tab Break",
-   "hide_border": 1,
-   "label": "Sub Operations"
-  },
-  {
-   "allow_bulk_edit": 1,
-   "fieldname": "sub_operations",
-   "fieldtype": "Table",
-   "label": "Sub Operations",
-   "options": "Job Card Operation",
-   "read_only": 1
-  },
-  {
    "fieldname": "section_break_8",
    "fieldtype": "Tab Break",
    "label": "Raw Materials"
@@ -278,196 +171,13 @@
    "print_hide": 1
   },
   {
-   "collapsible": 1,
-   "depends_on": "is_corrective_job_card",
-   "fieldname": "corrective_operation_section",
-   "fieldtype": "Tab Break",
-   "label": "Corrective Operation"
-  },
-  {
-   "fieldname": "for_job_card",
-   "fieldtype": "Link",
-   "label": "For Job Card",
-   "options": "Job Card",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "is_corrective_job_card",
-   "fieldtype": "Check",
-   "label": "Is Corrective Job Card",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_33",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "is_corrective_job_card",
-   "fieldname": "hour_rate",
-   "fieldtype": "Currency",
-   "label": "Hour Rate"
-  },
-  {
-   "fetch_from": "for_job_card.operation",
-   "fetch_if_empty": 1,
-   "fieldname": "for_operation",
-   "fieldtype": "Link",
-   "label": "For Operation",
-   "options": "Operation"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "more_information",
-   "fieldtype": "Tab Break",
-   "label": "More Information"
-  },
-  {
-   "fieldname": "project",
-   "fieldtype": "Link",
-   "label": "Project",
-   "options": "Project"
-  },
-  {
-   "fetch_from": "production_item.item_name",
-   "fetch_if_empty": 1,
-   "fieldname": "item_name",
-   "fieldtype": "Read Only",
-   "label": "Item Name"
-  },
-  {
-   "default": "0",
-   "fieldname": "transferred_qty",
-   "fieldtype": "Float",
-   "label": "FG Qty from Transferred Raw Materials",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "requested_qty",
-   "fieldtype": "Float",
-   "label": "Requested Qty",
-   "read_only": 1
-  },
-  {
-   "default": "Open",
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Status",
-   "no_copy": 1,
-   "options": "Open\nWork In Progress\nMaterial Transferred\nOn Hold\nSubmitted\nCancelled\nCompleted",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_20",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "operation_row_number",
-   "fieldtype": "Select",
-   "label": "Operation Row Number"
-  },
-  {
-   "fieldname": "operation_id",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Operation ID",
-   "read_only": 1
-  },
-  {
-   "fieldname": "sequence_id",
-   "fieldtype": "Int",
-   "label": "Sequence Id",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "remarks",
-   "fieldtype": "Small Text",
-   "label": "Remarks"
-  },
-  {
-   "fieldname": "serial_and_batch_bundle",
-   "fieldtype": "Link",
-   "label": "Serial and Batch Bundle",
-   "no_copy": 1,
-   "options": "Serial and Batch Bundle",
-   "print_hide": 1
-  },
-  {
-   "fieldname": "batch_no",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "Batch No",
-   "options": "Batch",
-   "read_only": 1
-  },
-  {
-   "fieldname": "serial_no",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Serial No",
-   "read_only": 1
-  },
-  {
-   "fieldname": "barcode",
-   "fieldtype": "Barcode",
-   "label": "Barcode",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "job_started",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Job Started",
-   "no_copy": 1,
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "started_time",
-   "fieldtype": "Datetime",
-   "hidden": 1,
-   "label": "Started Time",
-   "no_copy": 1,
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "current_time",
-   "fieldtype": "Int",
-   "hidden": 1,
-   "label": "Current Time",
-   "no_copy": 1,
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Job Card",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
    "fieldname": "connections_tab",
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
   },
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Job Card",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
+   "fetch_from": "chassis_number.custom_customer_id",
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
@@ -478,11 +188,36 @@
    "fieldtype": "Link",
    "label": "Chassis Number",
    "options": "Serial No"
+  },
+  {
+   "fieldname": "section_break_wyfc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "issues",
+   "fieldtype": "Table",
+   "label": "Issues",
+   "options": "Vehicle Issues"
+  },
+  {
+   "fieldname": "fuel_in_vehicle",
+   "fieldtype": "Int",
+   "label": "Fuel in Vehicle"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "AW Job Card",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-30 10:33:42.235062",
+ "modified": "2025-05-30 15:21:32.415711",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "AW Job Card",
@@ -561,6 +296,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "operation",
  "track_changes": 1
 }
