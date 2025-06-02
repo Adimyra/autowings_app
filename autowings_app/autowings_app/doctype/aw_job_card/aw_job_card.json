@@ -12,7 +12,6 @@
   "column_break_4",
   "posting_date",
   "company",
-  "employee",
   "scheduled_time_section",
   "expected_start_date",
   "time_required",
@@ -32,10 +31,12 @@
   "actual_end_date",
   "section_break_8",
   "items",
-  "scrap_items_section",
-  "scrap_items",
+  "items_return_tab",
+  "return_items",
   "connections_tab",
-  "amended_from"
+  "amended_from",
+  "scrap_items_section",
+  "scrap_items"
  ],
  "fields": [
   {
@@ -46,12 +47,6 @@
    "label": "Naming Series",
    "options": "PO-JOB.#####",
    "reqd": 1
-  },
-  {
-   "fieldname": "employee",
-   "fieldtype": "Table MultiSelect",
-   "label": "Employee",
-   "options": "Job Card Time Log"
   },
   {
    "fieldname": "column_break_4",
@@ -148,7 +143,7 @@
   {
    "fieldname": "section_break_8",
    "fieldtype": "Tab Break",
-   "label": "Raw Materials"
+   "label": "Items Issued"
   },
   {
    "fieldname": "items",
@@ -213,11 +208,21 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "items_return_tab",
+   "fieldtype": "Tab Break",
+   "label": "Items Return"
+  },
+  {
+   "fieldname": "return_items",
+   "fieldtype": "Table",
+   "label": "Return Items",
+   "options": "Job Card Item"
   }
  ],
- "is_submittable": 1,
  "links": [],
- "modified": "2025-05-30 15:21:32.415711",
+ "modified": "2025-06-02 16:41:25.240785",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "AW Job Card",
@@ -225,8 +230,6 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "amend": 1,
-   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -236,37 +239,6 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "amend": 1,
-   "cancel": 1,
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Manufacturing User",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "amend": 1,
-   "cancel": 1,
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Manufacturing Manager",
-   "share": 1,
-   "submit": 1,
    "write": 1
   },
   {

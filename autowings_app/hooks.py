@@ -13,7 +13,8 @@ app_include_js = [
     "/assets/autowings_app/js/lib/chart.min.js",
     "/assets/autowings_app/js/rto_registration_list.js",
     "/assets/autowings_app/js/serial_no.js",
-    "/assets/autowings_app/js/customer.js"
+    "/assets/autowings_app/js/customer.js",
+    "/assets/autowings_app/js/delivery_note.js"
 
 
     # "/assets/autowings_app/js/firebase_auth.js"

@@ -78,6 +78,8 @@
 
 #     return "Success"
 
+# -------------------------------
+
 import frappe
 
 def before_save(doc, method):
@@ -163,5 +165,9 @@ def update_vehicle_sales_master_from_delivery_note(delivery_note):
                 vsm_doc.save()
                 frappe.db.commit()
 
-    frappe.msgprint("Vehicle Sales Master has been updated successfully.")
+    # frappe.msgprint("Vehicle Sales Master has been updated successfully.")
     return "Success"
+
+
+
+# .....
