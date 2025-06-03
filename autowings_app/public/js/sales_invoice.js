@@ -711,7 +711,6 @@ function populate_vin_table(frm) {
 //         frm.trigger('onload');
 //     }
 // });
-
 frappe.ui.form.on('Sales Invoice', {
     onload: function(frm) {
         // Function to toggle the custom button visibility
@@ -729,7 +728,7 @@ frappe.ui.form.on('Sales Invoice', {
                     }
 
                     // Check if items exist
-                    if (!frm.doc.items || frm.doc.items.length === 0) {
+                    if (!frm.doc.items || frm.doc.items.length ===calaureate0) {
                         frappe.msgprint(__('No items found to update.'));
                         return;
                     }
@@ -748,26 +747,59 @@ frappe.ui.form.on('Sales Invoice', {
                                 // Iterate through items
                                 frm.doc.items.forEach(function(item, index) {
                                     if (item.item_code) {
+                                        // Fetch item details
                                         frappe.call({
                                             method: 'frappe.client.get',
                                             args: {
                                                 doctype: 'Item',
                                                 name: item.item_code
                                             },
-                                            callback: function(response) {
-                                                if (response.message) {
-                                                    let item_doc = response.message;
+                                            callback: function(item_response) {
+                                                if (item_response.message) {
+                                                    let item_doc = item_response.message;
                                                     let row = frm.doc.items[index];
-                                                    
+
                                                     // Update item details
                                                     row.item_name = item_doc.item_name || row.item_code;
                                                     row.uom = item_doc.stock_uom || 'Nos';
                                                     row.stock_uom = item_doc.stock_uom || 'Nos';
                                                     row.conversion_factor = 1;
-                                                    row.income_account = 'Sales - ' + company_abbr; // Set income_account to "Sales - ZV"
-                                                    
-                                                    // Refresh the items table
-                                                    frm.refresh_field('items');
+                                                    row.income_account = 'Sales - ' + company_abbr;
+
+                                                    // Fetch item rate from Item Price or fallback to Item's standard_rate
+                                                    frappe.call({
+                                                        method: 'frappe.client.get_list',
+                                                        args: {
+                                                            doctype: 'Item Price',
+                                                            filters: {
+                                                                item_code: item.item_code,
+                                                                selling: 1,
+                                                                price_list: frm.doc.selling_price_list || 'Standard Selling'
+                                                            },
+                                                            fields: ['price_list_rate'],
+                                                            limit: 1
+                                                        },
+                                                        callback: function(price_response) {
+                                                            if (price_response.message && price_response.message.length > 0) {
+                                                                row.rate = price_response.message[0].price_list_rate;
+                                                            } else {
+                                                                // Fallback to standard_rate from Item if no Item Price found
+                                                                row.rate = item_doc.standard_rate || 0;
+                                                            }
+
+                                                            // Refresh the items table
+                                                            frm.refresh_field('items');
+
+                                                            // Recalculate totals after updating rates
+                                                            frm.script_manager.trigger('rate', row.doctype, row.name);
+                                                        },
+                                                        error: function(err) {
+                                                            frappe.msgprint(__('Error fetching price for item {0}. Using standard rate.', [item.item_code]));
+                                                            row.rate = item_doc.standard_rate || 0;
+                                                            frm.refresh_field('items');
+                                                            frm.script_manager.trigger('rate', row.doctype, row.name);
+                                                        }
+                                                    });
                                                 } else {
                                                     frappe.msgprint(__('Item {0} not found.', [item.item_code]));
                                                 }
@@ -779,7 +811,7 @@ frappe.ui.form.on('Sales Invoice', {
                                     }
                                 });
 
-                                // Show success message
+                                // Show success message after all items are processed
                                 frappe.msgprint(__('Item details updated successfully.'));
                             } else {
                                 frappe.msgprint(__('Company {0} not found.', [frm.doc.company]));
@@ -806,10 +838,108 @@ frappe.ui.form.on('Sales Invoice', {
         });
     },
     custom_sale_type: function(frm) {
-        // Trigger toggle function when custom_sale_type changes (alternative to $input.on('change'))
+        // Trigger toggle function when custom_sale_type changes
         frm.trigger('onload');
     }
 });
+// frappe.ui.form.on('Sales Invoice', {
+//     onload: function(frm) {
+//         // Function to toggle the custom button visibility
+//         function toggleUpdateItemsButton() {
+//             // Remove existing button if present
+//             frm.remove_custom_button(__('Update Items'));
+
+//             // Show button only if custom_sale_type is not "Vehicle" and docstatus is 0
+//             if (frm.doc.custom_sale_type !== 'Vehicle' && frm.doc.docstatus === 0) {
+//                 frm.add_custom_button(__('Update Items'), function() {
+//                     // Check if document is not submitted (docstatus === 0)
+//                     if (frm.doc.docstatus !== 0) {
+//                         frappe.msgprint(__('This action is only available for unsubmitted documents.'));
+//                         return;
+//                     }
+
+//                     // Check if items exist
+//                     if (!frm.doc.items || frm.doc.items.length === 0) {
+//                         frappe.msgprint(__('No items found to update.'));
+//                         return;
+//                     }
+
+//                     // Fetch the company document to get the abbr field
+//                     frappe.call({
+//                         method: 'frappe.client.get',
+//                         args: {
+//                             doctype: 'Company',
+//                             name: frm.doc.company
+//                         },
+//                         callback: function(company_response) {
+//                             if (company_response.message) {
+//                                 let company_abbr = company_response.message.abbr || 'ZV'; // Fallback to 'ZV' if abbr is not found
+
+//                                 // Iterate through items
+//                                 frm.doc.items.forEach(function(item, index) {
+//                                     if (item.item_code) {
+//                                         frappe.call({
+//                                             method: 'frappe.client.get',
+//                                             args: {
+//                                                 doctype: 'Item',
+//                                                 name: item.item_code
+//                                             },
+//                                             callback: function(response) {
+//                                                 if (response.message) {
+//                                                     let item_doc = response.message;
+//                                                     let row = frm.doc.items[index];
+                                                    
+//                                                     // Update item details
+//                                                     row.item_name = item_doc.item_name || row.item_code;
+//                                                     row.uom = item_doc.stock_uom || 'Nos';
+//                                                     row.stock_uom = item_doc.stock_uom || 'Nos';
+//                                                     row.conversion_factor = 1;
+//                                                     row.income_account = 'Sales - ' + company_abbr; // Set income_account to "Sales - ZV"
+                                                    
+//                                                     // Refresh the items table
+//                                                     frm.refresh_field('items');
+//                                                 } else {
+//                                                     frappe.msgprint(__('Item {0} not found.', [item.item_code]));
+//                                                 }
+//                                             },
+//                                             error: function(err) {
+//                                                 frappe.msgprint(__('Error fetching details for item {0}.', [item.item_code]));
+//                                             }
+//                                         });
+//                                     }
+//                                 });
+
+//                                 // Show success message
+//                                 frappe.msgprint(__('Item details updated successfully.'));
+//                             } else {
+//                                 frappe.msgprint(__('Company {0} not found.', [frm.doc.company]));
+//                             }
+//                         },
+//                         error: function(err) {
+//                             frappe.msgprint(__('Error fetching company details for {0}.', [frm.doc.company]));
+//                         }
+//                     });
+//                 }).addClass("btn btn-secondary").css({
+//                     "background-color": "#6c757d",
+//                     "color": "white",
+//                     "font-weight": "bold"
+//                 });
+//             }
+//         }
+
+//         // Call toggle function on load
+//         toggleUpdateItemsButton();
+
+//         // Watch for changes in custom_sale_type field
+//         frm.fields_dict['custom_sale_type'].$input.on('change', function() {
+//             toggleUpdateItemsButton();
+//         });
+//     },
+//     custom_sale_type: function(frm) {
+//         // Trigger toggle function when custom_sale_type changes (alternative to $input.on('change'))
+//         frm.trigger('onload');
+//     }
+// });
 
 // for checkbox rsa and extended warranty applied
 frappe.ui.form.on("Sales Invoice", {
