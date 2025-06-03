@@ -15,6 +15,8 @@ app_include_js = [
     "/assets/autowings_app/js/serial_no.js",
     "/assets/autowings_app/js/customer.js",
     "/assets/autowings_app/js/delivery_note.js"
+    # add jounral entry js file
+    "/assets/autowings_app/js/journal_entry.js",
 
 
     # "/assets/autowings_app/js/firebase_auth.js"
@@ -41,7 +43,9 @@ doctype_js = {
     "Supplier": "public/js/supplier.js",
     "Payment Entry": "public/js/payment_entry.js",
     "Serial No": "public/js/serial_no.js",
-    "Customer": "public/js/customer.js"
+    "Customer": "public/js/customer.js",
+    # add journal entry js file
+    "Journal Entry": "public/js/journal_entry.js",
 
 
 

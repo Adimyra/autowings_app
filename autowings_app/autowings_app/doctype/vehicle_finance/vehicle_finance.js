@@ -939,6 +939,169 @@ function show_update_finance_dialog(frm) {
     }
 }
 
+// // Update journal
+// function update_journal(frm, new_amount, dialog, has_changes) {
+//     try {
+//         frappe.call({
+//             method: 'autowings_app.custom_scripts.utils.get_company_abbr',
+//             callback: function(r) {
+//                 if (!r.exc && r.message) {
+//                     let company_abbr = r.message;
+//                     let accounts_to_validate = [
+//                         frm.doc.finance_provider,
+//                         'Debtors'
+//                     ];
+
+//                     frappe.call({
+//                         method: 'autowings_app.custom_scripts.utils.validate_accounts',
+//                         args: {
+//                             accounts: accounts_to_validate,
+//                             company: frm.doc.company || 'Autowings'
+//                         },
+//                         callback: function(r) {
+//                             if (!r.exc && r.message) {
+//                                 let promises = [];
+
+//                                 if (frm.doc.journal_entry_id) {
+//                                     promises.push(
+//                                         frappe.db.get_doc('Journal Entry', frm.doc.journal_entry_id)
+//                                             .then(journal => {
+//                                                 if (journal.docstatus !== 0) {
+//                                                     throw new Error('Journal Entry is not in Draft status');
+//                                                 }
+//                                                 update_journal_entry(frm, journal, new_amount, company_abbr);
+//                                                 return frappe.call({
+//                                                     method: 'frappe.client.save',
+//                                                     args: { doc: journal }
+//                                                 });
+//                                             })
+//                                             .catch(err => {
+//                                                 throw new Error('Error updating journal: ' + err.message);
+//                                             })
+//                                     );
+//                                 }
+
+//                                 Promise.all(promises)
+//                                     .then(() => {
+//                                         if (has_changes) {
+//                                             log_finance_activity(frm, 'Updated Finance Details', 'Journal Updated', 'Journal updated');
+//                                         }
+//                                         finalize_update(frm, dialog, has_changes);
+//                                     })
+//                                     .catch(err => {
+//                                         log_finance_activity(frm, 'Updated Finance Details', 'Journal Update Failed', 'Error updating journal');
+//                                         frappe.msgprint({
+//                                             title: __('Error'),
+//                                             message: err.message || 'Error updating journal',
+//                                             indicator: 'red'
+//                                         });
+//                                         dialog.hide();
+//                                     });
+//                             } else {
+//                                 log_finance_activity(frm, 'Updated Finance Details', 'Account Validation Failed', 'Invalid accounts');
+//                                 frappe.msgprint({
+//                                     title: __('Validation Error'),
+//                                     message: 'One or more accounts are invalid',
+//                                     indicator: 'red'
+//                                 });
+//                                 dialog.hide();
+//                             }
+//                         },
+//                         error: function(err) {
+//                             log_finance_activity(frm, 'Updated Finance Details', 'Account Validation Failed', 'Error validating accounts');
+//                             frappe.msgprint({
+//                                 title: __('Error'),
+//                                 message: 'Error validating accounts: ' + (err.message || 'Unknown error'),
+//                                 indicator: 'red'
+//                             });
+//                             dialog.hide();
+//                         }
+//                     });
+//                 } else {
+//                     log_finance_activity(frm, 'Updated Finance Details', 'Company Abbreviation Fetch Failed', 'Failed to fetch company abbreviation');
+//                     frappe.msgprint({
+//                         title: __('Error'),
+//                         message: 'Error fetching company abbreviation',
+//                         indicator: 'red'
+//                     });
+//                     dialog.hide();
+//                 }
+//             },
+//             error: function(err) {
+//                 log_finance_activity(frm, 'Updated Finance Details', 'Company Abbreviation Fetch Failed', 'Error fetching company abbreviation');
+//                 frappe.msgprint({
+//                     title: __('Error'),
+//                     message: 'Error fetching company abbreviation: ' + (err.message || 'Unknown error'),
+//                     indicator: 'red'
+//                 });
+//                 dialog.hide();
+//             }
+//         });
+//     } catch (e) {
+//         log_finance_activity(frm, 'Updated Finance Details', 'Journal Update Failed', 'Error updating journal');
+//         frappe.msgprint({
+//             title: __('Error'),
+//             message: 'Error updating journal: ' + e.message,
+//             indicator: 'red'
+//         });
+//         dialog.hide();
+//     }
+// }
+
+// // Update journal entry
+// function update_journal_entry(frm, journal, new_amount, company_abbr) {
+//     try {
+//         let financerAccount = journal.accounts.find(acc => 
+//             acc.account === `${frm.doc.finance_provider} Receivable - ${company_abbr}` && 
+//             acc.debit_in_account_currency > 0 &&
+//             acc.against_account.includes(frm.doc.customer)
+//         );
+//         let debtorAccount = journal.accounts.find(acc => 
+//             acc.account === `Debtors - ${company_abbr}` && 
+//             acc.credit_in_account_currency > 0
+//         );
+
+//         if (financerAccount && debtorAccount) {
+//             financerAccount.debit_in_account_currency = new_amount;
+//             financerAccount.debit = new_amount;
+//             debtorAccount.credit_in_account_currency = new_amount;
+//             debtorAccount.credit = new_amount;
+//         } else {
+//             journal.accounts = [
+//                 {
+//                     account: `${frm.doc.finance_provider} Receivable - ${company_abbr}`,
+//                     party_type: 'Customer',
+//                     party: frm.doc.finance_provider,
+//                     debit_in_account_currency: new_amount,
+//                     debit: new_amount,
+//                     credit_in_account_currency: 0,
+//                     credit: 0,
+//                     cost_center: `Main - ${company_abbr}`,
+//                     against_account: frm.doc.customer
+//                 },
+//                 {
+//                     account: `Debtors - ${company_abbr}`,
+//                     party_type: 'Customer',
+//                     party: frm.doc.customer,
+//                     debit_in_account_currency: 0,
+//                     debit: 0,
+//                     credit_in_account_currency: new_amount,
+//                     credit: new_amount,
+//                     cost_center: `Main - ${company_abbr}`,
+//                     against_account: frm.doc.finance_provider,
+//                     reference_type: "Sales Invoice",
+//                     reference_name: frm.doc.sales_invoice || ''
+//                 }
+//             ];
+//         }
+
+//         journal.total_debit = new_amount;
+//         journal.total_credit = new_amount;
+//         journal.total_amount = new_amount;
+//     } catch (e) {
+//         throw new Error('Error updating journal entry: ' + e.message);
+//     }
+// }
 // Update journal
 function update_journal(frm, new_amount, dialog, has_changes) {
     try {
@@ -1062,11 +1225,23 @@ function update_journal_entry(frm, journal, new_amount, company_abbr) {
         );
 
         if (financerAccount && debtorAccount) {
+            // Update existing financer account
             financerAccount.debit_in_account_currency = new_amount;
             financerAccount.debit = new_amount;
+            financerAccount.credit_in_account_currency = 0;
+            financerAccount.credit = 0;
+            financerAccount.against_account = frm.doc.customer;
+
+            // Update existing debtor account
             debtorAccount.credit_in_account_currency = new_amount;
             debtorAccount.credit = new_amount;
+            debtorAccount.debit_in_account_currency = 0;
+            debtorAccount.debit = 0;
+            debtorAccount.against_account = frm.doc.finance_provider;
+            debtorAccount.reference_type = "Sales Invoice";
+            debtorAccount.reference_name = frm.doc.sales_invoice || '';
         } else {
+            // Create new accounts if not found
             journal.accounts = [
                 {
                     account: `${frm.doc.finance_provider} Receivable - ${company_abbr}`,
@@ -1088,14 +1263,18 @@ function update_journal_entry(frm, journal, new_amount, company_abbr) {
                     credit_in_account_currency: new_amount,
                     credit: new_amount,
                     cost_center: `Main - ${company_abbr}`,
-                    against_account: frm.doc.finance_provider
+                    against_account: frm.doc.finance_provider,
+                    reference_type: "Sales Invoice",
+                    reference_name: frm.doc.sales_invoice || ''
                 }
             ];
         }
 
+        // Update journal totals and remark
         journal.total_debit = new_amount;
         journal.total_credit = new_amount;
         journal.total_amount = new_amount;
+        journal.remark = `₹ ${new_amount.toFixed(2)} against Sales Invoice ${frm.doc.sales_invoice || ''}`;
     } catch (e) {
         throw new Error('Error updating journal entry: ' + e.message);
     }
