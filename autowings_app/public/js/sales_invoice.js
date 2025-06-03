@@ -711,14 +711,16 @@ function populate_vin_table(frm) {
 //         frm.trigger('onload');
 //     }
 // });
+
 frappe.ui.form.on('Sales Invoice', {
     onload: function(frm) {
         // Function to toggle the custom button visibility
         function toggleUpdateItemsButton() {
-            // Remove existing button if present
+            // Remove existing button to prevent duplicates
             frm.remove_custom_button(__('Update Items'));
 
-            // Show button only if custom_sale_type is not "Vehicle" and docstatus is 0
+            // Show button if custom_sale_type is not "Vehicle" and docstatus is 0
+            // Treat null/undefined custom_sale_type as valid (not 'Vehicle')
             if (frm.doc.custom_sale_type !== 'Vehicle' && frm.doc.docstatus === 0) {
                 frm.add_custom_button(__('Update Items'), function() {
                     // Check if document is not submitted (docstatus === 0)
@@ -728,7 +730,7 @@ frappe.ui.form.on('Sales Invoice', {
                     }
 
                     // Check if items exist
-                    if (!frm.doc.items || frm.doc.items.length ===calaureate0) {
+                    if (!frm.doc.items || frm.doc.items.length === 0) {
                         frappe.msgprint(__('No items found to update.'));
                         return;
                     }
@@ -743,6 +745,8 @@ frappe.ui.form.on('Sales Invoice', {
                         callback: function(company_response) {
                             if (company_response.message) {
                                 let company_abbr = company_response.message.abbr || 'ZV'; // Fallback to 'ZV' if abbr is not found
+                                let processed_items = 0;
+                                let total_items = frm.doc.items.length;
 
                                 // Iterate through items
                                 frm.doc.items.forEach(function(item, index) {
@@ -766,7 +770,7 @@ frappe.ui.form.on('Sales Invoice', {
                                                     row.conversion_factor = 1;
                                                     row.income_account = 'Sales - ' + company_abbr;
 
-                                                    // Fetch item rate from Item Price or fallback to Item's standard_rate
+                                                    // Fetch item rate from Item Price
                                                     frappe.call({
                                                         method: 'frappe.client.get_list',
                                                         args: {
@@ -781,38 +785,70 @@ frappe.ui.form.on('Sales Invoice', {
                                                         },
                                                         callback: function(price_response) {
                                                             if (price_response.message && price_response.message.length > 0) {
-                                                                row.rate = price_response.message[0].price_list_rate;
+                                                                row.rate = flt(price_response.message[0].price_list_rate, 2);
                                                             } else {
-                                                                // Fallback to standard_rate from Item if no Item Price found
-                                                                row.rate = item_doc.standard_rate || 0;
+                                                                // Fallback to standard_rate from Item
+                                                                row.rate = flt(item_doc.standard_rate || 0, 2);
                                                             }
+
+                                                            // Recalculate amount (rate * qty)
+                                                            row.amount = flt(row.rate * row.qty, 2);
 
                                                             // Refresh the items table
                                                             frm.refresh_field('items');
 
-                                                            // Recalculate totals after updating rates
+                                                            // Trigger rate and amount updates
                                                             frm.script_manager.trigger('rate', row.doctype, row.name);
+                                                            frm.script_manager.trigger('qty', row.doctype, row.name);
+
+                                                            processed_items++;
+                                                            if (processed_items === total_items) {
+                                                                // Recalculate totals for the entire document
+                                                                frm.script_manager.trigger('calculate_taxes_and_totals');
+                                                                frappe.msgprint(__('Item details updated successfully.'));
+                                                            }
                                                         },
                                                         error: function(err) {
                                                             frappe.msgprint(__('Error fetching price for item {0}. Using standard rate.', [item.item_code]));
-                                                            row.rate = item_doc.standard_rate || 0;
+                                                            row.rate = flt(item_doc.standard_rate || 0, 2);
+                                                            row.amount = flt(row.rate * row.qty, 2);
                                                             frm.refresh_field('items');
                                                             frm.script_manager.trigger('rate', row.doctype, row.name);
+                                                            frm.script_manager.trigger('qty', row.doctype, row.name);
+
+                                                            processed_items++;
+                                                            if (processed_items === total_items) {
+                                                                frm.script_manager.trigger('calculate_taxes_and_totals');
+                                                                frappe.msgprint(__('Item details updated successfully.'));
+                                                            }
                                                         }
                                                     });
                                                 } else {
                                                     frappe.msgprint(__('Item {0} not found.', [item.item_code]));
+                                                    processed_items++;
+                                                    if (processed_items === total_items) {
+                                                        frm.script_manager.trigger('calculate_taxes_and_totals');
+                                                        frappe.msgprint(__('Item details updated successfully.'));
+                                                    }
                                                 }
                                             },
                                             error: function(err) {
                                                 frappe.msgprint(__('Error fetching details for item {0}.', [item.item_code]));
+                                                processed_items++;
+                                                if (processed_items === total_items) {
+                                                    frm.script_manager.trigger('calculate_taxes_and_totals');
+                                                    frappe.msgprint(__('Item details updated successfully.'));
+                                                }
                                             }
                                         });
+                                    } else {
+                                        processed_items++;
+                                        if (processed_items === total_items) {
+                                            frm.script_manager.trigger('calculate_taxes_and_totals');
+                                            frappe.msgprint(__('Item details updated successfully.'));
+                                        }
                                     }
                                 });
-
-                                // Show success message after all items are processed
-                                frappe.msgprint(__('Item details updated successfully.'));
                             } else {
                                 frappe.msgprint(__('Company {0} not found.', [frm.doc.company]));
                             }
@@ -836,12 +872,156 @@ frappe.ui.form.on('Sales Invoice', {
         frm.fields_dict['custom_sale_type'].$input.on('change', function() {
             toggleUpdateItemsButton();
         });
+
+        // Watch for changes in customer field
+        frm.fields_dict['customer'].$input.on('change', function() {
+            toggleUpdateItemsButton();
+        });
+
+        // Watch for changes in docstatus (e.g., on save or submit)
+        frm.on('refresh', function() {
+            toggleUpdateItemsButton();
+        });
     },
     custom_sale_type: function(frm) {
         // Trigger toggle function when custom_sale_type changes
-        frm.trigger('onload');
+        toggleUpdateItemsButton();
+    },
+    customer: function(frm) {
+        // Trigger toggle function when customer changes
+        toggleUpdateItemsButton();
     }
 });
+
+// Define toggleUpdateItemsButton globally to reuse in multiple triggers
+function toggleUpdateItemsButton(frm) {
+    // Remove existing button to prevent duplicates
+    frm.remove_custom_button(__('Update Items'));
+
+    // Show button if custom_sale_type is not "Vehicle" and docstatus is 0
+    if (frm.doc.custom_sale_type !== 'Vehicle' && frm.doc.docstatus === 0) {
+        frm.add_custom_button(__('Update Items'), function() {
+            // Same button logic as above (omitted for brevity, copy from onload if needed)
+            if (frm.doc.docstatus !== 0) {
+                frappe.msgprint(__('This action is only available for unsubmitted documents.'));
+                return;
+            }
+            if (!frm.doc.items || frm.doc.items.length === 0) {
+                frappe.msgprint(__('No items found to update.'));
+                return;
+            }
+            frappe.call({
+                method: 'frappe.client.get',
+                args: {
+                    doctype: 'Company',
+                    name: frm.doc.company
+                },
+                callback: function(company_response) {
+                    if (company_response.message) {
+                        let company_abbr = company_response.message.abbr || 'ZV';
+                        let processed_items = 0;
+                        let total_items = frm.doc.items.length;
+                        frm.doc.items.forEach(function(item, index) {
+                            if (item.item_code) {
+                                frappe.call({
+                                    method: 'frappe.client.get',
+                                    args: {
+                                        doctype: 'Item',
+                                        name: item.item_code
+                                    },
+                                    callback: function(item_response) {
+                                        if (item_response.message) {
+                                            let item_doc = item_response.message;
+                                            let row = frm.doc.items[index];
+                                            row.item_name = item_doc.item_name || row.item_code;
+                                            row.uom = item_doc.stock_uom || 'Nos';
+                                            row.stock_uom = item_doc.stock_uom || 'Nos';
+                                            row.conversion_factor = 1;
+                                            row.income_account = 'Sales - ' + company_abbr;
+                                            frappe.call({
+                                                method: 'frappe.client.get_list',
+                                                args: {
+                                                    doctype: 'Item Price',
+                                                    filters: {
+                                                        item_code: item.item_code,
+                                                        selling: 1,
+                                                        price_list: frm.doc.selling_price_list || 'Standard Selling'
+                                                    },
+                                                    fields: ['price_list_rate'],
+                                                    limit: 1
+                                                },
+                                                callback: function(price_response) {
+                                                    if (price_response.message && price_response.message.length > 0) {
+                                                        row.rate = flt(price_response.message[0].price_list_rate, 2);
+                                                    } else {
+                                                        row.rate = flt(item_doc.standard_rate || 0, 2);
+                                                    }
+                                                    row.amount = flt(row.rate * row.qty, 2);
+                                                    frm.refresh_field('items');
+                                                    frm.script_manager.trigger('rate', row.doctype, row.name);
+                                                    frm.script_manager.trigger('qty', row.doctype, row.name);
+                                                    processed_items++;
+                                                    if (processed_items === total_items) {
+                                                        frm.script_manager.trigger('calculate_taxes_and_totals');
+                                                        frappe.msgprint(__('Item details updated successfully.'));
+                                                    }
+                                                },
+                                                error: function(err) {
+                                                    frappe.msgprint(__('Error fetching price for item {0}. Using standard rate.', [item.item_code]));
+                                                    row.rate = flt(item_doc.standard_rate || 0, 2);
+                                                    row.amount = flt(row.rate * row.qty, 2);
+                                                    frm.refresh_field('items');
+                                                    frm.script_manager.trigger('rate', row.doctype, row.name);
+                                                    frm.script_manager.trigger('qty', row.doctype, row.name);
+                                                    processed_items++;
+                                                    if (processed_items === total_items) {
+                                                        frm.script_manager.trigger('calculate_taxes_and_totals');
+                                                        frappe.msgprint(__('Item details updated successfully.'));
+                                                    }
+                                                }
+                                            });
+                                        } else {
+                                            frappe.msgprint(__('Item {0} not found.', [item.item_code]));
+                                            processed_items++;
+                                            if (processed_items === total_items) {
+                                                frm.script_manager.trigger('calculate_taxes_and_totals');
+                                                frappe.msgprint(__('Item details updated successfully.'));
+                                            }
+                                        }
+                                    },
+                                    error: function(err) {
+                                        frappe.msgprint(__('Error fetching details for item {0}.', [item.item_code]));
+                                        processed_items++;
+                                        if (processed_items === total_items) {
+                                            frm.script_manager.trigger('calculate_taxes_and_totals');
+                                            frappe.msgprint(__('Item details updated successfully.'));
+                                        }
+                                    }
+                                });
+                            } else {
+                                processed_items++;
+                                if (processed_items === total_items) {
+                                    frm.script_manager.trigger('calculate_taxes_and_totals');
+                                    frappe.msgprint(__('Item details updated successfully.'));
+                                }
+                            }
+                        });
+                    } else {
+                        frappe.msgprint(__('Company {0} not found.', [frm.doc.company]));
+                    }
+                },
+                error: function(err) {
+                    frappe.msgprint(__('Error fetching company details for {0}.', [frm.doc.company]));
+                }
+            });
+        }).addClass("btn btn-secondary").css({
+            "background-color": "#6c757d",
+            "color": "white",
+            "font-weight": "bold"
+        });
+    }
+}
+
 // frappe.ui.form.on('Sales Invoice', {
 //     onload: function(frm) {
 //         // Function to toggle the custom button visibility
