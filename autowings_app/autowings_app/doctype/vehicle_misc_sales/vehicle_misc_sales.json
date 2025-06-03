@@ -51,7 +51,7 @@
    "fieldtype": "Table",
    "label": "Misc Accounts",
    "options": "Misc Journal vsm",
-   "read_only": 1
+   "read_only_depends_on": "eval: doc.status !== \"Due Update\""
   },
   {
    "fieldname": "column_break_pgff",
@@ -90,7 +90,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-14 00:43:00.681020",
+ "modified": "2025-06-03 12:14:41.027225",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Misc Sales",

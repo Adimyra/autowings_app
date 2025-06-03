@@ -1776,3 +1776,22 @@ frappe.ui.form.on("Vehicle Misc Sales", {
         }, __("Actions"));
     }
 });
+
+
+
+
+
+// --------refresh
+
+// frappe.ui.form.on('Vehicle Misc Sales', {
+//     refresh: function(frm) {
+//         // Prompt user to refresh if document has unsaved changes
+//         if (frm.doc.__unsaved) {
+//             frappe.msgprint(__("The document may have been modified. Please refresh to get the latest version."));
+//         }
+//     },
+//     before_save: function(frm) {
+//         // Force reload to avoid timestamp mismatch
+//         return frm.reload_doc();
+//     }
+// });
