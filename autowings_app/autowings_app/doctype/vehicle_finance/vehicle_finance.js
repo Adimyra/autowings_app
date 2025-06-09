@@ -1102,6 +1102,7 @@ function show_update_finance_dialog(frm) {
 //         throw new Error('Error updating journal entry: ' + e.message);
 //     }
 // }
+
 // Update journal
 function update_journal(frm, new_amount, dialog, has_changes) {
     try {
@@ -1641,7 +1642,10 @@ frappe.ui.form.on("Vehicle Finance", {
         }, __("Actions"));
     }
 });
+
 // ----------------------------------************************************----------------------------------
+
+
 frappe.ui.form.on("Vehicle Finance", {
     refresh: function(frm) {
         restrict_custom_buttons_by_role(frm);

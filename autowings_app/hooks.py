@@ -24,6 +24,10 @@ app_include_js = [
 app_include_css = [
     "/assets/autowings_app/css/custom.css"
 ]
+# In autowings_app/hooks.py
+# app_include_files = [
+#     "autowings_app/custom_scripts/journal_entry.py"
+# ]
 
 doc_events = {
     "Item": {
@@ -45,7 +49,7 @@ doctype_js = {
     "Serial No": "public/js/serial_no.js",
     "Customer": "public/js/customer.js",
     # add journal entry js file
-    "Journal Entry": "public/js/journal_entry.js",
+    "Journal Entry": "public/js/journal_entry.js"
 
 
 
@@ -53,6 +57,12 @@ doctype_js = {
 override_doctype_class = {
     "Customer": "autowings_app.custom_scripts.customer_mobile_no_validation.Customer"
 }
+
+# doctype_query = {
+#     "Unified Account Entity": "autowings_app.custom_scripts.journal_entry.get_unified_account_query"
+# }
+
+
 
 doc_events = {
 # "Customer": {
