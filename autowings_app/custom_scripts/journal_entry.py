@@ -37,17 +37,20 @@ import frappe
 def get_unified_account_query(doctype, txt, searchfield, start, page_len, filters):
     result = []
 
-    # Customers with Customer Group (shown in description)
-    customers = frappe.get_all(
-        "Customer",
-        filters={"name": ["like", f"%{txt}%"]},
-        fields=["name", "customer_group"],
-        limit=5
-    )
-    for c in customers:
-        result.append([f"Customer: {c.name}", None, f"Group: {c.customer_group}"])
+    # ✅ Customers: Search by name OR customer_name
+    customers = frappe.db.sql("""
+        SELECT name, customer_name, customer_group
+        FROM `tabCustomer`
+        WHERE name LIKE %(txt)s OR customer_name LIKE %(txt)s
+        LIMIT 5
+    """, {"txt": f"%{txt}%"}, as_dict=True)
 
-    # Suppliers with Supplier Type
+    for c in customers:
+        label = f"Customer: {c.customer_name or c.name}"
+        description = f"ID: {c.name} | Group: {c.customer_group}"
+        result.append([label, None, description])
+
+    # ✅ Suppliers
     suppliers = frappe.get_all(
         "Supplier",
         filters={"name": ["like", f"%{txt}%"]},
@@ -57,7 +60,7 @@ def get_unified_account_query(doctype, txt, searchfield, start, page_len, filter
     for s in suppliers:
         result.append([f"Supplier: {s.name}", None, f"Group: {s.supplier_group}"])
 
-    # Accounts with Parent Account
+    # ✅ Accounts
     accounts = frappe.get_all(
         "Account",
         filters={"name": ["like", f"%{txt}%"]},
@@ -65,9 +68,48 @@ def get_unified_account_query(doctype, txt, searchfield, start, page_len, filter
         limit=5
     )
     for a in accounts:
-        result.append([f"Account: {a.name}", None, f"Parent: {a.parent_account}"])
+        result.append([f"Account: {a.name}", None, f"Parent: {a.parent_account or 'None'}"])
 
-    return result
+    return result or []
+
+# import frappe
+
+# @frappe.whitelist()
+# def get_unified_account_query(doctype, txt, searchfield, start, page_len, filters):
+#     result = []
+
+#     # Customers with Customer Group (shown in description)
+#     customers = frappe.get_all(
+#         "Customer",
+#         filters={"name": ["like", f"%{txt}%"]},
+        
+#         fields=["name", "customer_group"],
+#         limit=5
+#     )
+#     for c in customers:
+#         result.append([f"Customer: {c.name}", None, f"Group: {c.customer_group}"])
+
+#     # Suppliers with Supplier Type
+#     suppliers = frappe.get_all(
+#         "Supplier",
+#         filters={"name": ["like", f"%{txt}%"]},
+#         fields=["name", "supplier_group"],
+#         limit=5
+#     )
+#     for s in suppliers:
+#         result.append([f"Supplier: {s.name}", None, f"Group: {s.supplier_group}"])
+
+#     # Accounts with Parent Account
+#     accounts = frappe.get_all(
+#         "Account",
+#         filters={"name": ["like", f"%{txt}%"]},
+#         fields=["name", "parent_account"],
+#         limit=5
+#     )
+#     for a in accounts:
+#         result.append([f"Account: {a.name}", None, f"Parent: {a.parent_account}"])
+
+#     return result
 
 
 
