@@ -112,7 +112,7 @@ def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, regist
             frappe.throw(_("One or more accounts (Debtors, {0} Payable, Smart Card Payable) do not exist for company {1}.").format(rto_office, company))
 
         # Set status and registration_status
-        status = "Due Update"
+        status = "Due Application Entry"
         registration_status = "Pending"
 
         # Create RTO Registration document

@@ -72,10 +72,13 @@ doc_events = {
         "before_save": "autowings_app.custom_scripts.purchase_receipt.before_save",
         "before_submit": "autowings_app.custom_scripts.purchase_receipt.before_submit",
         "on_submit": "autowings_app.custom_scripts.purchase_receipt.on_submit"
+        
     },
     "Delivery Note": {
         "before_save": "autowings_app.custom_scripts.delivery_note.before_save",
-        "before_submit": "autowings_app.custom_scripts.delivery_note.before_submit"
+        "before_submit": "autowings_app.custom_scripts.delivery_note.before_submit",
+        "on_submit": "autowings_app.custom_scripts.delivery_note.on_submit",
+        "on_cancel": "autowings_app.custom_scripts.delivery_note.on_cancel"
     },
     # "Sales Invoice": {
     #     "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit"
