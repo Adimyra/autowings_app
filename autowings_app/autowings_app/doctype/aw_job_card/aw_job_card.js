@@ -458,3 +458,105 @@
 //         });
 //     }
 // });
+
+
+
+frappe.ui.form.on('AW Job Card', {
+    onload: function(frm) {
+        if (frm.is_new() && !frm.doc.job_card_type) {
+            enforce_job_card_type_selection(frm);
+        }
+    }
+});
+
+function enforce_job_card_type_selection(frm) {
+    if (window.jobCardTypeDialogActive) return; // Prevent multiple popups
+    window.jobCardTypeDialogActive = true;
+
+    // Fetch enabled job card types from Autowings Naming Series
+    frappe.call({
+        method: "autowings_app.api.get_enabled_job_card_types",
+        callback: function(r) {
+            if (r.message && r.message.length > 0) {
+                // Use the enabled job card types
+                const jobCardTypes = r.message;
+
+                // Create the modal overlay
+                let wrapper = document.createElement("div");
+                wrapper.id = "job-card-type-overlay";
+                wrapper.style.opacity = "0";
+                wrapper.style.transition = "opacity 0.3s ease-in-out";
+                wrapper.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; 
+                        position: fixed; top: 0; left: 0; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
+                        <div id="job-card-type-modal" style="background: white; padding: 30px; border-radius: 10px; 
+                            text-align: center; box-shadow: 0px 0px 20px rgba(0,0,0,0.2);">
+                            <h4 style="margin-bottom: 20px;">Select Job Card Type</h4>
+                            <div id="job-card-type-buttons" style="display: flex; justify-content: center; gap: 40px; 
+                                padding-top: 10px; padding-bottom: 10px;">
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(wrapper);
+
+                // Fade in the modal
+                setTimeout(() => {
+                    wrapper.style.opacity = "1";
+                }, 10);
+
+                // Get the button container
+                let buttonContainer = document.getElementById("job-card-type-buttons");
+
+                // Dynamically create buttons for each enabled job card type
+                jobCardTypes.forEach(function(type, index) {
+                    let button = document.createElement("button");
+                    button.id = `job_card_${type.name.toLowerCase().replace(/\s+/g, "_")}`;
+                    button.className = "custom-button";
+                    button.innerText = type.label;
+                    // Assign colors dynamically: Khunti (black), Accidental (gray), Kanke Road (red), others cycle through colors
+
+                    const colors = ["#000", "#6c757d", "#dc3545", "#28a745", "#17a2b8", "#ffc107"];
+                    button.style = `
+                        background: ${type.name === "Khunti" ? "#000" : type.name === "Accidental" ? "#6c757d" : type.name === "Kanke Road" ? "#112921" : colors[index % colors.length]}; 
+                        color: white; 
+                        padding: 8px 20px; 
+                        font-size: 18px; 
+                        border: none; 
+                        border-radius: 10px; 
+                        cursor: pointer;
+                    `;
+
+                    // Add click event listener for each button
+                    button.addEventListener("click", function() {
+                        frm.set_value("job_card_type", type.name);
+                        // Set the naming series based on the selected type
+                        frm.set_value("naming_series", type.naming_series);
+                        fadeOutAndCloseJobCardModal();
+                    });
+
+                    buttonContainer.appendChild(button);
+                });
+            } else {
+                frappe.msgprint(__('No enabled Job Card types found in Autowings Naming Series.'));
+                window.jobCardTypeDialogActive = false;
+            }
+        },
+        error: function(err) {
+            frappe.msgprint(__('Error fetching Job Card types: {0}', [err.message]));
+            window.jobCardTypeDialogActive = false;
+        }
+    });
+}
+
+function fadeOutAndCloseJobCardModal() {
+    let wrapper = document.getElementById("job-card-type-overlay");
+    if (wrapper) {
+        wrapper.style.opacity = "0";
+        setTimeout(() => {
+            wrapper.remove();
+            window.jobCardTypeDialogActive = false;
+        }, 300); // Match the transition duration
+    }
+}

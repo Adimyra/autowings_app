@@ -384,3 +384,9 @@ def update_vehicle_sales_master_from_delivery_note(delivery_note):
 #         job_card.save()
 #         frappe.db.commit()
 #         frappe.msgprint(f"Updated items in Job Card {doc.custom_job_card_id} from Delivery Note {doc.name}")
+
+
+
+# Copyright (c) 2025, Adimyra Systems Private Limited and contributors
+# For license information, please see license.txt
+

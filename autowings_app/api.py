@@ -221,3 +221,68 @@ def get_vehicle_misc_sales(journal_entries):
     except Exception as e:
         frappe.log_error(f"Error fetching Vehicle Misc Sales: {str(e)}")
         frappe.throw(_("Failed to fetch Vehicle Misc Sales. Please check server logs."))
+
+
+
+
+# naming series for delivery note job card
+
+import frappe
+
+@frappe.whitelist()
+def get_enabled_delivery_note_types():
+    # Fetch the Autowings Naming Series document
+    doc = frappe.get_doc("Autowings Naming Series", "Autowings Naming Series")
+    enabled_types = []
+    for entry in doc.delivery_note:
+        if entry.enable:  # Only include enabled entries
+            enabled_types.append({
+                "name": entry.delivery_note_type,
+                "label": entry.delivery_note_type,
+                "naming_series": entry.delivery_note_naming_series
+            })
+    return enabled_types
+
+
+import frappe
+
+@frappe.whitelist()
+def get_delivery_note_series():
+    doctype_name = "Delivery Note"
+    naming_series_field = frappe.get_meta(doctype_name).get_field("naming_series")
+    
+    if naming_series_field and naming_series_field.options:
+        series_list = naming_series_field.options.split("\n")  # Convert to list
+        return series_list
+    return []
+
+@frappe.whitelist()
+def get_job_card_series():
+    doctype_name = "AW Job Card"
+    naming_series_field = frappe.get_meta(doctype_name).get_field("naming_series")
+    
+    if naming_series_field and naming_series_field.options:
+        series_list = naming_series_field.options.split("\n")  # Convert to list
+        return series_list
+    return []
+
+
+import frappe
+
+@frappe.whitelist()
+def get_enabled_job_card_types():
+    try:
+        # Fetch the Autowings Naming Series document
+        doc = frappe.get_doc("Autowings Naming Series", "Autowings Naming Series")
+        enabled_types = []
+        for entry in doc.job_card:
+            if entry.enable:  # Only include enabled entries
+                enabled_types.append({
+                    "name": entry.job_card_type,
+                    "label": entry.job_card_type,
+                    "naming_series": entry.job_card_naming_series
+                })
+        return enabled_types
+    except Exception as e:
+        frappe.log_error(f"Error fetching enabled Job Card types: {str(e)}")
+        return []

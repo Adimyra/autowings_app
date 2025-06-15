@@ -5,7 +5,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "autowings_naming_series_configuration"
+  "autowings_naming_series_configuration",
+  "job_card_naming_series_tab",
+  "delivery_note",
+  "job_card"
  ],
  "fields": [
   {
@@ -13,12 +16,29 @@
    "fieldtype": "Table",
    "label": "Autowings Naming Series Configuration",
    "options": "Autowings Naming Child"
+  },
+  {
+   "fieldname": "job_card_naming_series_tab",
+   "fieldtype": "Tab Break",
+   "label": "Job Card Naming Series"
+  },
+  {
+   "fieldname": "delivery_note",
+   "fieldtype": "Table",
+   "label": "Delivery note",
+   "options": "Delivery Note Type"
+  },
+  {
+   "fieldname": "job_card",
+   "fieldtype": "Table",
+   "label": "Job Card",
+   "options": "Job Card Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-15 17:07:42.478101",
+ "modified": "2025-06-16 01:25:56.958367",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings Naming Series",

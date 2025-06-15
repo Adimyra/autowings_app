@@ -6,7 +6,32 @@
  "engine": "InnoDB",
  "field_order": [
   "company",
-  "abbr"
+  "abbr",
+  "journal_and_payment_update_tab",
+  "update_doc",
+  "column_break_dfaw",
+  "journal_entry_id",
+  "payment_entry_id",
+  "doc_details_section",
+  "customer",
+  "customer_name",
+  "posting_date",
+  "column_break_idpr",
+  "doc_status",
+  "amount",
+  "update",
+  "tab_3_tab",
+  "vehicle_doc",
+  "fetch",
+  "column_break_eqtl",
+  "doc_id",
+  "open_doc",
+  "section_break_ihhh",
+  "doc_customer2",
+  "customer_name2",
+  "column_break_fjih",
+  "doc_status2",
+  "update2"
  ],
  "fields": [
   {
@@ -22,12 +47,149 @@
    "fieldtype": "Data",
    "label": "Abbr",
    "read_only": 1
+  },
+  {
+   "fieldname": "journal_and_payment_update_tab",
+   "fieldtype": "Tab Break",
+   "label": "Journal & Payment Update"
+  },
+  {
+   "fieldname": "update_doc",
+   "fieldtype": "Select",
+   "label": "Update Doc",
+   "options": "\nJournal Entry\nPayment Entry"
+  },
+  {
+   "depends_on": "eval: doc.update_doc === \"Journal Entry\"",
+   "fieldname": "journal_entry_id",
+   "fieldtype": "Link",
+   "label": "Journal Entry Id",
+   "options": "Journal Entry"
+  },
+  {
+   "depends_on": "eval: doc.update_doc === \"Payment Entry\"",
+   "fieldname": "payment_entry_id",
+   "fieldtype": "Link",
+   "label": "Payment Entry Id",
+   "options": "Payment Entry"
+  },
+  {
+   "fieldname": "column_break_dfaw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "column_break_idpr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "doc_status",
+   "fieldtype": "Data",
+   "label": "Doc Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount"
+  },
+  {
+   "depends_on": "eval: doc.update_doc !== \"\"",
+   "fieldname": "doc_details_section",
+   "fieldtype": "Section Break",
+   "label": "Doc Details",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "update",
+   "fieldtype": "Button",
+   "label": "Update"
+  },
+  {
+   "fieldname": "tab_3_tab",
+   "fieldtype": "Tab Break",
+   "label": "Vehicle Doc Update"
+  },
+  {
+   "fieldname": "vehicle_doc",
+   "fieldtype": "Select",
+   "label": "Vehicle Doc",
+   "options": "\nRTO Registration\nVehicle Insurance\nVehicle Finance\nVehicle Smart Card\nVehicle RSA\nVehicle Extended Warranty\nVehicle Misc Sales"
+  },
+  {
+   "fieldname": "doc_id",
+   "fieldtype": "Data",
+   "label": "Doc ID"
+  },
+  {
+   "depends_on": "eval: doc.doc_id !== \"\"",
+   "fieldname": "fetch",
+   "fieldtype": "Button",
+   "label": "Fetch"
+  },
+  {
+   "fieldname": "section_break_ihhh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "doc_customer2",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_fjih",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "doc_status2",
+   "fieldtype": "Select",
+   "label": "Status"
+  },
+  {
+   "depends_on": "doc_customer2",
+   "fieldname": "update2",
+   "fieldtype": "Button",
+   "label": "Update"
+  },
+  {
+   "fetch_from": "doc_customer2.customer_name",
+   "fieldname": "customer_name2",
+   "fieldtype": "Read Only",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "column_break_eqtl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "open_doc",
+   "fieldtype": "Button",
+   "label": "Open Doc"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-22 03:20:59.899472",
+ "modified": "2025-06-16 00:17:31.189988",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings Settings",

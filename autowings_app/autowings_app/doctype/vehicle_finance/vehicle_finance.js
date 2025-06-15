@@ -1645,16 +1645,228 @@ frappe.ui.form.on("Vehicle Finance", {
 
 // ----------------------------------************************************----------------------------------
 
+// console.log("Vehicle Finance script initialized");
+
+// // Displays error message to user
+// function showError(message) {
+//     frappe.msgprint({
+//         title: __('Error'),
+//         indicator: 'red',
+//         message: message
+//     });
+// }
+
+// // Displays success message to user
+// function showSuccess(message) {
+//     frappe.msgprint({
+//         title: __('Success'),
+//         indicator: 'green',
+//         message: message
+//     });
+// }
+
+// frappe.ui.form.on("Vehicle Finance", {
+//     refresh: function(frm) {
+//         restrict_custom_buttons_by_role(frm); // Assumed to be defined elsewhere
+//         // Add custom button "Create Vehicle Finance"
+//         frm.add_custom_button(__("Create Vehicle Finance"), function() {
+//             // Create a dialog for input
+//             let d = new frappe.ui.Dialog({
+//                 title: __("Create Vehicle Finance"),
+//                 fields: [
+//                     {
+//                         label: __("Sales Invoice"),
+//                         fieldname: "sales_invoice",
+//                         fieldtype: "Link",
+//                         options: "Sales Invoice",
+//                         reqd: 1,
+//                         get_query: function() {
+//                             return {
+//                                 filters: {
+//                                     docstatus: 1 // Only submitted Sales Invoices
+//                                 }
+//                             };
+//                         },
+//                         onchange: function() {
+//                             const si = d.get_value("sales_invoice");
+//                             if (si) {
+//                                 // Check if Vehicle Finance exists
+//                                 frappe.call({
+//                                     method: "frappe.client.get_list",
+//                                     args: {
+//                                         doctype: "Vehicle Finance",
+//                                         filters: { sales_invoice: si },
+//                                         limit: 1
+//                                     },
+//                                     callback: function(res) {
+//                                         if (res.message.length > 0) {
+//                                             showError(__("Vehicle Finance already exists for Sales Invoice {0}.", [si]));
+//                                             d.set_value("sales_invoice", "");
+//                                             d.set_value("customer_name", "");
+//                                             d.set_value("chassis_number", "");
+//                                             return;
+//                                         }
+//                                         // Fetch customer_name and chassis_number
+//                                         frappe.call({
+//                                             method: "frappe.client.get",
+//                                             args: {
+//                                                 doctype: "Sales Invoice",
+//                                                 name: si,
+//                                                 fields: ["customer_name", "custom_vin"]
+//                                             },
+//                                             callback: function(r) {
+//                                                 if (r.message) {
+//                                                     d.set_value("customer_name", r.message.customer_name || "");
+//                                                     if (r.message.custom_vin?.length === 1) {
+//                                                         d.set_value("chassis_number", r.message.custom_vin[0].chassis_number);
+//                                                     } else {
+//                                                         d.set_value("chassis_number", "");
+//                                                         showError(__("VIN issue in Sales Invoice {0}. Please enter Chassis Number manually.", [si]));
+//                                                         d.fields_dict.chassis_number.df.read_only = 0;
+//                                                     }
+//                                                 }
+//                                             },
+//                                             error: function(err) {
+//                                                 console.error("Error fetching Sales Invoice:", err);
+//                                                 showError(__("Failed to fetch Sales Invoice details: {0}", [err.message]));
+//                                                 d.set_value("customer_name", "");
+//                                                 d.set_value("chassis_number", "");
+//                                                 d.fields_dict.chassis_number.df.read_only = 0;
+//                                             }
+//                                         });
+//                                     }
+//                                 });
+//                             }
+//                         }
+//                     },
+//                     {
+//                         label: __("Customer Name"),
+//                         fieldname: "customer_name",
+//                         fieldtype: "Data",
+//                         read_only: 1
+//                     },
+//                     {
+//                         label: __("Chassis Number"),
+//                         fieldname: "chassis_number",
+//                         fieldtype: "Data",
+//                         read_only: 1
+//                     },
+//                     {
+//                         label: __("Loan Type"),
+//                         fieldname: "loan_type",
+//                         fieldtype: "Select",
+//                         options: ["New Vehicle", "Used Vehicle"],
+//                         default: "New Vehicle",
+//                         reqd: 1
+//                     },
+//                     {
+//                         label: __("Finance Provider"),
+//                         fieldname: "finance_provider",
+//                         fieldtype: "Link",
+//                         options: "Customer",
+//                         reqd: 1,
+//                         get_query: function() {
+//                             return {
+//                                 filters: {
+//                                     customer_group: "Financer"
+//                                 }
+//                             };
+//                         }
+//                     },
+//                     {
+//                         label: __("Loan Amount"),
+//                         fieldname: "loan_amount",
+//                         fieldtype: "Float",
+//                         reqd: 1
+//                     }
+//                 ],
+//                 primary_action_label: __("Create"),
+//                 primary_action: async function(values) {
+//                     try {
+//                         // Double-check Vehicle Finance existence
+//                         const finance_check = await frappe.call({
+//                             method: "frappe.client.get_list",
+//                             args: {
+//                                 doctype: "Vehicle Finance",
+//                                 filters: { sales_invoice: values.sales_invoice },
+//                                 limit: 1
+//                             }
+//                         });
+
+//                         if (finance_check.message.length > 0) {
+//                             showError(__("Vehicle Finance already exists for Sales Invoice {0}.", [values.sales_invoice]));
+//                             return;
+//                         }
+
+//                         // Create Vehicle Finance
+//                         const response = await frappe.call({
+//                             method: "autowings_app.autowings_app.doctype.vehicle_finance.vehicle_finance.create_vehicle_finance_from_sales_invoice",
+//                             args: {
+//                                 sales_invoice: values.sales_invoice,
+//                                 loan_type: values.loan_type,
+//                                 finance_provider: values.finance_provider,
+//                                 loan_amount: values.loan_amount,
+//                                 chassis_number: values.chassis_number
+//                             }
+//                         });
+
+//                         if (response.message) {
+//                             frappe.set_route("Form", "Vehicle Finance", response.message);
+//                             showSuccess(__("Vehicle Finance {0} created successfully.", [response.message]));
+//                         }
+//                     } catch (err) {
+//                         console.error("Error creating Vehicle Finance:", err);
+//                         showError(__("Failed to create Vehicle Finance: {0}", [err.message]));
+//                     }
+//                     d.hide();
+//                 },
+//                 secondary_action_label: __("Cancel"),
+//                 secondary_action: function() {
+//                     d.hide();
+//                 }
+//             });
+//             d.show();
+//         }, __("Actions"));
+//     }
+// });
+
+console.log("Vehicle Finance script initialized");
+
+// Displays error message to user
+function showError(message) {
+    frappe.msgprint({
+        title: __('Error'),
+        indicator: 'red',
+        message: message
+    });
+}
+
+// Displays success message to user
+function showSuccess(message) {
+    frappe.msgprint({
+        title: __('Success'),
+        indicator: 'green',
+        message: message
+    });
+}
 
 frappe.ui.form.on("Vehicle Finance", {
     refresh: function(frm) {
-        restrict_custom_buttons_by_role(frm);
+        restrict_custom_buttons_by_role(frm); // Assumed to be defined elsewhere
         // Add custom button "Create Vehicle Finance"
         frm.add_custom_button(__("Create Vehicle Finance"), function() {
-            // Create a dialog for Sales Invoice, Loan Type, Finance Provider, and Loan Amount
+            // Create a dialog for input
             let d = new frappe.ui.Dialog({
                 title: __("Create Vehicle Finance"),
                 fields: [
+                    {
+                        label: __("Loan Type"),
+                        fieldname: "loan_type",
+                        fieldtype: "Data",
+                        default: "New Vehicle",
+                        read_only: 1,
+                        reqd: 1
+                    },
                     {
                         label: __("Sales Invoice"),
                         fieldname: "sales_invoice",
@@ -1664,18 +1876,94 @@ frappe.ui.form.on("Vehicle Finance", {
                         get_query: function() {
                             return {
                                 filters: {
-                                    docstatus: 1  // Only submitted Sales Invoices
+                                    docstatus: 1 // Only submitted Sales Invoices
                                 }
                             };
+                        },
+                        onchange: function() {
+                            const si = d.get_value("sales_invoice");
+                            if (si) {
+                                // Check if Vehicle Finance exists
+                                frappe.call({
+                                    method: "frappe.client.get_list",
+                                    args: {
+                                        doctype: "Vehicle Finance",
+                                        filters: { sales_invoice: si },
+                                        limit: 1
+                                    },
+                                    callback: function(res) {
+                                        if (res.message.length > 0) {
+                                            showError(__("Vehicle Finance already exists for Sales Invoice {0}.", [si]));
+                                            d.set_value("sales_invoice", "");
+                                            d.set_value("customer_name", "");
+                                            d.set_value("customer", "");
+                                            d.set_value("chassis_number", "");
+                                            return;
+                                        }
+                                        // Fetch customer_name, customer, chassis_number, and vsm_id
+                                        frappe.call({
+                                            method: "frappe.client.get",
+                                            args: {
+                                                doctype: "Sales Invoice",
+                                                name: si,
+                                                fields: ["customer_name", "customer", "custom_vin", "custom_vsm_id"]
+                                            },
+                                            callback: function(r) {
+                                                if (r.message) {
+                                                    d.set_value("customer_name", r.message.customer_name || "");
+                                                    d.set_value("customer", r.message.customer || "");
+                                                    d.set_value("vsm_id", r.message.custom_vsm_id || "");
+                                                    if (r.message.custom_vin?.length === 1) {
+                                                        d.set_value("chassis_number", r.message.custom_vin[0].chassis_number);
+                                                    } else {
+                                                        d.set_value("chassis_number", "");
+                                                        showError(__("VIN issue in Sales Invoice {0}. Please enter Chassis Number manually.", [si]));
+                                                        d.fields_dict.chassis_number.df.read_only = 0;
+                                                    }
+                                                }
+                                            },
+                                            error: function(err) {
+                                                console.error("Error fetching Sales Invoice:", err);
+                                                showError(__("Failed to fetch Sales Invoice details: {0}", [err.message]));
+                                                d.set_value("customer_name", "");
+                                                d.set_value("customer", "");
+                                                d.set_value("chassis_number", "");
+                                                d.set_value("vsm_id", "");
+                                                d.fields_dict.chassis_number.df.read_only = 0;
+                                            }
+                                        });
+                                    }
+                                });
+                            }
                         }
                     },
                     {
-                        label: __("Loan Type"),
-                        fieldname: "loan_type",
-                        fieldtype: "Select",
-                        options: ["New Vehicle", "Used Vehicle"],
-                        default: "New Vehicle",
-                        reqd: 1
+                        label: __("Customer Name"),
+                        fieldname: "customer_name",
+                        fieldtype: "Data",
+                        read_only: 1
+                    },
+                    {
+                        label: __("Customer"),
+                        fieldname: "customer",
+                        fieldtype: "Link",
+                        options: "Customer",
+                        hidden: 1,
+                        read_only: 1
+                    },
+                    {
+                        label: __("Vehicle Sales Master"),
+                        fieldname: "vsm_id",
+                        fieldtype: "Link",
+                        options: "Vehicle Sales Master",
+                        hidden: 1,
+                        read_only: 1
+                    },
+                    {
+                        label: __("Chassis Number"),
+                        fieldname: "chassis_number",
+                        fieldtype: "Data",
+                        read_only: 1
                     },
                     {
                         label: __("Finance Provider"),
@@ -1699,27 +1987,48 @@ frappe.ui.form.on("Vehicle Finance", {
                     }
                 ],
                 primary_action_label: __("Create"),
-                primary_action(values) {
-                    // Call server-side method to create Vehicle Finance
-                    frappe.call({
-                        method: "autowings_app.autowings_app.doctype.vehicle_finance.vehicle_finance.create_vehicle_finance_from_sales_invoice",
-                        args: {
-                            sales_invoice: values.sales_invoice,
-                            loan_type: values.loan_type,
-                            finance_provider: values.finance_provider,
-                            loan_amount: values.loan_amount
-                        },
-                        callback: function(r) {
-                            if (r.message) {
-                                // Redirect to the new Vehicle Finance document
-                                frappe.set_route("Form", "Vehicle Finance", r.message);
-                                frappe.msgprint(__("Vehicle Finance {0} created successfully.").format(r.message));
+                primary_action: async function(values) {
+                    try {
+                        // Validate for existing Vehicle Finance
+                        const finance_check = await frappe.call({
+                            method: "frappe.client.get_list",
+                            args: {
+                                doctype: "Vehicle Finance",
+                                filters: { sales_invoice: values.sales_invoice },
+                                limit: 1
                             }
-                        },
-                        error: function(e) {
-                            frappe.msgprint(__("Error creating Vehicle Finance: {0}").format(e.message));
+                        });
+                        if (finance_check.message.length > 0) {
+                            showError(__("Vehicle Finance already exists for Sales Invoice {0}.", [values.sales_invoice]));
+                            return;
                         }
-                    });
+
+                        // Create Vehicle Finance
+                        const response = await frappe.call({
+                            method: "autowings_app.autowings_app.doctype.vehicle_finance.vehicle_finance.create_vehicle_finance_from_sales_invoice",
+                            args: {
+                                sales_invoice: values.sales_invoice,
+                                loan_type: values.loan_type,
+                                finance_provider: values.finance_provider,
+                                loan_amount: values.loan_amount,
+                                chassis_number: values.chassis_number,
+                                customer: values.customer,
+                                vsm_id: values.vsm_id
+                            }
+                        });
+
+                        if (response.message) {
+                            frappe.set_route("Form", "Vehicle Finance", response.message);
+                            showSuccess(__("Vehicle Finance {0} created successfully.", [response.message]));
+                        }
+                    } catch (err) {
+                        console.error("Error creating Vehicle Finance:", err);
+                        showError(__("Failed to create Vehicle Finance: {0}", [err.message]));
+                    }
+                    d.hide();
+                },
+                secondary_action_label: __("Cancel"),
+                secondary_action: function() {
                     d.hide();
                 }
             });
@@ -1727,5 +2036,3 @@ frappe.ui.form.on("Vehicle Finance", {
         }, __("Actions"));
     }
 });
-
-

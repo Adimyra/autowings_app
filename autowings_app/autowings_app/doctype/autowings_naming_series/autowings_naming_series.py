@@ -74,6 +74,7 @@
 #             else:
 #                 # Set misc_account to "Disabled" if the row is not enabled or sub_sales_type is empty
 #                 row.misc_account = "Disabled"
+
 import frappe
 from frappe.model.document import Document
 

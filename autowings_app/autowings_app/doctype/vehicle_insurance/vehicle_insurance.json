@@ -7,10 +7,11 @@
  "engine": "InnoDB",
  "field_order": [
   "vsm_id",
+  "customer",
+  "customer_name",
   "sales_invoice",
   "journal_entry_id",
   "journal_status",
-  "customer",
   "column_break_sdit",
   "status",
   "insurance_status",
@@ -193,6 +194,14 @@
    "label": "Insurance Activity",
    "options": "RTO Activity Log",
    "read_only": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer Name"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -202,7 +211,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-05-16 18:11:50.083076",
+ "modified": "2025-06-14 17:10:33.279358",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Insurance",

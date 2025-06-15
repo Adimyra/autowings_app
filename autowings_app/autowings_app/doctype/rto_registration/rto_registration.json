@@ -8,6 +8,7 @@
  "field_order": [
   "vsm_id",
   "customer",
+  "customer_name",
   "sales_invoice",
   "journal_entry_id",
   "journal_status",
@@ -428,11 +429,19 @@
    "fieldtype": "Check",
    "label": "Due Documents Flag",
    "read_only": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer Name"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-26 14:41:32.681463",
+ "modified": "2025-06-14 17:05:47.663538",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "RTO Registration",

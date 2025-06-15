@@ -9,17 +9,31 @@
   "naming_series",
   "chassis_number",
   "customer",
+  "customer_name",
+  "mobile_number",
+  "registration_number",
   "column_break_4",
   "posting_date",
   "company",
+  "status",
+  "job_card_type",
+  "section_break_qeyd",
+  "type_of_service",
+  "service_number",
+  "column_break_fqux",
+  "km",
+  "fuel_in_vehicle",
+  "section_break_wbmg",
+  "supervisor",
+  "column_break_ejhj",
+  "technician",
+  "section_break_wyfc",
+  "issues",
   "scheduled_time_section",
   "expected_start_date",
   "time_required",
   "column_break_jkir",
   "expected_end_date",
-  "fuel_in_vehicle",
-  "section_break_wyfc",
-  "issues",
   "section_break_05am",
   "scheduled_time_logs",
   "timing_detail",
@@ -35,19 +49,10 @@
   "return_items",
   "connections_tab",
   "amended_from",
-  "scrap_items_section",
-  "scrap_items"
+  "labour_tab",
+  "table_kgbi"
  ],
  "fields": [
-  {
-   "default": "PO-JOB.#####",
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Naming Series",
-   "options": "PO-JOB.#####",
-   "reqd": 1
-  },
   {
    "fieldname": "column_break_4",
    "fieldtype": "Column Break"
@@ -152,20 +157,6 @@
    "options": "AW Job Card Item"
   },
   {
-   "collapsible": 1,
-   "fieldname": "scrap_items_section",
-   "fieldtype": "Tab Break",
-   "label": "Scrap Items"
-  },
-  {
-   "fieldname": "scrap_items",
-   "fieldtype": "Table",
-   "label": "Scrap Items",
-   "no_copy": 1,
-   "options": "Job Card Scrap Item",
-   "print_hide": 1
-  },
-  {
    "fieldname": "connections_tab",
    "fieldtype": "Tab Break",
    "label": "Connections",
@@ -182,7 +173,8 @@
    "fieldname": "chassis_number",
    "fieldtype": "Link",
    "label": "Chassis Number",
-   "options": "Serial No"
+   "options": "Serial No",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_wyfc",
@@ -219,10 +211,100 @@
    "fieldtype": "Table",
    "label": "Return Items",
    "options": "AW Job Card Item"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nOpen\nWork in progress\nClose"
+  },
+  {
+   "fieldname": "labour_tab",
+   "fieldtype": "Tab Break",
+   "label": "Labour"
+  },
+  {
+   "fieldname": "table_kgbi",
+   "fieldtype": "Table",
+   "options": "Labour Items"
+  },
+  {
+   "fieldname": "section_break_wbmg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "supervisor",
+   "fieldtype": "Link",
+   "label": "Supervisor",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_ejhj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "technician",
+   "fieldtype": "Link",
+   "label": "Technician",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "section_break_qeyd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fqux",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type_of_service",
+   "fieldtype": "Select",
+   "label": "Type of Service",
+   "options": "\nFree\nPaid\nRegular\nMinor"
+  },
+  {
+   "fieldname": "service_number",
+   "fieldtype": "Data",
+   "label": "Service Number"
+  },
+  {
+   "fieldname": "km",
+   "fieldtype": "Data",
+   "label": "KM"
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "label": "Customer Name"
+  },
+  {
+   "fetch_from": "customer.mobile_no",
+   "fieldname": "mobile_number",
+   "fieldtype": "Read Only",
+   "label": "Mobile Number"
+  },
+  {
+   "fetch_from": "chassis_number.custom_registration_number",
+   "fieldname": "registration_number",
+   "fieldtype": "Read Only",
+   "label": "Registration Number"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "reqd": 1
+  },
+  {
+   "fieldname": "job_card_type",
+   "fieldtype": "Data",
+   "label": "Job Card Type",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2025-06-03 13:00:26.164117",
+ "modified": "2025-06-16 02:36:02.173592",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "AW Job Card",
@@ -265,6 +347,7 @@
    "write": 1
   }
  ],
+ "search_fields": "chassis_number, registration_number, customer, customer_name, mobile_number",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

@@ -71,3 +71,60 @@ frappe.ui.form.on('Autowings Naming Series', {
         });
     }
 });
+
+
+
+// naming series configuration for delivery note and job card
+frappe.ui.form.on('Autowings Naming Series', {
+    onload: function(frm) {
+        console.log("Autowings Naming Series form loaded");
+
+        // Fetch Delivery Note naming series
+        frappe.call({
+            method: "autowings_app.api.get_delivery_note_series",
+            callback: function(r) {
+                console.log("Response from get_delivery_note_series:", r);
+                if (r.message && Array.isArray(r.message) && r.message.length > 0) {
+                    let options = r.message.join("\n");
+                    console.log("Setting options for delivery_note_naming_series:", options);
+
+                    // Set options for delivery_note_naming_series in the delivery_note child table
+                    frm.fields_dict['delivery_note'].grid.fields_map['delivery_note_naming_series'].options = options;
+
+                    // Refresh the delivery_note child table
+                    frm.refresh_field('delivery_note');
+                    console.log("Delivery note child table refreshed with new options");
+                } else {
+                    console.log("No valid delivery note naming series received:", r.message);
+                }
+            },
+            error: function(err) {
+                console.log("Error calling get_delivery_note_series:", err);
+            }
+        });
+
+        // Fetch AW Job Card naming series
+        frappe.call({
+            method: "autowings_app.api.get_job_card_series",
+            callback: function(r) {
+                console.log("Response from get_job_card_series:", r);
+                if (r.message && Array.isArray(r.message) && r.message.length > 0) {
+                    let options = r.message.join("\n");
+                    console.log("Setting options for job_card_naming_series:", options);
+
+                    // Set options for job_card_naming_series in the job_card child table
+                    frm.fields_dict['job_card'].grid.fields_map['job_card_naming_series'].options = options;
+
+                    // Refresh the job_card child table
+                    frm.refresh_field('job_card');
+                    console.log("Job card child table refreshed with new options");
+                } else {
+                    console.log("No valid job card naming series received:", r.message);
+                }
+            },
+            error: function(err) {
+                console.log("Error calling get_job_card_series:", err);
+            }
+        });
+    }
+});

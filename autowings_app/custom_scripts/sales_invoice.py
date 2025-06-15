@@ -295,7 +295,9 @@ def on_submit_sales_invoice(doc, method):
             je_rto = frappe.new_doc("Journal Entry")
             je_rto.voucher_type = "Journal Entry"
             je_rto.company = company
-            je_rto.posting_date = getdate()
+            # je_rto.posting_date = getdate()
+            # i want sales invoice posting date to be used here
+            je_rto.posting_date = doc.posting_date
             je_rto.title = f"RTO - {doc.customer} - {doc.custom_rto_office}"
             je_rto.remark = f"RTO charge of ₹{doc.custom_registration_charge} for Sales Invoice {doc.name} paid to {doc.custom_rto_office}."
             je_rto.append("accounts", {
@@ -333,7 +335,9 @@ def on_submit_sales_invoice(doc, method):
                         je_rto_additional = frappe.new_doc("Journal Entry")
                         je_rto_additional.voucher_type = "Journal Entry"
                         je_rto_additional.company = company
-                        je_rto_additional.posting_date = getdate()
+                        # je_rto_additional.posting_date = getdate()
+                        # Use Sales Invoice posting date for RTO Additional JE
+                        je_rto_additional.posting_date = doc.posting_date
                         je_rto_additional.title = f"RTO Addl - {doc.customer} - {rto_additional.account}"
                         je_rto_additional.remark = f"RTO Additional charge of ₹{rto_additional.amount} for Sales Invoice {doc.name} under {rto_additional.account}."
                         je_rto_additional.append("accounts", {
@@ -393,7 +397,9 @@ def on_submit_sales_invoice(doc, method):
             je_insurance = frappe.new_doc("Journal Entry")
             je_insurance.voucher_type = "Journal Entry"
             je_insurance.company = company
-            je_insurance.posting_date = getdate()
+            # je_insurance.posting_date = getdate()
+            # Use Sales Invoice posting date for Insurance JE
+            je_insurance.posting_date = doc.posting_date
             je_insurance.title = f"Ins - {doc.customer} - {doc.custom_insurance_provider}"
             je_insurance.remark = f"Insurance charge of ₹{doc.custom_insurance_amount} for Sales Invoice {doc.name} paid to {doc.custom_insurance_provider}."
             je_insurance.append("accounts", {
@@ -427,7 +433,7 @@ def on_submit_sales_invoice(doc, method):
             je_rsa = frappe.new_doc("Journal Entry")
             je_rsa.voucher_type = "Journal Entry"
             je_rsa.company = company
-            je_rsa.posting_date = getdate()
+            je_rsa.posting_date = doc.posting_date
             je_rsa.title = f"RSA - {doc.customer} - {doc.custom_rsa_provider}"
             je_rsa.remark = f"RSA charge of ₹{doc.custom_rsa_amount} for Sales Invoice {doc.name} paid to {doc.custom_rsa_provider}."
             je_rsa.append("accounts", {
@@ -461,7 +467,7 @@ def on_submit_sales_invoice(doc, method):
             je_warranty = frappe.new_doc("Journal Entry")
             je_warranty.voucher_type = "Journal Entry"
             je_warranty.company = company
-            je_warranty.posting_date = getdate()
+            je_warranty.posting_date = doc.posting_date
             je_warranty.title = f"EW - {doc.customer} - {doc.custom_extended_warranty_provider}"
             je_warranty.remark = f"Extended Warranty charge of ₹{doc.custom_extended_warranty_amount} for Sales Invoice {doc.name} paid to {doc.custom_extended_warranty_provider}."
             je_warranty.append("accounts", {
@@ -495,7 +501,7 @@ def on_submit_sales_invoice(doc, method):
             je_finance = frappe.new_doc("Journal Entry")
             je_finance.voucher_type = "Journal Entry"
             je_finance.company = company
-            je_finance.posting_date = getdate()
+            je_finance.posting_date = doc.posting_date
             je_finance.title = f"FIN - {doc.customer} - {doc.custom_finance_provider}"
             je_finance.remark = f"Received ₹{doc.custom_finance_amount} from {doc.custom_finance_provider} for {doc.customer}’s vehicle purchase under Sales Invoice {doc.name}."
             je_finance.append("accounts", {
@@ -532,7 +538,7 @@ def on_submit_sales_invoice(doc, method):
                     je_misc = frappe.new_doc("Journal Entry")
                     je_misc.voucher_type = "Journal Entry"
                     je_misc.company = company
-                    je_misc.posting_date = getdate()
+                    je_misc.posting_date = doc.posting_date
                     je_misc.title = f"Misc - {doc.customer} - {misc.misc_account}"
                     # je_misc.title = f"Misc - {doc.customer} - Multiple Accounts (Sales Invoice {doc.name})"
                     je_misc.remark = f"Miscellaneous charge of ₹{misc.amount} for Sales Invoice {doc.name} paid to {misc.misc_account}."

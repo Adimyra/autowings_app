@@ -444,8 +444,26 @@ frappe.ui.form.on('RTO Registration', {
         }
 
         // Add Update Application Details button
+        // if (frm.doc.status === 'Due Application Entry' || frm.doc.status === 'Required Update') {
+        //     frm.add_custom_button(__('Update Application Details'), function() {
+        //         show_update_registration_dialog(frm);
+        //     });
+        // }
         if (frm.doc.status === 'Due Application Entry' || frm.doc.status === 'Required Update') {
             frm.add_custom_button(__('Update Application Details'), function() {
+                // Check if additional_accounts has a Smart Card record
+                const hasSmartCard = frm.doc.additional_accounts?.some(row => row.account === 'Smart Card');
+                if (!hasSmartCard) {
+                    frappe.msgprint({
+                        title: __('Alert'),
+                        indicator: 'orange',
+                        message: __('Smart Card account is mandatory to proceed with application update registration. Please add a Smart Card account first from the action menu.')
+
+
+                    });
+                    return;
+                }
+                // Proceed to show update registration dialog
                 show_update_registration_dialog(frm);
             });
         }
@@ -2210,15 +2228,30 @@ frappe.ui.form.on("RTO Registration", {
 //         }, __("Actions"));
 //     }
 // });
+console.log("RTO Registration script initialized");
+
+// Displays error message to user
+function showError(message) {
+    frappe.msgprint({
+        title: __('Error'),
+        indicator: 'red',
+        message: message
+    });
+}
+
+// Displays success message to user
+function showSuccess(message) {
+    frappe.msgprint({
+        title: __('Success'),
+        indicator: 'green',
+        message: message
+    });
+}
 
 frappe.ui.form.on("RTO Registration", {
-    refresh: function(frm) {
-        if (typeof restrict_custom_buttons_by_role === "function") {
-            restrict_custom_buttons_by_role(frm);
-        }
-
+    refresh(frm) {
         // Button 1: Create RTO Registration
-        frm.add_custom_button(__("Create RTO Registration"), function () {
+        frm.add_custom_button(__("Create RTO Registration"), function() {
             let d = new frappe.ui.Dialog({
                 title: __("Create RTO Registration"),
                 fields: [
@@ -2229,27 +2262,55 @@ frappe.ui.form.on("RTO Registration", {
                         options: "Sales Invoice",
                         reqd: 1,
                         get_query: () => ({ filters: { docstatus: 1 } }),
-                        onchange: function () {
+                        onchange: function() {
                             const si = d.get_value("sales_invoice");
                             if (si) {
                                 frappe.call({
-                                    method: "frappe.client.get",
+                                    method: "frappe.client.get_list",
                                     args: {
-                                        doctype: "Sales Invoice",
-                                        name: si,
-                                        fields: ["custom_vin"]
+                                        doctype: "RTO Registration",
+                                        filters: { sales_invoice: si },
+                                        limit: 1
                                     },
-                                    callback: function (r) {
-                                        if (r.message?.custom_vin?.length === 1) {
-                                            d.set_value("chassis_number", r.message.custom_vin[0].chassis_number);
+                                    callback: function(res) {
+                                        if (res.message.length > 0) {
+                                            showError(__("RTO Registration already exists for Sales Invoice {0}.", [si]));
+                                            d.set_value("sales_invoice", "");
                                         } else {
-                                            d.set_value("chassis_number", "");
-                                            frappe.msgprint("VIN issue. Enter Chassis manually.");
+                                            frappe.call({
+                                                method: "frappe.client.get",
+                                                args: {
+                                                    doctype: "Sales Invoice",
+                                                    name: si,
+                                                    fields: ["custom_vin"]
+                                                },
+                                                callback: function(r) {
+                                                    if (r.message?.custom_vin?.length === 1) {
+                                                        d.set_value("chassis_number", r.message.custom_vin[0].chassis_number);
+                                                    } else {
+                                                        d.set_value("chassis_number", "");
+                                                        showError(__("VIN issue in Sales Invoice {0}. Please enter Chassis Number manually.", [si]));
+                                                        d.fields_dict.chassis_number.df.read_only = 0;
+                                                    }
+                                                },
+                                                error: function(err) {
+                                                    console.error("Error fetching Sales Invoice:", err);
+                                                    showError(__("Failed to fetch Sales Invoice details: {0}", [err.message]));
+                                                    d.set_value("chassis_number", "");
+                                                    d.fields_dict.chassis_number.df.read_only = 0;
+                                                }
+                                            });
                                         }
                                     }
                                 });
                             }
                         }
+                    },
+                    {
+                        label: __("Chassis Number"),
+                        fieldname: "chassis_number",
+                        fieldtype: "Data",
+                        read_only: 1
                     },
                     {
                         label: __("RTO Office"),
@@ -2264,51 +2325,47 @@ frappe.ui.form.on("RTO Registration", {
                         fieldname: "registration_charge",
                         fieldtype: "Currency",
                         reqd: 1
-                    },
-                    {
-                        label: __("Chassis Number"),
-                        fieldname: "chassis_number",
-                        fieldtype: "Data",
-                        read_only: 1
                     }
                 ],
                 primary_action_label: __("Create"),
-                primary_action(values) {
-                    frappe.call({
-                        method: "frappe.client.get_list",
-                        args: {
-                            doctype: "RTO Registration",
-                            filters: { sales_invoice: values.sales_invoice },
-                            limit: 1
-                        },
-                        callback: function (res) {
-                            if (res.message.length > 0) {
-                                frappe.msgprint("RTO Registration already exists for this Sales Invoice.");
-                            } else {
-                                frappe.call({
-                                    method: "autowings_app.autowings_app.doctype.rto_registration.rto_registration.create_rto_registration_from_sales_invoice",
-                                    args: {
-                                        sales_invoice: values.sales_invoice,
-                                        rto_office: values.rto_office,
-                                        registration_charge: values.registration_charge,
-                                        smart_card_amount: 0,
-                                        chassis_number: values.chassis_number
-                                    },
-                                    callback: function (res) {
-                                        if (res.message?.name || res.message) {
-                                            frappe.set_route("Form", "RTO Registration", res.message.name || res.message);
-                                            frappe.msgprint(`✅ RTO Registration ${res.message.name || res.message} created.`);
-                                        }
-                                    }
-                                });
+                primary_action: async function(values) {
+                    try {
+                        const rto_check = await frappe.call({
+                            method: "frappe.client.get_list",
+                            args: {
+                                doctype: "RTO Registration",
+                                filters: { sales_invoice: values.sales_invoice },
+                                limit: 1
                             }
-                        }
-                    });
+                        });
 
+                        if (rto_check.message.length > 0) {
+                            showError(__("RTO Registration already exists for Sales Invoice {0}.", [values.sales_invoice]));
+                            return;
+                        }
+
+                        const response = await frappe.call({
+                            method: "autowings_app.autowings_app.doctype.rto_registration.rto_registration.create_rto_registration_from_sales_invoice",
+                            args: {
+                                sales_invoice: values.sales_invoice,
+                                rto_office: values.rto_office,
+                                registration_charge: values.registration_charge,
+                                chassis_number: values.chassis_number
+                            }
+                        });
+
+                        if (response.message) {
+                            frappe.set_route("Form", "RTO Registration", response.message);
+                            showSuccess(__("RTO Registration {0} created successfully.", [response.message]));
+                        }
+                    } catch (err) {
+                        console.error("Error creating RTO Registration:", err);
+                        showError(__("Failed to create RTO Registration: {0}", [err.message]));
+                    }
                     d.hide();
                 },
                 secondary_action_label: __("Cancel"),
-                secondary_action: function () {
+                secondary_action: function() {
                     d.hide();
                 }
             });
@@ -2316,93 +2373,381 @@ frappe.ui.form.on("RTO Registration", {
             d.show();
         }, __("Actions"));
 
-        // Button 2: Create Smart Card
-        if (frm.doc.docstatus === 0 && frm.doc.name) {
-            frm.add_custom_button(__("Create Smart Card"), function () {
-                if (!frm.doc.sales_invoice || !frm.doc.customer || !frm.doc.chassis_number) {
-                    frappe.msgprint("Missing required fields: Sales Invoice, Customer, or Chassis Number.");
-                    return;
-                }
-
-                frappe.call({
-                    method: "frappe.client.get_list",
-                    args: {
-                        doctype: "Vehicle Smart Card",
-                        filters: {
-                            sales_invoice: frm.doc.sales_invoice,
-                            rto_registration_id: frm.doc.name
-                        },
-                        limit: 1
-                    },
-                    callback: function (r) {
-                        if (r.message.length > 0) {
-                            frappe.msgprint("Smart Card already exists for this Sales Invoice.");
-                        } else {
-                            frappe.prompt([
-                                {
-                                    label: "Smart Card Amount",
-                                    fieldname: "smart_card_amount",
-                                    fieldtype: "Currency",
-                                    reqd: 1
-                                }
-                            ], function (data) {
+        // Button 2: Create Vehicle Smart Card
+        frm.add_custom_button(__("Create Vehicle Smart Card"), function() {
+            let d = new frappe.ui.Dialog({
+                title: __("Create Vehicle Smart Card"),
+                fields: [
+                    {
+                        label: __("Sales Invoice"),
+                        fieldname: "sales_invoice",
+                        fieldtype: "Link",
+                        options: "Sales Invoice",
+                        reqd: 1,
+                        get_query: () => ({ filters: { docstatus: 1 } }),
+                        onchange: function() {
+                            const si = d.get_value("sales_invoice");
+                            if (si) {
+                                // Check if Vehicle Smart Card exists
                                 frappe.call({
-                                    method: "frappe.client.insert",
+                                    method: "frappe.client.get_list",
                                     args: {
-                                        doc: {
-                                            doctype: "Vehicle Smart Card",
-                                            customer: frm.doc.customer,
-                                            rto_registration_id: frm.doc.name,
-                                            sales_invoice: frm.doc.sales_invoice,
-                                            chassis_number: frm.doc.chassis_number,
-                                            smart_card_charge: data.smart_card_amount,
-                                            smart_card_payment_status: "Due",
-                                            smart_card_status: "Pending",
-                                            status: "Draft"
-                                        }
+                                        doctype: "Vehicle Smart Card",
+                                        filters: { sales_invoice: si },
+                                        limit: 1
                                     },
-                                    callback: function () {
-                                        setTimeout(() => {
-                                            frappe.call({
-                                                method: "frappe.client.get_list",
-                                                args: {
-                                                    doctype: "Vehicle Smart Card",
-                                                    filters: {
-                                                        rto_registration_id: frm.doc.name,
-                                                        sales_invoice: frm.doc.sales_invoice
-                                                    },
-                                                    fields: ["name", "journal_entry_id"],
-                                                    order_by: "creation desc",
-                                                    limit: 1
-                                                },
-                                                callback: function (r) {
-                                                    if (r.message?.length > 0) {
-                                                        let sc = r.message[0];
-                                                        frm.add_child("additional_accounts", {
-                                                            account: "Smart Card",
-                                                            amount: data.smart_card_amount,
-                                                            smart_card_id: sc.name,
-                                                            journal_entry_id: sc.journal_entry_id,
-                                                            status: "Draft",
-                                                            payment_status: "Due"
-                                                        });
-                                                        frm.doc.journal_entry_id = sc.journal_entry_id;
-                                                        frm.save().then(() => {
-                                                            frappe.msgprint(`✅ Smart Card ${sc.name} created and linked.`);
-                                                        });
-                                                    } else {
-                                                        frappe.msgprint("⚠️ Smart Card not found. Please check manually.");
+                                    callback: function(res) {
+                                        if (res.message.length > 0) {
+                                            showError(__("Vehicle Smart Card already exists for Sales Invoice {0}.", [si]));
+                                            d.set_value("sales_invoice", "");
+                                            d.set_value("chassis_number", "");
+                                            d.set_value("rto_registration_id", "");
+                                            return;
+                                        }
+                                        // Fetch chassis number and RTO Registration
+                                        frappe.call({
+                                            method: "frappe.client.get",
+                                            args: {
+                                                doctype: "Sales Invoice",
+                                                name: si,
+                                                fields: ["custom_vin", "custom_rto_additional_accounts"]
+                                            },
+                                            callback: function(r) {
+                                                if (r.message) {
+                                                    // Check custom_rto_additional_accounts for Smart Card with zero amount
+                                                    const smart_card_entry = r.message.custom_rto_additional_accounts?.find(
+                                                        row => row.account === "Smart Card" && row.amount === 0
+                                                    );
+                                                    if (!smart_card_entry) {
+                                                        showError(__("No Smart Card entry with zero amount found in Sales Invoice {0}.", [si]));
+                                                        d.set_value("sales_invoice", "");
+                                                        d.set_value("chassis_number", "");
+                                                        d.set_value("rto_registration_id", "");
+                                                        return;
                                                     }
+                                                    // Set chassis number
+                                                    if (r.message.custom_vin?.length === 1) {
+                                                        d.set_value("chassis_number", r.message.custom_vin[0].chassis_number);
+                                                    } else {
+                                                        d.set_value("chassis_number", "");
+                                                        showError(__("VIN issue in Sales Invoice {0}. Please enter Chassis Number manually.", [si]));
+                                                        d.fields_dict.chassis_number.df.read_only = 0;
+                                                    }
+                                                    // Fetch RTO Registration
+                                                    frappe.call({
+                                                        method: "frappe.client.get_list",
+                                                        args: {
+                                                            doctype: "RTO Registration",
+                                                            filters: { sales_invoice: si },
+                                                            fields: ["name"],
+                                                            limit: 1
+                                                        },
+                                                        callback: function(rto_res) {
+                                                            if (rto_res.message.length > 0) {
+                                                                d.set_value("rto_registration_id", rto_res.message[0].name);
+                                                            } else {
+                                                                showError(__("No RTO Registration found for Sales Invoice {0}.", [si]));
+                                                                d.set_value("rto_registration_id", "");
+                                                            }
+                                                        }
+                                                    });
                                                 }
-                                            });
-                                        }, 5000);
+                                            },
+                                            error: function(err) {
+                                                console.error("Error fetching Sales Invoice:", err);
+                                                showError(__("Failed to fetch Sales Invoice details: {0}", [err.message]));
+                                                d.set_value("chassis_number", "");
+                                                d.set_value("rto_registration_id", "");
+                                            }
+                                        });
                                     }
                                 });
-                            }, __("Create Smart Card"));
+                            }
                         }
+                    },
+                    {
+                        label: __("RTO Registration"),
+                        fieldname: "rto_registration_id",
+                        fieldtype: "Link",
+                        options: "RTO Registration",
+                        reqd: 1,
+                        onchange: function() {
+                            const rto_id = d.get_value("rto_registration_id");
+                            const si = d.get_value("sales_invoice");
+                            if (rto_id && si) {
+                                // Check if Vehicle Smart Card exists for this RTO Registration
+                                frappe.call({
+                                    method: "frappe.client.get_list",
+                                    args: {
+                                        doctype: "Vehicle Smart Card",
+                                        filters: { rto_registration_id: rto_id },
+                                        limit: 1
+                                    },
+                                    callback: function(res) {
+                                        if (res.message.length > 0) {
+                                            showError(__("Vehicle Smart Card already exists for RTO Registration {0}.", [rto_id]));
+                                            d.set_value("rto_registration_id", "");
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    },
+                    {
+                        label: __("Chassis Number"),
+                        fieldname: "chassis_number",
+                        fieldtype: "Data",
+                        read_only: 1
+                    },
+                    {
+                        label: __("Smart Card Charge"),
+                        fieldname: "smart_card_charge",
+                        fieldtype: "Currency",
+                        reqd: 1
                     }
-                });
-            }, __("Actions"));
-        }
+                ],
+                primary_action_label: __("Create"),
+                primary_action: async function(values) {
+                    try {
+                        // Double-check Vehicle Smart Card existence
+                        const sc_check = await frappe.call({
+                            method: "frappe.client.get_list",
+                            args: {
+                                doctype: "Vehicle Smart Card",
+                                filters: { sales_invoice: values.sales_invoice, rto_registration_id: values.rto_registration_id },
+                                limit: 1
+                            }
+                        });
+
+                        if (sc_check.message.length > 0) {
+                            showError(__("Vehicle Smart Card already exists for Sales Invoice {0} and RTO Registration {1}.", [values.sales_invoice, values.rto_registration_id]));
+                            return;
+                        }
+
+                        // Create Vehicle Smart Card
+                        const response = await frappe.call({
+                            method: "autowings_app.autowings_app.doctype.rto_registration.rto_registration.create_vehicle_smart_card",
+                            args: {
+                                sales_invoice: values.sales_invoice,
+                                rto_registration_id: values.rto_registration_id,
+                                smart_card_charge: values.smart_card_charge,
+                                chassis_number: values.chassis_number
+                            }
+                        });
+
+                        if (response.message) {
+                            frappe.set_route("Form", "Vehicle Smart Card", response.message);
+                            showSuccess(__("Vehicle Smart Card {0} created successfully.", [response.message]));
+                        }
+                    } catch (err) {
+                        console.error("Error creating Vehicle Smart Card:", err);
+                        showError(__("Failed to create Vehicle Smart Card: {0}", [err.message]));
+                    }
+                    d.hide();
+                },
+                secondary_action_label: __("Cancel"),
+                secondary_action: function() {
+                    d.hide();
+                }
+            });
+
+            d.show();
+        }, __("Actions"));
     }
 });
+
+// frappe.ui.form.on("RTO Registration", {
+//     refresh: function(frm) {
+//         if (typeof restrict_custom_buttons_by_role === "function") {
+//             restrict_custom_buttons_by_role(frm);
+//         }
+
+//         // Button 1: Create RTO Registration
+//         frm.add_custom_button(__("Create RTO Registration"), function () {
+//             let d = new frappe.ui.Dialog({
+//                 title: __("Create RTO Registration"),
+//                 fields: [
+//                     {
+//                         label: __("Sales Invoice"),
+//                         fieldname: "sales_invoice",
+//                         fieldtype: "Link",
+//                         options: "Sales Invoice",
+//                         reqd: 1,
+//                         get_query: () => ({ filters: { docstatus: 1 } }),
+//                         onchange: function () {
+//                             const si = d.get_value("sales_invoice");
+//                             if (si) {
+//                                 frappe.call({
+//                                     method: "frappe.client.get",
+//                                     args: {
+//                                         doctype: "Sales Invoice",
+//                                         name: si,
+//                                         fields: ["custom_vin"]
+//                                     },
+//                                     callback: function (r) {
+//                                         if (r.message?.custom_vin?.length === 1) {
+//                                             d.set_value("chassis_number", r.message.custom_vin[0].chassis_number);
+//                                         } else {
+//                                             d.set_value("chassis_number", "");
+//                                             frappe.msgprint("VIN issue. Enter Chassis manually.");
+//                                         }
+//                                     }
+//                                 });
+//                             }
+//                         }
+//                     },
+//                     {
+//                         label: __("RTO Office"),
+//                         fieldname: "rto_office",
+//                         fieldtype: "Link",
+//                         options: "Supplier",
+//                         reqd: 1,
+//                         get_query: () => ({ filters: { supplier_group: "RTO" } })
+//                     },
+//                     {
+//                         label: __("Registration Charge"),
+//                         fieldname: "registration_charge",
+//                         fieldtype: "Currency",
+//                         reqd: 1
+//                     },
+//                     {
+//                         label: __("Chassis Number"),
+//                         fieldname: "chassis_number",
+//                         fieldtype: "Data",
+//                         read_only: 1
+//                     }
+//                 ],
+//                 primary_action_label: __("Create"),
+//                 primary_action(values) {
+//                     frappe.call({
+//                         method: "frappe.client.get_list",
+//                         args: {
+//                             doctype: "RTO Registration",
+//                             filters: { sales_invoice: values.sales_invoice },
+//                             limit: 1
+//                         },
+//                         callback: function (res) {
+//                             if (res.message.length > 0) {
+//                                 frappe.msgprint("RTO Registration already exists for this Sales Invoice.");
+//                             } else {
+//                                 frappe.call({
+//                                     method: "autowings_app.autowings_app.doctype.rto_registration.rto_registration.create_rto_registration_from_sales_invoice",
+//                                     args: {
+//                                         sales_invoice: values.sales_invoice,
+//                                         rto_office: values.rto_office,
+//                                         registration_charge: values.registration_charge,
+//                                         smart_card_amount: 0,
+//                                         chassis_number: values.chassis_number
+//                                     },
+//                                     callback: function (res) {
+//                                         if (res.message?.name || res.message) {
+//                                             frappe.set_route("Form", "RTO Registration", res.message.name || res.message);
+//                                             frappe.msgprint(`✅ RTO Registration ${res.message.name || res.message} created.`);
+//                                         }
+//                                     }
+//                                 });
+//                             }
+//                         }
+//                     });
+
+//                     d.hide();
+//                 },
+//                 secondary_action_label: __("Cancel"),
+//                 secondary_action: function () {
+//                     d.hide();
+//                 }
+//             });
+
+//             d.show();
+//         }, __("Actions"));
+
+//         // Button 2: Create Smart Card
+//         if (frm.doc.docstatus === 0 && frm.doc.name) {
+//             frm.add_custom_button(__("Create Smart Card"), function () {
+//                 if (!frm.doc.sales_invoice || !frm.doc.customer || !frm.doc.chassis_number) {
+//                     frappe.msgprint("Missing required fields: Sales Invoice, Customer, or Chassis Number.");
+//                     return;
+//                 }
+
+//                 frappe.call({
+//                     method: "frappe.client.get_list",
+//                     args: {
+//                         doctype: "Vehicle Smart Card",
+//                         filters: {
+//                             sales_invoice: frm.doc.sales_invoice,
+//                             rto_registration_id: frm.doc.name
+//                         },
+//                         limit: 1
+//                     },
+//                     callback: function (r) {
+//                         if (r.message.length > 0) {
+//                             frappe.msgprint("Smart Card already exists for this Sales Invoice.");
+//                         } else {
+//                             frappe.prompt([
+//                                 {
+//                                     label: "Smart Card Amount",
+//                                     fieldname: "smart_card_amount",
+//                                     fieldtype: "Currency",
+//                                     reqd: 1
+//                                 }
+//                             ], function (data) {
+//                                 frappe.call({
+//                                     method: "frappe.client.insert",
+//                                     args: {
+//                                         doc: {
+//                                             doctype: "Vehicle Smart Card",
+//                                             customer: frm.doc.customer,
+//                                             rto_registration_id: frm.doc.name,
+//                                             sales_invoice: frm.doc.sales_invoice,
+//                                             chassis_number: frm.doc.chassis_number,
+//                                             smart_card_charge: data.smart_card_amount,
+//                                             smart_card_payment_status: "Due",
+//                                             smart_card_status: "Pending",
+//                                             status: "Draft"
+//                                         }
+//                                     },
+//                                     callback: function () {
+//                                         setTimeout(() => {
+//                                             frappe.call({
+//                                                 method: "frappe.client.get_list",
+//                                                 args: {
+//                                                     doctype: "Vehicle Smart Card",
+//                                                     filters: {
+//                                                         rto_registration_id: frm.doc.name,
+//                                                         sales_invoice: frm.doc.sales_invoice
+//                                                     },
+//                                                     fields: ["name", "journal_entry_id"],
+//                                                     order_by: "creation desc",
+//                                                     limit: 1
+//                                                 },
+//                                                 callback: function (r) {
+//                                                     if (r.message?.length > 0) {
+//                                                         let sc = r.message[0];
+//                                                         frm.add_child("additional_accounts", {
+//                                                             account: "Smart Card",
+//                                                             amount: data.smart_card_amount,
+//                                                             smart_card_id: sc.name,
+//                                                             journal_entry_id: sc.journal_entry_id,
+//                                                             status: "Draft",
+//                                                             payment_status: "Due"
+//                                                         });
+//                                                         frm.doc.journal_entry_id = sc.journal_entry_id;
+//                                                         frm.save().then(() => {
+//                                                             frappe.msgprint(`✅ Smart Card ${sc.name} created and linked.`);
+//                                                         });
+//                                                     } else {
+//                                                         frappe.msgprint("⚠️ Smart Card not found. Please check manually.");
+//                                                     }
+//                                                 }
+//                                             });
+//                                         }, 5000);
+//                                     }
+//                                 });
+//                             }, __("Create Smart Card"));
+//                         }
+//                     }
+//                 });
+//             }, __("Actions"));
+//         }
+//     }
+// });

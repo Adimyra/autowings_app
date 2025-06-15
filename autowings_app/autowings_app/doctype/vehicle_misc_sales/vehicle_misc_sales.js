@@ -758,16 +758,54 @@ frappe.ui.form.on('Vehicle Misc Sales', {
             }
 
             // Add Update Form button for 'Due Update' status
+            // if (frm.doc.status === 'Due Update') {
+            //     frm.add_custom_button(__('Update Form'), function() {
+            //         try {
+            //             show_update_misc_dialog(frm);
+            //         } catch (e) {
+            //             frappe.msgprint({
+            //                 title: __('Error'),
+            //                 message: __('Failed to open update dialog: ') + e.message,
+            //                 indicator: 'red'
+            //             });
+            //         }
+            //     });
+            // }
+
             if (frm.doc.status === 'Due Update') {
                 frm.add_custom_button(__('Update Form'), function() {
-                    try {
-                        show_update_misc_dialog(frm);
-                    } catch (e) {
-                        frappe.msgprint({
-                            title: __('Error'),
-                            message: __('Failed to open update dialog: ') + e.message,
-                            indicator: 'red'
-                        });
+                    if (frm.is_dirty()) {
+                        frappe.confirm(
+                            __('The form has unsaved changes. Do you want to save it before proceeding?'),
+                            () => {
+                                // Save the form
+                                frm.save('Save', function() {
+                                    try {
+                                        show_update_misc_dialog(frm);
+                                    } catch (e) {
+                                        frappe.msgprint({
+                                            title: __('Error'),
+                                            message: __('Failed to open update dialog: ') + e.message,
+                                            indicator: 'red'
+                                        });
+                                    }
+                                });
+                            },
+                            () => {
+                                // Abort and do not show dialog
+                                return;
+                            }
+                        );
+                    } else {
+                        try {
+                            show_update_misc_dialog(frm);
+                        } catch (e) {
+                            frappe.msgprint({
+                                title: __('Error'),
+                                message: __('Failed to open update dialog: ') + e.message,
+                                indicator: 'red'
+                            });
+                        }
                     }
                 });
             }
@@ -1795,3 +1833,196 @@ frappe.ui.form.on("Vehicle Misc Sales", {
 //         return frm.reload_doc();
 //     }
 // });
+
+
+// create misc accounts and update journal entries if not created during sales invoice submission
+
+console.log("Vehicle Misc Sales script initialized");
+
+// Displays error message to user
+function showError(message) {
+    frappe.msgprint({
+        title: __('Error'),
+        indicator: 'red',
+        message: message
+    });
+}
+
+// Displays success message to user
+function showSuccess(message) {
+    frappe.msgprint({
+        title: __('Success'),
+        indicator: 'green',
+        message: message
+    });
+}
+
+frappe.ui.form.on("Vehicle Misc Sales", {
+    refresh: function(frm) {
+        restrict_custom_buttons_by_role(frm); // Assumed to be defined elsewhere
+        // Add custom button "Create Misc Account"
+        frm.add_custom_button(__("Create Misc Account"), function() {
+            // Create a dialog for input
+            let d = new frappe.ui.Dialog({
+                title: __("Create Misc Account"),
+                fields: [
+                    {
+                        label: __("Sales Invoice"),
+                        fieldname: "sales_invoice",
+                        fieldtype: "Link",
+                        options: "Sales Invoice",
+                        reqd: 1,
+                        get_query: function() {
+                            return {
+                                filters: {
+                                    docstatus: 1 // Only submitted Sales Invoices
+                                }
+                            };
+                        },
+                        onchange: function() {
+                            const si = d.get_value("sales_invoice");
+                            if (si) {
+                                // Check if Vehicle Misc Sales exists
+                                frappe.call({
+                                    method: "frappe.client.get_list",
+                                    args: {
+                                        doctype: "Vehicle Misc Sales",
+                                        filters: { sales_invoice: si },
+                                        limit: 1
+                                    },
+                                    callback: function(res) {
+                                        if (res.message.length > 0) {
+                                            showError(__("Vehicle Misc Sales already exists for Sales Invoice {0}.", [si]));
+                                            d.set_value("sales_invoice", "");
+                                            d.set_value("customer_name", "");
+                                            d.set_value("customer", "");
+                                            d.set_value("vsm_id", "");
+                                            return;
+                                        }
+                                        // Fetch customer_name, customer, and vsm_id
+                                        frappe.call({
+                                            method: "frappe.client.get",
+                                            args: {
+                                                doctype: "Sales Invoice",
+                                                name: si,
+                                                fields: ["customer_name", "customer", "custom_vsm_id"]
+                                            },
+                                            callback: function(r) {
+                                                if (r.message) {
+                                                    d.set_value("customer_name", r.message.customer_name || "");
+                                                    d.set_value("customer", r.message.customer || "");
+                                                    d.set_value("vsm_id", r.message.custom_vsm_id || "");
+                                                }
+                                            },
+                                            error: function(err) {
+                                                console.error("Error fetching Sales Invoice:", err);
+                                                showError(__("Failed to fetch Sales Invoice details: {0}", [err.message]));
+                                                d.set_value("customer_name", "");
+                                                d.set_value("customer", "");
+                                                d.set_value("vsm_id", "");
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    },
+                    {
+                        label: __("Customer Name"),
+                        fieldname: "customer_name",
+                        fieldtype: "Data",
+                        read_only: 1
+                    },
+                    {
+                        label: __("Customer"),
+                        fieldname: "customer",
+                        fieldtype: "Link",
+                        options: "Customer",
+                        hidden: 1,
+                        read_only: 1
+                    },
+                    {
+                        label: __("Vehicle Sales Master"),
+                        fieldname: "vsm_id",
+                        fieldtype: "Data",
+                        hidden: 1,
+                        read_only: 1
+                    },
+                    {
+                        label: __("Misc Account"),
+                        fieldname: "misc_account",
+                        fieldtype: "Link",
+                        options: "Supplier",
+                        reqd: 1,
+                        get_query: function() {
+                            return {
+                                filters: {
+                                    supplier_group: "Misc Group"
+                                }
+                            };
+                        }
+                    },
+                    {
+                        label: __("Amount"),
+                        fieldname: "amount",
+                        fieldtype: "Float",
+                        reqd: 1
+                    }
+                ],
+                primary_action_label: __("Create"),
+                primary_action: async function(values) {
+                    try {
+                        // Log the values to debug
+                        console.log("Dialog values:", values);
+
+                        // Validate for existing Vehicle Misc Sales
+                        const misc_check = await frappe.call({
+                            method: "frappe.client.get_list",
+                            args: {
+                                doctype: "Vehicle Misc Sales",
+                                filters: { sales_invoice: values.sales_invoice },
+                                limit: 1
+                            }
+                        });
+                        if (misc_check.message.length > 0) {
+                            showError(__("Vehicle Misc Sales already exists for Sales Invoice {0}.", [values.sales_invoice]));
+                            return;
+                        }
+
+                        // Validate amount
+                        if (!values.amount || values.amount <= 0) {
+                            showError(__("A valid Amount greater than 0 is required."));
+                            return;
+                        }
+
+                        // Create Vehicle Misc Sales
+                        const response = await frappe.call({
+                            method: "autowings_app.autowings_app.doctype.vehicle_misc_sales.vehicle_misc_sales.create_vehicle_misc_sales_from_sales_invoice",
+                            args: {
+                                sales_invoice: values.sales_invoice,
+                                customer: values.customer,
+                                vsm_id: values.vsm_id,
+                                misc_account: values.misc_account,
+                                amount: values.amount
+                            }
+                        });
+
+                        if (response.message) {
+                            frappe.set_route("Form", "Vehicle Misc Sales", response.message);
+                            showSuccess(__("Vehicle Misc Sales {0} created successfully.", [response.message]));
+                        }
+                    } catch (err) {
+                        console.error("Error creating Vehicle Misc Sales:", err);
+                        showError(__("Failed to create Vehicle Misc Sales: {0}", [err.message]));
+                    }
+                    d.hide();
+                },
+                secondary_action_label: __("Cancel"),
+                secondary_action: function() {
+                    d.hide();
+                }
+            });
+            d.show();
+        }, __("Actions"));
+    }
+});

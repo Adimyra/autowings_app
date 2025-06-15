@@ -7,10 +7,11 @@
  "engine": "InnoDB",
  "field_order": [
   "vsm_id",
+  "customer",
+  "customer_name",
   "sales_invoice",
   "journal_entry_id",
   "journal_status",
-  "customer",
   "column_break_sdit",
   "status",
   "warranty_status",
@@ -191,6 +192,14 @@
    "fieldtype": "Int",
    "label": "Validity Period (In Year)",
    "read_only": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer Name"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -200,7 +209,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-05-16 18:13:29.907804",
+ "modified": "2025-06-14 17:12:09.630793",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Extended Warranty",
