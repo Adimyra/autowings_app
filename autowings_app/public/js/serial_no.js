@@ -932,3 +932,10 @@ frappe.ui.form.on('Serial No', {
         });
     }
 });
+
+
+
+
+
+// for creation of serial no which vehicle sold already
+

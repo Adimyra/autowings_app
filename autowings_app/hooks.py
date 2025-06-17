@@ -35,6 +35,16 @@ doc_events = {
     }
 }
 
+# In custom app's hooks.py
+doc_events = {
+    "Serial No": {
+        "before_insert": "your_app.serial_no_hooks.set_status_sold"
+    }
+}
+
+# In your_app/serial_no_hooks.py
+def set_status_sold(doc, method):
+    doc.status = "Sold"
 
 
 doctype_js = {

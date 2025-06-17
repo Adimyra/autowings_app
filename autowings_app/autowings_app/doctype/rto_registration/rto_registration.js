@@ -622,7 +622,7 @@ function _rto_payment_entry_action(frm) {
                         if (!values.registration_number) {
                             frappe.throw(__('Registration Number is mandatory.'));
                         }
-                        // Update RTO Registration and Vehicle Smart Card statuses
+                        // Update RTO Registration document
                         frappe.call({
                             method: 'frappe.client.set_value',
                             args: {
@@ -631,56 +631,99 @@ function _rto_payment_entry_action(frm) {
                                 fieldname: {
                                     registration_number: values.registration_number,
                                     status: 'Due Number Plate Ordering',
-                                    registration_status: "Due Documents Submission to DTO"
+                                    registration_status: 'Due Documents Submission to DTO'
                                 }
                             },
                             callback: function(r) {
                                 if (!r.exc) {
-                                    // Update Vehicle Smart Card statuses
-                                    let promises = [];
-                                    if (frm.doc.additional_accounts) {
-                                        frm.doc.additional_accounts.forEach(acc => {
-                                            if (acc.smart_card_id) {
-                                                promises.push(
-                                                    frappe.db.get_doc('Vehicle Smart Card', acc.smart_card_id)
-                                                        .then(smart_card => {
-                                                            // Set status based on Vehicle Smart Card's payment_status
-                                                            smart_card.status = smart_card.smart_card_payment_status === 'Paid' ? 'Due Updation in Vahan' : 'Due Payment to RTO';
-                                                            smart_card.journal_account = acc.account; // Set journal_account from additional_accounts
-                                                            smart_card.smart_card_status = "Applied";
-                                                            smart_card.registration_number = values.registration_number;
-                                                            return frappe.call({
-                                                                method: 'frappe.client.save',
-                                                                args: { doc: smart_card }
+                                    // Find and update Serial No document
+                                    frappe.call({
+                                        method: 'frappe.client.get_list',
+                                        args: {
+                                            doctype: 'Serial No',
+                                            filters: {
+                                                custom_chassis_number: frm.doc.chassis_number
+                                            },
+                                            fields: ['name']
+                                        },
+                                        callback: function(serial_res) {
+                                            if (serial_res.message && serial_res.message.length > 0) {
+                                                let serial_no_doc = serial_res.message[0];
+                                                frappe.call({
+                                                    method: 'frappe.client.set_value',
+                                                    args: {
+                                                        doctype: 'Serial No',
+                                                        name: serial_no_doc.name,
+                                                        fieldname: {
+                                                            custom_registration_number: values.registration_number
+                                                        }
+                                                    },
+                                                    callback: function(serial_update_res) {
+                                                        if (!serial_update_res.exc) {
+                                                            // Update Vehicle Smart Card documents
+                                                            let promises = [];
+                                                            if (frm.doc.additional_accounts) {
+                                                                frm.doc.additional_accounts.forEach(acc => {
+                                                                    if (acc.smart_card_id) {
+                                                                        promises.push(
+                                                                            frappe.db.get_doc('Vehicle Smart Card', acc.smart_card_id)
+                                                                                .then(smart_card => {
+                                                                                    smart_card.status = smart_card.smart_card_payment_status === 'Paid' ? 'Due Updation in Vahan' : 'Due Payment to RTO';
+                                                                                    smart_card.journal_account = acc.account;
+                                                                                    smart_card.smart_card_status = 'Applied';
+                                                                                    smart_card.registration_number = values.registration_number;
+                                                                                    return frappe.call({
+                                                                                        method: 'frappe.client.save',
+                                                                                        args: { doc: smart_card }
+                                                                                    });
+                                                                                })
+                                                                                .catch(err => {
+                                                                                    throw new Error(`Error updating Vehicle Smart Card ${acc.smart_card_id}: ${err.message}`);
+                                                                                })
+                                                                        );
+                                                                    }
+                                                                });
+                                                            }
+                                                            Promise.all(promises)
+                                                                .then(() => {
+                                                                    // Log successful activity
+                                                                    log_rto_activity(frm, 'Registration Number Updated', 'Registration Updated', '');
+                                                                    frm.reload_doc();
+                                                                    frappe.msgprint({
+                                                                        title: __('Success'),
+                                                                        message: __('Registration Number and Serial No updated successfully.'),
+                                                                        indicator: 'green'
+                                                                    });
+                                                                    dialog.hide();
+                                                                })
+                                                                .catch(err => {
+                                                                    log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', err.message || 'Error updating Vehicle Smart Cards');
+                                                                    frappe.msgprint({
+                                                                        title: __('Error'),
+                                                                        message: err.message || __('Error updating Vehicle Smart Cards.'),
+                                                                        indicator: 'red'
+                                                                    });
+                                                                });
+                                                        } else {
+                                                            log_rto_activity(frm, 'Registration Number Updated', 'Serial No Update Failed', serial_update_res.exc || JSON.stringify(serial_update_res));
+                                                            frappe.msgprint({
+                                                                title: __('Error'),
+                                                                message: __('Error updating Serial No: ') + (serial_update_res.exc || JSON.stringify(serial_update_res)),
+                                                                indicator: 'red'
                                                             });
-                                                        })
-                                                        .catch(err => {
-                                                            throw new Error(`Error updating Vehicle Smart Card ${acc.smart_card_id}: ${err.message}`);
-                                                        })
-                                                );
+                                                        }
+                                                    }
+                                                });
+                                            } else {
+                                                log_rto_activity(frm, 'Registration Number Updated', 'Serial No Update Failed', 'No Serial No found for chassis number: ' + frm.doc.chassis_number);
+                                                frappe.msgprint({
+                                                    title: __('Error'),
+                                                    message: __('No Serial No found for chassis number: ') + frm.doc.chassis_number,
+                                                    indicator: 'red'
+                                                });
                                             }
-                                        });
-                                    }
-                                    Promise.all(promises)
-                                        .then(() => {
-                                            // Log activity
-                                            log_rto_activity(frm, 'Registration Number Updated', 'Registration Updated', '');
-                                            frm.reload_doc();
-                                            frappe.msgprint({
-                                                title: __('Success'),
-                                                message: __('Registration Number updated.'),
-                                                indicator: 'green'
-                                            });
-                                            dialog.hide();
-                                        })
-                                        .catch(err => {
-                                            log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', err.message || 'Error updating Vehicle Smart Cards');
-                                            frappe.msgprint({
-                                                title: __('Error'),
-                                                message: err.message || __('Error updating Vehicle Smart Cards.'),
-                                                indicator: 'red'
-                                            });
-                                        });
+                                        }
+                                    });
                                 } else {
                                     log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', r.exc || JSON.stringify(r));
                                     frappe.msgprint({
@@ -705,6 +748,108 @@ function _rto_payment_entry_action(frm) {
         frm.set_intro(__('Status: ') + frm.doc.status, 'blue');
     }
 });
+
+//         // Add Update Registration Number button
+//         if (frm.doc.status === 'Due Registration Number Entry') {
+//             frm.add_custom_button(__('Update Registration Number'), function() {
+//                 let dialog = new frappe.ui.Dialog({
+//                     title: __('Update Registration Number'),
+//                     fields: [
+//                         {
+//                             label: __('Registration Number'),
+//                             fieldname: 'registration_number',
+//                             fieldtype: 'Data',
+//                             reqd: 1
+//                         }
+//                     ],
+//                     primary_action_label: __('Update'),
+//                     primary_action: function(values) {
+//                         if (!values.registration_number) {
+//                             frappe.throw(__('Registration Number is mandatory.'));
+//                         }
+//                         // Update RTO Registration and Vehicle Smart Card statuses
+//                         frappe.call({
+//                             method: 'frappe.client.set_value',
+//                             args: {
+//                                 doctype: 'RTO Registration',
+//                                 name: frm.doc.name,
+//                                 fieldname: {
+//                                     registration_number: values.registration_number,
+//                                     status: 'Due Number Plate Ordering',
+//                                     registration_status: "Due Documents Submission to DTO"
+//                                 }
+//                             },
+//                             callback: function(r) {
+//                                 if (!r.exc) {
+//                                     // Update Vehicle Smart Card statuses
+//                                     let promises = [];
+//                                     if (frm.doc.additional_accounts) {
+//                                         frm.doc.additional_accounts.forEach(acc => {
+//                                             if (acc.smart_card_id) {
+//                                                 promises.push(
+//                                                     frappe.db.get_doc('Vehicle Smart Card', acc.smart_card_id)
+//                                                         .then(smart_card => {
+//                                                             // Set status based on Vehicle Smart Card's payment_status
+//                                                             smart_card.status = smart_card.smart_card_payment_status === 'Paid' ? 'Due Updation in Vahan' : 'Due Payment to RTO';
+//                                                             smart_card.journal_account = acc.account; // Set journal_account from additional_accounts
+//                                                             smart_card.smart_card_status = "Applied";
+//                                                             smart_card.registration_number = values.registration_number;
+//                                                             return frappe.call({
+//                                                                 method: 'frappe.client.save',
+//                                                                 args: { doc: smart_card }
+//                                                             });
+//                                                         })
+//                                                         .catch(err => {
+//                                                             throw new Error(`Error updating Vehicle Smart Card ${acc.smart_card_id}: ${err.message}`);
+//                                                         })
+//                                                 );
+//                                             }
+//                                         });
+//                                     }
+//                                     Promise.all(promises)
+//                                         .then(() => {
+//                                             // Log activity
+//                                             log_rto_activity(frm, 'Registration Number Updated', 'Registration Updated', '');
+//                                             frm.reload_doc();
+//                                             frappe.msgprint({
+//                                                 title: __('Success'),
+//                                                 message: __('Registration Number updated.'),
+//                                                 indicator: 'green'
+//                                             });
+//                                             dialog.hide();
+//                                         })
+//                                         .catch(err => {
+//                                             log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', err.message || 'Error updating Vehicle Smart Cards');
+//                                             frappe.msgprint({
+//                                                 title: __('Error'),
+//                                                 message: err.message || __('Error updating Vehicle Smart Cards.'),
+//                                                 indicator: 'red'
+//                                             });
+//                                         });
+//                                 } else {
+//                                     log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', r.exc || JSON.stringify(r));
+//                                     frappe.msgprint({
+//                                         title: __('Error'),
+//                                         message: __('Error updating Registration Number: ') + (r.exc || JSON.stringify(r)),
+//                                         indicator: 'red'
+//                                     });
+//                                 }
+//                             }
+//                         });
+//                     },
+//                     secondary_action_label: __('Cancel'),
+//                     secondary_action: function() {
+//                         dialog.hide();
+//                     }
+//                 });
+//                 dialog.show();
+//             });
+//         }
+
+//         // Override form status indicator to show custom status
+//         frm.set_intro(__('Status: ') + frm.doc.status, 'blue');
+//     }
+// });
 
 // Log activity to RTO Activity Log child table
 function log_rto_activity(frm, activity, status, remarks) {

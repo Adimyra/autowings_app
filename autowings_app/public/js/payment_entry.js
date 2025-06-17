@@ -460,123 +460,265 @@
 //     }
 // });
 
+// 222
+frappe.ui.form.on('Payment Entry', {
+    custom_fetch_party_names: function(frm) {
+        // Log to confirm button click
+        console.log('custom_fetch_party_names button clicked for Payment Entry:', frm.doc.name);
 
-// -----
-console.log("Payment Entry custom button script initialized");
-
-// Displays error message to user
-function showError(message) {
-    frappe.msgprint({
-        title: __('Error'),
-        indicator: 'red',
-        message: message
-    });
-}
-
-// Displays success message to user
-function showSuccess(message) {
-    frappe.msgprint({
-        title: __('Success'),
-        indicator: 'green',
-        message: message
-    });
-}
-
-// Displays warning message to user
-function showWarning(message) {
-    frappe.msgprint({
-        title: __('Warning'),
-        indicator: 'orange',
-        message: message
-    });
-}
-
-frappe.ui.form.on("Payment Entry", {
-    async custom_fetch_party_names(frm) {
-        console.log('custom_fetch_party_names triggered for Payment Entry:', frm.doc.name);
-
-        // Validate references child table
+        // Check if references child table exists and has rows
         if (!frm.doc.references || frm.doc.references.length === 0) {
-            showError(__('No references found in this Payment Entry.'));
+            frappe.msgprint({
+                title: __('Error'),
+                indicator: 'red',
+                message: __('No references found in this Payment Entry.')
+            });
             console.log('No references found:', frm.doc.references);
             return;
         }
 
+        // Track if any customer name is found
         let updated = false;
-        const promises = frm.doc.references.map(async (reference, index) => {
-            if (!reference.reference_doctype || !reference.reference_name) {
-                console.log('Skipping invalid reference at index', index);
-                return;
-            }
+        let promises = frm.doc.references.map((reference, index) => {
+            if (reference.reference_doctype && reference.reference_name) {
+                // Log the document being fetched
+                console.log('Fetching document:', reference.reference_doctype, reference.reference_name);
+                return new Promise((resolve, reject) => {
+                    frappe.call({
+                        method: 'frappe.client.get',
+                        args: {
+                            doctype: reference.reference_doctype,
+                            name: reference.reference_name
+                        },
+                        callback: function(response) {
+                            console.log('frappe.client.get response for', reference.reference_name, ':', response);
+                            if (response.message) {
+                                let doc = response.message;
+                                let customer_name = null;
 
-            console.log('Fetching document:', reference.reference_doctype, reference.reference_name);
-            try {
-                const response = await frappe.call({
-                    method: 'frappe.client.get',
-                    args: {
-                        doctype: reference.reference_doctype,
-                        name: reference.reference_name
-                    }
-                });
+                                // Case 1: If reference_doctype is Journal Entry
+                                if (reference.reference_doctype === 'Journal Entry') {
+                                    if (doc.accounts && doc.accounts.length > 0) {
+                                        // Find account where party_type is Customer
+                                        let customer_account = doc.accounts.find(account => account.party_type === 'Customer');
+                                        if (customer_account && customer_account.party) {
+                                            customer_name = customer_account.party;
+                                            console.log('Found customer in Journal Entry:', customer_name);
+                                        }
+                                    }
+                                } 
+                                // Case 2: Other doctypes, check for customer field
+                                else if (doc.customer) {
+                                    customer_name = doc.customer;
+                                    console.log('Found customer in document:', customer_name);
+                                }
 
-                if (!response.message) {
-                    console.warn('No document found for', reference.reference_doctype, reference.reference_name);
-                    return;
-                }
+                                // Update custom_party_name in the references child table
+                                if (customer_name) {
+                                    frm.doc.references[index].custom_party_name = customer_name;
+                                    updated = true;
+                                    console.log('Updated custom_party_name for index', index, ':', customer_name);
 
-                let customer_name = null;
-                const doc = response.message;
-
-                if (reference.reference_doctype === 'Journal Entry') {
-                    // Handle Journal Entry
-                    if (doc.accounts?.length > 0) {
-                        const customer_account = doc.accounts.find(account => account.party_type === 'Customer' && account.party);
-                        if (customer_account?.party) {
-                            // Fetch customer_name from Customer doctype
-                            const customer = await frappe.db.get_value("Customer", customer_account.party, "customer_name");
-                            if (customer?.message?.customer_name) {
-                                customer_name = customer.message.customer_name;
-                                console.log('Found customer_name in Journal Entry:', customer_name);
+                                    // Fetch the Customer document to get the customer_name
+                                    frappe.call({
+                                        method: 'frappe.client.get',
+                                        args: {
+                                            doctype: 'Customer',
+                                            name: customer_name
+                                        },
+                                        callback: function(customer_response) {
+                                            console.log('Customer fetch response for', customer_name, ':', customer_response);
+                                            if (customer_response.message) {
+                                                let customer_doc = customer_response.message;
+                                                if (customer_doc.customer_name) {
+                                                    // Update custom_party with the customer's name
+                                                    frm.doc.references[index].custom_party = customer_doc.customer_name;
+                                                    console.log('Updated custom_party for index', index, ':', customer_doc.customer_name);
+                                                } else {
+                                                    console.log('No customer_name found in Customer document:', customer_name);
+                                                }
+                                            }
+                                            resolve(); // Resolve the promise after Customer fetch completes
+                                        },
+                                        error: function(err) {
+                                            frappe.msgprint({
+                                                title: __('Error'),
+                                                indicator: 'red',
+                                                message: __('Failed to fetch Customer {0}', [customer_name])
+                                            });
+                                            console.log('Error fetching Customer:', customer_name, err);
+                                            resolve(); // Resolve even on error to avoid blocking Promise.all
+                                        }
+                                    });
+                                } else {
+                                    resolve(); // Resolve if no customer_name is found
+                                }
+                            } else {
+                                resolve(); // Resolve if no response.message
                             }
+                        },
+                        error: function(err) {
+                            frappe.msgprint({
+                                title: __('Error'),
+                                indicator: 'red',
+                                message: __('Failed to fetch document {0}: {1}', [reference.reference_doctype, reference.reference_name])
+                            });
+                            console.log('Error fetching document:', reference.reference_doctype, reference.reference_name, err);
+                            resolve(); // Resolve even on error to avoid blocking Promise.all
                         }
-                    }
-                } else if (doc.customer) {
-                    // Handle other doctypes (e.g., Sales Invoice)
-                    const customer = await frappe.db.get_value("Customer", doc.customer, "customer_name");
-                    if (customer?.message?.customer_name) {
-                        customer_name = customer.message.customer_name;
-                        console.log('Found customer_name in document:', customer_name);
-                    }
-                }
-
-                // Update custom_party_name if found
-                if (customer_name) {
-                    frm.doc.references[index].custom_party_name = customer_name;
-                    updated = true;
-                    console.log('Set custom_party_name for index', index, ':', customer_name);
-                }
-            } catch (err) {
-                console.error('Error fetching document:', reference.reference_doctype, reference.reference_name, err);
-                showError(__('Failed to fetch document {0}: {1}', [reference.reference_doctype, reference.reference_name]));
+                    });
+                });
             }
-        }).filter(Boolean);
+        }).filter(Boolean); // Remove undefined promises
 
-        try {
-            await Promise.all(promises);
+        // Wait for all fetch operations to complete (both reference document and Customer fetches)
+        Promise.all(promises).then(() => {
             if (updated) {
+                // Refresh the references child table to reflect changes
                 frm.refresh_field('references');
-                showSuccess(__('Customer names updated in references.'));
+                frappe.msgprint({
+                    title: __('Success'),
+                    indicator: 'green',
+                    message: __('Customer names and parties updated in references.')
+                });
                 console.log('References updated:', frm.doc.references);
             } else {
-                showWarning(__('No customer names found in referenced documents.'));
+                frappe.msgprint({
+                    title: __('Warning'),
+                    indicator: 'orange',
+                    message: __('No customer names found in referenced documents.')
+                });
                 console.log('No customer names found');
             }
-        } catch (err) {
-            console.error('Error processing references:', err);
-            showError(__('An error occurred while processing references.'));
-        }
+        }).catch(err => {
+            frappe.msgprint({
+                title: __('Error'),
+                indicator: 'red',
+                message: __('An error occurred while processing references.')
+            });
+            console.log('Promise.all error:', err);
+        });
     }
 });
+// 3333
+
+// -----
+
+// console.log("Payment Entry custom button script initialized");
+
+// // Displays error message to user
+// function showError(message) {
+//     frappe.msgprint({
+//         title: __('Error'),
+//         indicator: 'red',
+//         message: message
+//     });
+// }
+
+// // Displays success message to user
+// function showSuccess(message) {
+//     frappe.msgprint({
+//         title: __('Success'),
+//         indicator: 'green',
+//         message: message
+//     });
+// }
+
+// // Displays warning message to user
+// function showWarning(message) {
+//     frappe.msgprint({
+//         title: __('Warning'),
+//         indicator: 'orange',
+//         message: message
+//     });
+// }
+
+// frappe.ui.form.on("Payment Entry", {
+//     async custom_fetch_party_names(frm) {
+//         console.log('custom_fetch_party_names triggered for Payment Entry:', frm.doc.name);
+
+//         // Validate references child table
+//         if (!frm.doc.references || frm.doc.references.length === 0) {
+//             showError(__('No references found in this Payment Entry.'));
+//             console.log('No references found:', frm.doc.references);
+//             return;
+//         }
+
+//         let updated = false;
+//         const promises = frm.doc.references.map(async (reference, index) => {
+//             if (!reference.reference_doctype || !reference.reference_name) {
+//                 console.log('Skipping invalid reference at index', index);
+//                 return;
+//             }
+
+//             console.log('Fetching document:', reference.reference_doctype, reference.reference_name);
+//             try {
+//                 const response = await frappe.call({
+//                     method: 'frappe.client.get',
+//                     args: {
+//                         doctype: reference.reference_doctype,
+//                         name: reference.reference_name
+//                     }
+//                 });
+
+//                 if (!response.message) {
+//                     console.warn('No document found for', reference.reference_doctype, reference.reference_name);
+//                     return;
+//                 }
+
+//                 let customer_name = null;
+//                 const doc = response.message;
+
+//                 if (reference.reference_doctype === 'Journal Entry') {
+//                     // Handle Journal Entry
+//                     if (doc.accounts?.length > 0) {
+//                         const customer_account = doc.accounts.find(account => account.party_type === 'Customer' && account.party);
+//                         if (customer_account?.party) {
+//                             // Fetch customer_name from Customer doctype
+//                             const customer = await frappe.db.get_value("Customer", customer_account.party, "customer_name");
+//                             if (customer?.message?.customer_name) {
+//                                 customer_name = customer.message.customer_name;
+//                                 console.log('Found customer_name in Journal Entry:', customer_name);
+//                             }
+//                         }
+//                     }
+//                 } else if (doc.customer) {
+//                     // Handle other doctypes (e.g., Sales Invoice)
+//                     const customer = await frappe.db.get_value("Customer", doc.customer, "customer_name");
+//                     if (customer?.message?.customer_name) {
+//                         customer_name = customer.message.customer_name;
+//                         console.log('Found customer_name in document:', customer_name);
+//                     }
+//                 }
+
+//                 // Update custom_party_name if found
+//                 if (customer_name) {
+//                     frm.doc.references[index].custom_party_name = customer_name;
+//                     updated = true;
+//                     console.log('Set custom_party_name for index', index, ':', customer_name);
+//                 }
+//             } catch (err) {
+//                 console.error('Error fetching document:', reference.reference_doctype, reference.reference_name, err);
+//                 showError(__('Failed to fetch document {0}: {1}', [reference.reference_doctype, reference.reference_name]));
+//             }
+//         }).filter(Boolean);
+
+//         try {
+//             await Promise.all(promises);
+//             if (updated) {
+//                 frm.refresh_field('references');
+//                 showSuccess(__('Customer names updated in references.'));
+//                 console.log('References updated:', frm.doc.references);
+//             } else {
+//                 showWarning(__('No customer names found in referenced documents.'));
+//                 console.log('No customer names found');
+//             }
+//         } catch (err) {
+//             console.error('Error processing references:', err);
+//             showError(__('An error occurred while processing references.'));
+//         }
+//     }
+// });
 // -------##########################-----------------------------
 
 // frappe.ui.form.on("Payment Entry", {
