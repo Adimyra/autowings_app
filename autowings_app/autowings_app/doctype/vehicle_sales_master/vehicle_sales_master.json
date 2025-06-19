@@ -39,38 +39,31 @@
   "rto_office",
   "column_break_vktw",
   "registration_date",
-  "rto_status",
   "section_break_iwxj",
   "smart_card_id",
   "column_break_yfms",
-  "smart_card_status",
   "insurance_details_section",
   "insurance_id",
   "insurance_provider",
   "insurance_policy",
   "column_break_coab",
   "policy_number",
-  "insurance_status",
   "road_side_assistance_details_section",
   "rsa_id",
   "rsa_provider",
   "column_break_raxd",
-  "rsa_status",
   "extended_warranty_details_section",
   "extended_warranty_id",
   "warranty_provider",
   "column_break_yjkr",
-  "warranty_status",
   "finance_details_section",
   "finance_id",
   "finance_provider",
   "column_break_ilgx",
   "loan_amount",
-  "loan_status",
   "misc_accounts_section",
   "vehicle_misc_sales_id",
-  "column_break_rzrs",
-  "misc_sales_status"
+  "column_break_rzrs"
  ],
  "fields": [
   {
@@ -206,13 +199,6 @@
    "read_only": 1
   },
   {
-   "fetch_from": "insurance_id.insurance_status",
-   "fieldname": "insurance_status",
-   "fieldtype": "Data",
-   "label": "Insurance Status",
-   "read_only": 1
-  },
-  {
    "fieldname": "finance_details_section",
    "fieldtype": "Section Break",
    "label": "Finance Details"
@@ -224,14 +210,6 @@
    "label": "Finance Provider",
    "link_filters": "[[\"Customer\",\"customer_group\",\"=\",\"Financer\"]]",
    "options": "Customer",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "finance_id.loan_status",
-   "fieldname": "loan_status",
-   "fieldtype": "Select",
-   "label": "Loan Status",
-   "options": "\nPending\nApproved\nRejected\nDisbursed\nClosed",
    "read_only": 1
   },
   {
@@ -380,13 +358,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "rsa_id.rsa_status",
-   "fieldname": "rsa_status",
-   "fieldtype": "Data",
-   "label": "RSA Status",
-   "read_only": 1
-  },
-  {
    "fieldname": "extended_warranty_details_section",
    "fieldtype": "Section Break",
    "label": "Extended Warranty Details"
@@ -410,19 +381,6 @@
   {
    "fieldname": "column_break_yjkr",
    "fieldtype": "Column Break"
-  },
-  {
-   "fetch_from": "extended_warranty_id.warranty_status",
-   "fieldname": "warranty_status",
-   "fieldtype": "Data",
-   "label": "Warranty Status",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "rto_registration_id.registration_status",
-   "fieldname": "rto_status",
-   "fieldtype": "Data",
-   "label": "RTO Status"
   },
   {
    "default": "0",
@@ -454,22 +412,8 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "smart_card_id.smart_card_status",
-   "fieldname": "smart_card_status",
-   "fieldtype": "Data",
-   "label": "Smart Card Status",
-   "read_only": 1
-  },
-  {
    "fieldname": "column_break_rzrs",
    "fieldtype": "Column Break"
-  },
-  {
-   "fetch_from": "vehicle_misc_sales_id.status",
-   "fieldname": "misc_sales_status",
-   "fieldtype": "Data",
-   "label": "Misc Sales Status",
-   "read_only": 1
   },
   {
    "fetch_from": "sales_invoice.status",
@@ -529,7 +473,7 @@
    "link_fieldname": "vsm_id"
   }
  ],
- "modified": "2025-05-14 01:35:49.095154",
+ "modified": "2025-06-19 14:29:10.768531",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",

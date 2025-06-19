@@ -41,16 +41,6 @@ class RTORegistration(Document):
 
 @frappe.whitelist()
 def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, registration_charge, chassis_number=None):
-    """
-    Creates an RTO Registration document and associated Journal Entry from a Sales Invoice.
-    - Validates the Sales Invoice, Vehicle Sales Master, and RTO Office.
-    - Fetches chassis_number from Sales Invoice's custom_vin if not provided.
-    - Creates RTO Registration with specified fields and status 'Due Application Entry'.
-    - Creates a draft Journal Entry linked to the RTO Registration with posting date matching Sales Invoice.
-    - Updates Vehicle Sales Master with RTO details.
-    - Logs activity in rto_activity child table.
-    - Returns the name of the created RTO Registration document.
-    """
     try:
         # Validate inputs
         if not sales_invoice:
@@ -58,7 +48,7 @@ def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, regist
         if not rto_office:
             frappe.throw(_("Please select an RTO Office."))
         if not registration_charge or float(registration_charge) <= 0:
-            frappe.throw(_("Please enter a valid Registration Charge greater than 0."))
+            frappe.throw(_("Please enter a valid Registration Charge > 0."))
 
         # Validate Sales Invoice
         sales_doc = frappe.get_doc("Sales Invoice", sales_invoice)
@@ -68,7 +58,7 @@ def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, regist
         # Validate Vehicle Sales Master
         vsm_doc_name = sales_doc.get("custom_vsm_id")
         if not vsm_doc_name or not frappe.db.exists("Vehicle Sales Master", vsm_doc_name):
-            frappe.throw(_("No Vehicle Sales Master found for Sales Invoice {0}.").format(sales_invoice))
+            frappe.throw(_("No Vehicle Sales Master for Sales Invoice {0}.").format(sales_invoice))
         vsm_doc = frappe.get_doc("Vehicle Sales Master", vsm_doc_name)
         if vsm_doc.docstatus == 2:
             frappe.throw(_("Vehicle Sales Master {0} is cancelled.").format(vsm_doc_name))
@@ -76,41 +66,38 @@ def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, regist
         # Check if RTO Registration already exists
         rto_doc_name = frappe.db.get_value("RTO Registration", {"sales_invoice": sales_invoice, "docstatus": ["!=", 2]}, "name")
         if rto_doc_name:
-            frappe.throw(_("RTO Registration {0} already exists for Sales Invoice {1}.").format(rto_doc_name, sales_invoice))
+            frappe.throw(_("RTO Registration {0} already exists.").format(rto_doc_name))
 
         # Validate RTO Office
         if not frappe.db.exists("Supplier", {"name": rto_office, "supplier_group": "RTO"}):
-            frappe.throw(_("RTO Office {0} must be a valid Supplier in the RTO supplier group.").format(rto_office))
+            frappe.throw(_("RTO Office {0} must be a valid RTO Supplier.").format(rto_office))
 
         # Get chassis_number from custom_vin if not provided
         if not chassis_number:
             vin_entries = sales_doc.get("custom_vin", [])
             if not vin_entries:
-                frappe.throw(_("No VIN details found in Sales Invoice {0}. Please provide a Chassis Number.").format(sales_invoice))
+                frappe.throw(_("No VIN details in Sales Invoice {0}.").format(sales_invoice))
             elif len(vin_entries) > 1:
-                frappe.throw(_("Multiple VIN entries found in Sales Invoice {0}. Please specify a Chassis Number.").format(sales_invoice))
+                frappe.throw(_("Multiple VINs in {0}. Specify Chassis Number.").format(sales_invoice))
             chassis_number = vin_entries[0].chassis_number
-        elif not frappe.db.exists("VIN Sales Child", {"parent": sales_invoice, "chassis_number": chassis_number}):
-            frappe.throw(_("Chassis Number {0} not found in Sales Invoice {1}'s VIN details.").format(chassis_number, sales_invoice))
+        else:
+            vin_entries = sales_doc.get("custom_vin", [])
+            if not any(vin.chassis_number == chassis_number for vin in vin_entries):
+                frappe.throw(_("Chassis {0} not in {1} VIN details.").format(chassis_number, sales_invoice))
 
-        # Get company and abbreviation
+        # Rest of the method remains unchanged...
         company = sales_doc.company
         company_abbr = frappe.db.get_value("Company", company, "abbr")
 
-        # Validate accounts
         accounts_to_validate = ["Debtors", f"{rto_office} Payable"]
-        accounts_valid = frappe.get_attr("autowings_app.custom_scripts.utils.validate_accounts")(
-            accounts=accounts_to_validate, company=company
-        )
+        accounts_valid = frappe.get_attr("autowings_app.custom_scripts.utils.validate_accounts")(accounts=accounts_to_validate, company=company)
         if not accounts_valid:
-            frappe.throw(_("One or more accounts (Debtors, {0} Payable) do not exist for company {1}.").format(rto_office, company))
+            frappe.throw(_("Accounts (Debtors, {0} Payable) missing for {1}.").format(rto_office, company))
 
-        # Validate posting date
         posting_date = sales_doc.posting_date
         if date_diff(posting_date, getdate()) > 0:
-            frappe.throw(_("Sales Invoice posting date {0} cannot be in the future.").format(posting_date))
+            frappe.throw(_("Posting date {0} cannot be future.").format(posting_date))
 
-        # Create RTO Registration document
         rto_doc = frappe.get_doc({
             "doctype": "RTO Registration",
             "customer": sales_doc.customer,
@@ -135,13 +122,12 @@ def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, regist
         rto_doc.insert(ignore_permissions=True)
         rto_doc_name = rto_doc.name
 
-        # Create draft Journal Entry
         je_rto = frappe.new_doc("Journal Entry")
         je_rto.voucher_type = "Journal Entry"
         je_rto.company = company
         je_rto.posting_date = posting_date
         je_rto.title = f"RTO - {sales_doc.customer} - {rto_office}"
-        je_rto.remark = f"RTO Registration charge ₹{registration_charge} for {sales_doc.customer}'s vehicle under Sales Invoice {sales_doc.name}."
+        je_rto.remark = f"RTO charge ₹{registration_charge} for {sales_doc.customer}'s vehicle under {sales_doc.name}."
         je_rto.append("accounts", {
             "account": f"Debtors - {company_abbr}",
             "party_type": "Customer",
@@ -161,25 +147,22 @@ def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, regist
         je_rto.insert(ignore_permissions=True)
         je_rto_name = je_rto.name
 
-        # Update journal_entry_id in RTO Registration
         rto_doc.journal_entry_id = je_rto_name
         rto_doc.save(ignore_permissions=True)
 
-        # Update Vehicle Sales Master
         vsm_doc.rto_registration = 1
         vsm_doc.rto_registration_id = rto_doc_name
         vsm_doc.rto_office = rto_office
         vsm_doc.registration_charge = float(registration_charge)
         vsm_doc.save(ignore_permissions=True)
 
-        # Log activity in rto_activity child table
         activity_log = {
             "doctype": "RTO Activity Log",
             "activity": "RTO Registration Created",
             "status": "Created",
             "user": frappe.session.user,
             "update_on": now_datetime(),
-            "remarks": f"RTO Registration created for Sales Invoice {sales_invoice} with charge ₹{registration_charge}.",
+            "remarks": f"RTO created for {sales_invoice} with charge ₹{registration_charge}.",
             "parent": rto_doc_name,
             "parentfield": "rto_activity",
             "parenttype": "RTO Registration"
@@ -192,21 +175,190 @@ def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, regist
     except Exception as e:
         frappe.db.rollback()
         error_message = str(e)
-        frappe.log_error(f"Failed to create RTO Registration for Sales Invoice {sales_invoice}: {error_message}")
+        frappe.log_error(f"RTO Creation Failed for {sales_invoice}: {error_message}")
         if "rto_doc_name" in locals():
             activity_log = {
                 "doctype": "RTO Activity Log",
-                "activity": "RTO Registration Creation Failed",
+                "activity": "RTO Creation Failed",
                 "status": "Failed",
                 "user": frappe.session.user,
                 "update_on": now_datetime(),
-                "remarks": f"Failed to create RTO Registration: {error_message}",
+                "remarks": f"Failed: {error_message}",
                 "parent": rto_doc_name,
                 "parentfield": "rto_activity",
                 "parenttype": "RTO Registration"
             }
             frappe.get_doc(activity_log).insert(ignore_permissions=True)
-        frappe.throw(_("Failed to create RTO Registration: {0}").format(error_message))
+        frappe.throw(_("RTO Creation Failed: {0}").format(error_message[:137]))  # Limit to 140 chars
+
+# @frappe.whitelist()
+# def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, registration_charge, chassis_number=None):
+#     """
+#     Creates an RTO Registration document and associated Journal Entry from a Sales Invoice.
+#     - Validates the Sales Invoice, Vehicle Sales Master, and RTO Office.
+#     - Fetches chassis_number from Sales Invoice's custom_vin if not provided.
+#     - Creates RTO Registration with specified fields and status 'Due Application Entry'.
+#     - Creates a draft Journal Entry linked to the RTO Registration with posting date matching Sales Invoice.
+#     - Updates Vehicle Sales Master with RTO details.
+#     - Logs activity in rto_activity child table.
+#     - Returns the name of the created RTO Registration document.
+#     """
+#     try:
+#         # Validate inputs
+#         if not sales_invoice:
+#             frappe.throw(_("Please select a valid Sales Invoice."))
+#         if not rto_office:
+#             frappe.throw(_("Please select an RTO Office."))
+#         if not registration_charge or float(registration_charge) <= 0:
+#             frappe.throw(_("Please enter a valid Registration Charge greater than 0."))
+
+#         # Validate Sales Invoice
+#         sales_doc = frappe.get_doc("Sales Invoice", sales_invoice)
+#         if sales_doc.docstatus != 1:
+#             frappe.throw(_("Sales Invoice {0} must be submitted.").format(sales_invoice))
+
+#         # Validate Vehicle Sales Master
+#         vsm_doc_name = sales_doc.get("custom_vsm_id")
+#         if not vsm_doc_name or not frappe.db.exists("Vehicle Sales Master", vsm_doc_name):
+#             frappe.throw(_("No Vehicle Sales Master found for Sales Invoice {0}.").format(sales_invoice))
+#         vsm_doc = frappe.get_doc("Vehicle Sales Master", vsm_doc_name)
+#         if vsm_doc.docstatus == 2:
+#             frappe.throw(_("Vehicle Sales Master {0} is cancelled.").format(vsm_doc_name))
+
+#         # Check if RTO Registration already exists
+#         rto_doc_name = frappe.db.get_value("RTO Registration", {"sales_invoice": sales_invoice, "docstatus": ["!=", 2]}, "name")
+#         if rto_doc_name:
+#             frappe.throw(_("RTO Registration {0} already exists for Sales Invoice {1}.").format(rto_doc_name, sales_invoice))
+
+#         # Validate RTO Office
+#         if not frappe.db.exists("Supplier", {"name": rto_office, "supplier_group": "RTO"}):
+#             frappe.throw(_("RTO Office {0} must be a valid Supplier in the RTO supplier group.").format(rto_office))
+
+#         # Get chassis_number from custom_vin if not provided
+#         if not chassis_number:
+#             vin_entries = sales_doc.get("custom_vin", [])
+#             if not vin_entries:
+#                 frappe.throw(_("No VIN details found in Sales Invoice {0}. Please provide a Chassis Number.").format(sales_invoice))
+#             elif len(vin_entries) > 1:
+#                 frappe.throw(_("Multiple VIN entries found in Sales Invoice {0}. Please specify a Chassis Number.").format(sales_invoice))
+#             chassis_number = vin_entries[0].chassis_number
+#         elif not frappe.db.exists("VIN Sales Child", {"parent": sales_invoice, "chassis_number": chassis_number}):
+#             frappe.throw(_("Chassis Number {0} not found in Sales Invoice {1}'s VIN details.").format(chassis_number, sales_invoice))
+
+#         # Get company and abbreviation
+#         company = sales_doc.company
+#         company_abbr = frappe.db.get_value("Company", company, "abbr")
+
+#         # Validate accounts
+#         accounts_to_validate = ["Debtors", f"{rto_office} Payable"]
+#         accounts_valid = frappe.get_attr("autowings_app.custom_scripts.utils.validate_accounts")(
+#             accounts=accounts_to_validate, company=company
+#         )
+#         if not accounts_valid:
+#             frappe.throw(_("One or more accounts (Debtors, {0} Payable) do not exist for company {1}.").format(rto_office, company))
+
+#         # Validate posting date
+#         posting_date = sales_doc.posting_date
+#         if date_diff(posting_date, getdate()) > 0:
+#             frappe.throw(_("Sales Invoice posting date {0} cannot be in the future.").format(posting_date))
+
+#         # Create RTO Registration document
+#         rto_doc = frappe.get_doc({
+#             "doctype": "RTO Registration",
+#             "customer": sales_doc.customer,
+#             "customer_name": sales_doc.customer_name,
+#             "sales_invoice": sales_doc.name,
+#             "vsm_id": vsm_doc_name,
+#             "rto_office": rto_office,
+#             "registration_charge": float(registration_charge),
+#             "chassis_number": chassis_number,
+#             "registration_status": "Pending",
+#             "journal_status": "Draft",
+#             "payment_status": "Due",
+#             "status": "Due Application Entry",
+#             "due_documents_flag": 0,
+#             "number_plate_ordered": 0,
+#             "number_plate_received": 0,
+#             "number_plate_installed": 0,
+#             "document_submitted_to_dto": 0,
+#             "document_received_from_dto": 0,
+#             "handover_to_customer": 0
+#         })
+#         rto_doc.insert(ignore_permissions=True)
+#         rto_doc_name = rto_doc.name
+
+#         # Create draft Journal Entry
+#         je_rto = frappe.new_doc("Journal Entry")
+#         je_rto.voucher_type = "Journal Entry"
+#         je_rto.company = company
+#         je_rto.posting_date = posting_date
+#         je_rto.title = f"RTO - {sales_doc.customer} - {rto_office}"
+#         je_rto.remark = f"RTO Registration charge ₹{registration_charge} for {sales_doc.customer}'s vehicle under Sales Invoice {sales_doc.name}."
+#         je_rto.append("accounts", {
+#             "account": f"Debtors - {company_abbr}",
+#             "party_type": "Customer",
+#             "party": sales_doc.customer,
+#             "debit_in_account_currency": float(registration_charge),
+#             "credit_in_account_currency": 0,
+#             "cost_center": f"Main - {company_abbr}"
+#         })
+#         je_rto.append("accounts", {
+#             "account": f"{rto_office} Payable - {company_abbr}",
+#             "party_type": "Supplier",
+#             "party": rto_office,
+#             "debit_in_account_currency": 0,
+#             "credit_in_account_currency": float(registration_charge),
+#             "cost_center": f"Main - {company_abbr}"
+#         })
+#         je_rto.insert(ignore_permissions=True)
+#         je_rto_name = je_rto.name
+
+#         # Update journal_entry_id in RTO Registration
+#         rto_doc.journal_entry_id = je_rto_name
+#         rto_doc.save(ignore_permissions=True)
+
+#         # Update Vehicle Sales Master
+#         vsm_doc.rto_registration = 1
+#         vsm_doc.rto_registration_id = rto_doc_name
+#         vsm_doc.rto_office = rto_office
+#         vsm_doc.registration_charge = float(registration_charge)
+#         vsm_doc.save(ignore_permissions=True)
+
+#         # Log activity in rto_activity child table
+#         activity_log = {
+#             "doctype": "RTO Activity Log",
+#             "activity": "RTO Registration Created",
+#             "status": "Created",
+#             "user": frappe.session.user,
+#             "update_on": now_datetime(),
+#             "remarks": f"RTO Registration created for Sales Invoice {sales_invoice} with charge ₹{registration_charge}.",
+#             "parent": rto_doc_name,
+#             "parentfield": "rto_activity",
+#             "parenttype": "RTO Registration"
+#         }
+#         frappe.get_doc(activity_log).insert(ignore_permissions=True)
+
+#         frappe.db.commit()
+#         return rto_doc_name
+
+#     except Exception as e:
+#         frappe.db.rollback()
+#         error_message = str(e)
+#         frappe.log_error(f"Failed to create RTO Registration for Sales Invoice {sales_invoice}: {error_message}")
+#         if "rto_doc_name" in locals():
+#             activity_log = {
+#                 "doctype": "RTO Activity Log",
+#                 "activity": "RTO Registration Creation Failed",
+#                 "status": "Failed",
+#                 "user": frappe.session.user,
+#                 "update_on": now_datetime(),
+#                 "remarks": f"Failed to create RTO Registration: {error_message}",
+#                 "parent": rto_doc_name,
+#                 "parentfield": "rto_activity",
+#                 "parenttype": "RTO Registration"
+#             }
+#             frappe.get_doc(activity_log).insert(ignore_permissions=True)
+#         frappe.throw(_("Failed to create RTO Registration: {0}").format(error_message))
 
 @frappe.whitelist()
 def create_vehicle_smart_card(sales_invoice, rto_registration_id, smart_card_charge, chassis_number=None):

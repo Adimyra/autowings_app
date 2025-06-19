@@ -2373,6 +2373,7 @@ frappe.ui.form.on("RTO Registration", {
 //         }, __("Actions"));
 //     }
 // });
+
 console.log("RTO Registration script initialized");
 
 // Displays error message to user
