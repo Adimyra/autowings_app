@@ -1266,6 +1266,10 @@ function validate_account(account_name, frm, field) {
 frappe.ui.form.on("Payment Entry", {
     on_submit: function(frm) {
         try {
+            if (frm.doc.payment_type !== "Pay") {
+                console.log("Payment Entry is not of type 'Pay'. Skipping execution.");
+                return;
+            }
             // Extract Journal Entry references from Payment Entry
             let journal_entries = frm.doc.references
                 .filter(ref => ref.reference_doctype === "Journal Entry")
@@ -1576,6 +1580,7 @@ function log_rto_activity(params) {
         }
     });
 }
+
 // frappe.ui.form.on("Payment Entry", {
 //     on_submit: function(frm) {
 //         try {
@@ -1796,6 +1801,10 @@ function log_rto_activity(params) {
 frappe.ui.form.on("Payment Entry", {
     on_submit: function(frm) {
         try {
+            if (frm.doc.payment_type !== "Pay") {
+                console.log("Payment Entry is not of type 'Pay'. Skipping execution.");
+                return;
+            }
             // Extract Journal Entry references from Payment Entry
             let journal_entries = frm.doc.references
                 .filter(ref => ref.reference_doctype === "Journal Entry")
@@ -1942,6 +1951,10 @@ function log_insurance_activity(params) {
 frappe.ui.form.on("Payment Entry", {
     on_submit: function(frm) {
         try {
+            if (frm.doc.payment_type !== "Pay") {
+                console.log("Payment Entry is not of type 'Pay'. Skipping execution.");
+                return;
+            }
             // Extract Journal Entry references from Payment Entry
             let journal_entries = frm.doc.references
                 .filter(ref => ref.reference_doctype === "Journal Entry")
@@ -2087,6 +2100,10 @@ function log_rsa_activity(params) {
 frappe.ui.form.on("Payment Entry", {
     on_submit: function(frm) {
         try {
+            if (frm.doc.payment_type !== "Pay") {
+                console.log("Payment Entry is not of type 'Pay'. Skipping execution.");
+                return;
+            }
             // Extract Journal Entry references from Payment Entry
             let journal_entries = frm.doc.references
                 .filter(ref => ref.reference_doctype === "Journal Entry")
@@ -2274,6 +2291,11 @@ function log_warranty_activity(params) {
 frappe.ui.form.on("Payment Entry", {
     on_submit: function(frm) {
         try {
+            if (frm.doc.payment_type !== "Receive") {
+                console.log("Payment Entry is not of type 'Receive'. Skipping execution.");
+                return;
+            }
+              
             // Extract Journal Entry references from Payment Entry
             let journal_entries = frm.doc.references
                 .filter(ref => ref.reference_doctype === "Journal Entry")

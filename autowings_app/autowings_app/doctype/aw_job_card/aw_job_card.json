@@ -154,7 +154,8 @@
    "fieldname": "items",
    "fieldtype": "Table",
    "label": "Items",
-   "options": "AW Job Card Item"
+   "options": "AW Job Card Item",
+   "read_only": 1
   },
   {
    "fieldname": "connections_tab",
@@ -204,7 +205,8 @@
   {
    "fieldname": "items_return_tab",
    "fieldtype": "Tab Break",
-   "label": "Items Return"
+   "label": "Items Return",
+   "read_only": 1
   },
   {
    "fieldname": "return_items",
@@ -304,7 +306,7 @@
   }
  ],
  "links": [],
- "modified": "2025-06-16 02:36:02.173592",
+ "modified": "2025-06-20 15:22:58.571159",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "AW Job Card",

@@ -142,7 +142,7 @@ doc_events = {
         "after_insert": "autowings_app.custom_scripts.payment_entry.update_vehicle_misc_sales"
     },
     "RTO Registration": {
-        "Validate": "autowings_app.custom_scripts.api.update_due_documents_flag"
+        "on_update": "autowings_app.custom_scripts.api.on_update"
     }
     # "Payment Entry": {
     #     "on_submit": "autowings_app.custom_scripts.payment_entry.on_payment_entry_submit"
