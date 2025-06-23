@@ -55,7 +55,7 @@ from frappe.utils import getdate
 
 def before_submit(doc, method):
     """
-    Before Submit Hook for Sales Invoice`:
+    Before Submit Hook for Sales Invoice:
     - Validates `custom_sale_type`, and for `Vehicle` type, checks item count, quantity, and VIN details.
     - Updates `serial_no` in Items Table from `custom_vin` for `Vehicle` type.
     - For `Spare` or `Other`, unchecks `update_stock`.
@@ -81,24 +81,31 @@ def before_submit(doc, method):
         # Ensure `custom_vin` is populated when `update_stock` is checked
         if doc.update_stock:
             if not doc.custom_vin or not len(doc.custom_vin):
-                frappe.throw("Chassis number details are required.")
+                frappe.throw(_("Chassis number details are required."))
 
             # Validate each VIN entry for mandatory fields and match with items
-            vin_item_codes = {vin.item_code for vin in doc.custom_vin}
-            item_codes = {item.item_code for item in doc.items}
-            if not vin_item_codes.issubset(item_subset(item_codes)):
-                frappe.throw("VIN entries must correspond to items in the items table.")
+            try:
+                vin_item_codes = {vin.item for vin in doc.custom_vin}
+                item_codes = {item.item_code for item in doc.items}
+                if not vin_item_codes.issubset(item_codes):
+                    frappe.throw(_("VIN entries must correspond to items in the items table."))
+            except AttributeError as e:
+                frappe.log_error(
+                    f"Sales Invoice VIN Validation Error - {doc.name}",
+                    f"Error accessing item in custom_vin: {str(e)}"
+                )
+                frappe.throw(_("Invalid VIN entry: {0}").format(str(e)))
 
             for vin in doc.custom_vin:
                 if not (vin.chassis_number and vin.engine_number and vin.vehicle_color and vin.manufacturing_date):
                     frappe.throw(
-                        f"VIN Entry ({vin.item_code}) for item {vin.item_code} is incomplete. Please enter Chassis Number, Engine Number, Vehicle Color, and Manufacturing Date."
+                        f"VIN Entry ({vin.item}) for item {vin.item} is incomplete. Please enter Chassis Number, Engine Number, Vehicle Color, and Manufacturing Date."
                     )
 
         # Update `serial_no` in Items Table from `custom_vin`
         update_items_with_chassis_numbers(doc)
 
-      
+
 import frappe
 
 def after_insert_sales_invoice(doc, method):
