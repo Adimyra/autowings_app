@@ -25,8 +25,10 @@
   "fuel_in_vehicle",
   "section_break_wbmg",
   "supervisor",
+  "supervisor_name",
   "column_break_ejhj",
   "technician",
+  "technician_name",
   "section_break_wyfc",
   "issues",
   "scheduled_time_section",
@@ -50,7 +52,11 @@
   "connections_tab",
   "amended_from",
   "labour_tab",
-  "table_kgbi"
+  "labour_charges",
+  "billing_info_tab",
+  "sales_invoice",
+  "column_break_idwp",
+  "invoice_date"
  ],
  "fields": [
   {
@@ -69,6 +75,7 @@
    "in_list_view": 1,
    "label": "Company",
    "options": "Company",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -173,6 +180,8 @@
   {
    "fieldname": "chassis_number",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Chassis Number",
    "options": "Serial No",
    "reqd": 1
@@ -215,20 +224,18 @@
    "options": "AW Job Card Item"
   },
   {
+   "default": "Open",
    "fieldname": "status",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Status",
-   "options": "\nOpen\nWork in progress\nClose"
+   "options": "\nOpen\nReady to Deliver\nClose"
   },
   {
    "fieldname": "labour_tab",
    "fieldtype": "Tab Break",
    "label": "Labour"
-  },
-  {
-   "fieldname": "table_kgbi",
-   "fieldtype": "Table",
-   "options": "Labour Items"
   },
   {
    "fieldname": "section_break_wbmg",
@@ -278,18 +285,24 @@
    "fetch_from": "customer.customer_name",
    "fieldname": "customer_name",
    "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Customer Name"
   },
   {
    "fetch_from": "customer.mobile_no",
    "fieldname": "mobile_number",
    "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Mobile Number"
   },
   {
    "fetch_from": "chassis_number.custom_registration_number",
    "fieldname": "registration_number",
    "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Registration Number"
   },
   {
@@ -303,10 +316,51 @@
    "fieldtype": "Data",
    "label": "Job Card Type",
    "read_only": 1
+  },
+  {
+   "fetch_from": "supervisor.employee_name",
+   "fieldname": "supervisor_name",
+   "fieldtype": "Read Only",
+   "label": "Supervisor Name"
+  },
+  {
+   "fetch_from": "technician.employee_name",
+   "fieldname": "technician_name",
+   "fieldtype": "Read Only",
+   "label": "Technician Name"
+  },
+  {
+   "fieldname": "labour_charges",
+   "fieldtype": "Table",
+   "label": "Labour Charges",
+   "options": "Labour Items"
+  },
+  {
+   "fieldname": "billing_info_tab",
+   "fieldtype": "Tab Break",
+   "label": "Billing Info"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_idwp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "sales_invoice.posting_date",
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Invoice Date",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2025-06-20 15:22:58.571159",
+ "modified": "2025-06-23 15:44:11.867197",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "AW Job Card",

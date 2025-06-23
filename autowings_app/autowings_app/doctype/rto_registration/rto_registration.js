@@ -604,148 +604,314 @@ function _rto_payment_entry_action(frm) {
 }
 
 
-        // Add Update Registration Number button
-        if (frm.doc.status === 'Due Registration Number Entry') {
-            frm.add_custom_button(__('Update Registration Number'), function() {
-                let dialog = new frappe.ui.Dialog({
-                    title: __('Update Registration Number'),
-                    fields: [
-                        {
-                            label: __('Registration Number'),
-                            fieldname: 'registration_number',
-                            fieldtype: 'Data',
-                            reqd: 1
+//         // Add Update Registration Number button
+//         if (frm.doc.status === 'Due Registration Number Entry') {
+//             frm.add_custom_button(__('Update Registration Number'), function() {
+//                 let dialog = new frappe.ui.Dialog({
+//                     title: __('Update Registration Number'),
+//                     fields: [
+//                         {
+//                             label: __('Registration Number'),
+//                             fieldname: 'registration_number',
+//                             fieldtype: 'Data',
+//                             reqd: 1
+//                         }
+//                     ],
+//                     primary_action_label: __('Update'),
+//                     primary_action: function(values) {
+//                         if (!values.registration_number) {
+//                             frappe.throw(__('Registration Number is mandatory.'));
+//                         }
+//                         // Update RTO Registration document
+//                         frappe.call({
+//                             method: 'frappe.client.set_value',
+//                             args: {
+//                                 doctype: 'RTO Registration',
+//                                 name: frm.doc.name,
+//                                 fieldname: {
+//                                     registration_number: values.registration_number,
+//                                     status: 'Due Number Plate Ordering',
+//                                     // registration_status: 'Due Documents Submission to DTO',
+//                                     documents_status: 'Due Documents Submission to DTO '
+//                                 }
+//                             },
+//                             callback: function(r) {
+//                                 if (!r.exc) {
+//                                     // Find and update Serial No document
+//                                     frappe.call({
+//                                         method: 'frappe.client.get_list',
+//                                         args: {
+//                                             doctype: 'Serial No',
+//                                             filters: {
+//                                                 custom_chassis_number: frm.doc.chassis_number
+//                                             },
+//                                             fields: ['name']
+//                                         },
+//                                         callback: function(serial_res) {
+//                                             if (serial_res.message && serial_res.message.length > 0) {
+//                                                 let serial_no_doc = serial_res.message[0];
+//                                                 frappe.call({
+//                                                     method: 'frappe.client.set_value',
+//                                                     args: {
+//                                                         doctype: 'Serial No',
+//                                                         name: serial_no_doc.name,
+//                                                         fieldname: {
+//                                                             custom_registration_number: values.registration_number
+//                                                         }
+//                                                     },
+//                                                     callback: function(serial_update_res) {
+//                                                         if (!serial_update_res.exc) {
+//                                                             // Update Vehicle Smart Card documents
+//                                                             let promises = [];
+//                                                             if (frm.doc.additional_accounts) {
+//                                                                 frm.doc.additional_accounts.forEach(acc => {
+//                                                                     if (acc.smart_card_id) {
+//                                                                         promises.push(
+//                                                                             frappe.db.get_doc('Vehicle Smart Card', acc.smart_card_id)
+//                                                                                 .then(smart_card => {
+//                                                                                     smart_card.status = smart_card.smart_card_payment_status === 'Paid' ? 'Due Updation in Vahan' : 'Due Payment to RTO';
+//                                                                                     smart_card.journal_account = acc.account;
+//                                                                                     smart_card.smart_card_status = 'Applied';
+//                                                                                     smart_card.registration_number = values.registration_number;
+//                                                                                     return frappe.call({
+//                                                                                         method: 'frappe.client.save',
+//                                                                                         args: { doc: smart_card }
+//                                                                                     });
+//                                                                                 })
+//                                                                                 .catch(err => {
+//                                                                                     throw new Error(`Error updating Vehicle Smart Card ${acc.smart_card_id}: ${err.message}`);
+//                                                                                 })
+//                                                                         );
+//                                                                     }
+//                                                                 });
+//                                                             }
+//                                                             Promise.all(promises)
+//                                                                 .then(() => {
+//                                                                     // Log successful activity
+//                                                                     log_rto_activity(frm, 'Registration Number Updated', 'Registration Updated', '');
+//                                                                     frm.reload_doc();
+//                                                                     frappe.msgprint({
+//                                                                         title: __('Success'),
+//                                                                         message: __('Registration Number and Serial No updated successfully.'),
+//                                                                         indicator: 'green'
+//                                                                     });
+//                                                                     dialog.hide();
+//                                                                 })
+//                                                                 .catch(err => {
+//                                                                     log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', err.message || 'Error updating Vehicle Smart Cards');
+//                                                                     frappe.msgprint({
+//                                                                         title: __('Error'),
+//                                                                         message: err.message || __('Error updating Vehicle Smart Cards.'),
+//                                                                         indicator: 'red'
+//                                                                     });
+//                                                                 });
+//                                                         } else {
+//                                                             log_rto_activity(frm, 'Registration Number Updated', 'Serial No Update Failed', serial_update_res.exc || JSON.stringify(serial_update_res));
+//                                                             frappe.msgprint({
+//                                                                 title: __('Error'),
+//                                                                 message: __('Error updating Serial No: ') + (serial_update_res.exc || JSON.stringify(serial_update_res)),
+//                                                                 indicator: 'red'
+//                                                             });
+//                                                         }
+//                                                     }
+//                                                 });
+//                                             } else {
+//                                                 log_rto_activity(frm, 'Registration Number Updated', 'Serial No Update Failed', 'No Serial No found for chassis number: ' + frm.doc.chassis_number);
+//                                                 frappe.msgprint({
+//                                                     title: __('Error'),
+//                                                     message: __('No Serial No found for chassis number: ') + frm.doc.chassis_number,
+//                                                     indicator: 'red'
+//                                                 });
+//                                             }
+//                                         }
+//                                     });
+//                                 } else {
+//                                     log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', r.exc || JSON.stringify(r));
+//                                     frappe.msgprint({
+//                                         title: __('Error'),
+//                                         message: __('Error updating Registration Number: ') + (r.exc || JSON.stringify(r)),
+//                                         indicator: 'red'
+//                                     });
+//                                 }
+//                             }
+//                         });
+//                     },
+//                     secondary_action_label: __('Cancel'),
+//                     secondary_action: function() {
+//                         dialog.hide();
+//                     }
+//                 });
+//                 dialog.show();
+//             });
+//         }
+
+//         // Override form status indicator to show custom status
+//         frm.set_intro(__('Status: ') + frm.doc.status, 'blue');
+//     }
+// });
+
+// Add Update Registration Number button
+
+if (frm.doc.status === 'Due Registration Number Entry') {
+    frm.add_custom_button(__('Update Registration Number'), function() {
+        let dialog = new frappe.ui.Dialog({
+            title: __('Update Registration Number'),
+            fields: [
+                {
+                    label: __('Registration Number'),
+                    fieldname: 'registration_number',
+                    fieldtype: 'Data',
+                    reqd: 1,
+                    // Add onkeyup event for real-time uppercase conversion and validation
+                    onkeyup: function() {
+                        let field = dialog.get_field('registration_number');
+                        let value = field.get_value() || '';
+                        // Convert to uppercase and remove non-alphanumeric characters
+                        let cleaned_value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                        // Update the input field in real-time
+                        if (value !== cleaned_value) {
+                            field.set_value(cleaned_value);
                         }
-                    ],
-                    primary_action_label: __('Update'),
-                    primary_action: function(values) {
-                        if (!values.registration_number) {
-                            frappe.throw(__('Registration Number is mandatory.'));
+                    }
+                }
+            ],
+            primary_action_label: __('Update'),
+            primary_action: function(values) {
+                let registration_number = values.registration_number;
+                // Ensure the value is uppercase and alphanumeric before submission
+                registration_number = (registration_number || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                if (!registration_number) {
+                    frappe.throw(__('Registration Number is mandatory.'));
+                }
+                // Validate that only alphanumeric characters remain
+                if (!/^[A-Z0-9]+$/.test(registration_number)) {
+                    frappe.throw(__('Registration Number must contain only letters and numbers (A-Z, 0-9).'));
+                }
+                // Update RTO Registration document
+                frappe.call({
+                    method: 'frappe.client.set_value',
+                    args: {
+                        doctype: 'RTO Registration',
+                        name: frm.doc.name,
+                        fieldname: {
+                            registration_number: registration_number,
+                            status: 'Due Number Plate Ordering',
+                            // registration_status: 'Due Documents Submission to DTO',
+                            documents_status: 'Due Documents Submission to DTO'
                         }
-                        // Update RTO Registration document
-                        frappe.call({
-                            method: 'frappe.client.set_value',
-                            args: {
-                                doctype: 'RTO Registration',
-                                name: frm.doc.name,
-                                fieldname: {
-                                    registration_number: values.registration_number,
-                                    status: 'Due Number Plate Ordering',
-                                    registration_status: 'Due Documents Submission to DTO'
-                                }
-                            },
-                            callback: function(r) {
-                                if (!r.exc) {
-                                    // Find and update Serial No document
-                                    frappe.call({
-                                        method: 'frappe.client.get_list',
-                                        args: {
-                                            doctype: 'Serial No',
-                                            filters: {
-                                                custom_chassis_number: frm.doc.chassis_number
+                    },
+                    callback: function(r) {
+                        if (!r.exc) {
+                            // Find and update Serial No document
+                            frappe.call({
+                                method: 'frappe.client.get_list',
+                                args: {
+                                    doctype: 'Serial No',
+                                    filters: {
+                                        custom_chassis_number: frm.doc.chassis_number
+                                    },
+                                    fields: ['name']
+                                },
+                                callback: function(serial_res) {
+                                    if (serial_res.message && serial_res.message.length > 0) {
+                                        let serial_no_doc = serial_res.message[0];
+                                        frappe.call({
+                                            method: 'frappe.client.set_value',
+                                            args: {
+                                                doctype: 'Serial No',
+                                                name: serial_no_doc.name,
+                                                fieldname: {
+                                                    custom_registration_number: registration_number
+                                                }
                                             },
-                                            fields: ['name']
-                                        },
-                                        callback: function(serial_res) {
-                                            if (serial_res.message && serial_res.message.length > 0) {
-                                                let serial_no_doc = serial_res.message[0];
-                                                frappe.call({
-                                                    method: 'frappe.client.set_value',
-                                                    args: {
-                                                        doctype: 'Serial No',
-                                                        name: serial_no_doc.name,
-                                                        fieldname: {
-                                                            custom_registration_number: values.registration_number
-                                                        }
-                                                    },
-                                                    callback: function(serial_update_res) {
-                                                        if (!serial_update_res.exc) {
-                                                            // Update Vehicle Smart Card documents
-                                                            let promises = [];
-                                                            if (frm.doc.additional_accounts) {
-                                                                frm.doc.additional_accounts.forEach(acc => {
-                                                                    if (acc.smart_card_id) {
-                                                                        promises.push(
-                                                                            frappe.db.get_doc('Vehicle Smart Card', acc.smart_card_id)
-                                                                                .then(smart_card => {
-                                                                                    smart_card.status = smart_card.smart_card_payment_status === 'Paid' ? 'Due Updation in Vahan' : 'Due Payment to RTO';
-                                                                                    smart_card.journal_account = acc.account;
-                                                                                    smart_card.smart_card_status = 'Applied';
-                                                                                    smart_card.registration_number = values.registration_number;
-                                                                                    return frappe.call({
-                                                                                        method: 'frappe.client.save',
-                                                                                        args: { doc: smart_card }
-                                                                                    });
-                                                                                })
-                                                                                .catch(err => {
-                                                                                    throw new Error(`Error updating Vehicle Smart Card ${acc.smart_card_id}: ${err.message}`);
-                                                                                })
-                                                                        );
-                                                                    }
-                                                                });
+                                            callback: function(serial_update_res) {
+                                                if (!serial_update_res.exc) {
+                                                    // Update Vehicle Smart Card documents
+                                                    let promises = [];
+                                                    if (frm.doc.additional_accounts) {
+                                                        frm.doc.additional_accounts.forEach(acc => {
+                                                            if (acc.smart_card_id) {
+                                                                promises.push(
+                                                                    frappe.db.get_doc('Vehicle Smart Card', acc.smart_card_id)
+                                                                        .then(smart_card => {
+                                                                            smart_card.status = smart_card.smart_card_payment_status === 'Paid' ? 'Due Updation in Vahan' : 'Due Payment to RTO';
+                                                                            smart_card.journal_account = acc.account;
+                                                                            smart_card.smart_card_status = 'Applied';
+                                                                            smart_card.registration_number = registration_number;
+                                                                            return frappe.call({
+                                                                                method: 'frappe.client.save',
+                                                                                args: { doc: smart_card }
+                                                                            });
+                                                                        })
+                                                                        .catch(err => {
+                                                                            throw new Error(`Error updating Vehicle Smart Card ${acc.smart_card_id}: ${err.message}`);
+                                                                        })
+                                                                );
                                                             }
-                                                            Promise.all(promises)
-                                                                .then(() => {
-                                                                    // Log successful activity
-                                                                    log_rto_activity(frm, 'Registration Number Updated', 'Registration Updated', '');
-                                                                    frm.reload_doc();
-                                                                    frappe.msgprint({
-                                                                        title: __('Success'),
-                                                                        message: __('Registration Number and Serial No updated successfully.'),
-                                                                        indicator: 'green'
-                                                                    });
-                                                                    dialog.hide();
-                                                                })
-                                                                .catch(err => {
-                                                                    log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', err.message || 'Error updating Vehicle Smart Cards');
-                                                                    frappe.msgprint({
-                                                                        title: __('Error'),
-                                                                        message: err.message || __('Error updating Vehicle Smart Cards.'),
-                                                                        indicator: 'red'
-                                                                    });
-                                                                });
-                                                        } else {
-                                                            log_rto_activity(frm, 'Registration Number Updated', 'Serial No Update Failed', serial_update_res.exc || JSON.stringify(serial_update_res));
+                                                        });
+                                                    }
+                                                    Promise.all(promises)
+                                                        .then(() => {
+                                                            // Log successful activity
+                                                            log_rto_activity(frm, 'Registration Number Updated', 'Registration Updated', '');
+                                                            frm.reload_doc();
+                                                            frappe.msgprint({
+                                                                title: __('Success'),
+                                                                message: __('Registration Number and Serial No updated successfully.'),
+                                                                indicator: 'green'
+                                                            });
+                                                            dialog.hide();
+                                                        })
+                                                        .catch(err => {
+                                                            log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', err.message || 'Error updating Vehicle Smart Cards');
                                                             frappe.msgprint({
                                                                 title: __('Error'),
-                                                                message: __('Error updating Serial No: ') + (serial_update_res.exc || JSON.stringify(serial_update_res)),
+                                                                message: err.message || __('Error updating Vehicle Smart Cards.'),
                                                                 indicator: 'red'
                                                             });
-                                                        }
-                                                    }
-                                                });
-                                            } else {
-                                                log_rto_activity(frm, 'Registration Number Updated', 'Serial No Update Failed', 'No Serial No found for chassis number: ' + frm.doc.chassis_number);
-                                                frappe.msgprint({
-                                                    title: __('Error'),
-                                                    message: __('No Serial No found for chassis number: ') + frm.doc.chassis_number,
-                                                    indicator: 'red'
-                                                });
+                                                        });
+                                                } else {
+                                                    log_rto_activity(frm, 'Registration Number Updated', 'Serial No Update Failed', serial_update_res.exc || JSON.stringify(serial_update_res));
+                                                    frappe.msgprint({
+                                                        title: __('Error'),
+                                                        message: __('Error updating Serial No: ') + (serial_update_res.exc || JSON.stringify(serial_update_res)),
+                                                        indicator: 'red'
+                                                    });
+                                                }
                                             }
-                                        }
-                                    });
-                                } else {
-                                    log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', r.exc || JSON.stringify(r));
-                                    frappe.msgprint({
-                                        title: __('Error'),
-                                        message: __('Error updating Registration Number: ') + (r.exc || JSON.stringify(r)),
-                                        indicator: 'red'
-                                    });
+                                        });
+                                    } else {
+                                        log_rto_activity(frm, 'Registration Number Updated', 'Serial No Update Failed', 'No Serial No found for chassis number: ' + frm.doc.chassis_number);
+                                        frappe.msgprint({
+                                            title: __('Error'),
+                                            message: __('No Serial No found for chassis number: ') + frm.doc.chassis_number,
+                                            indicator: 'red'
+                                        });
+                                    }
                                 }
-                            }
-                        });
-                    },
-                    secondary_action_label: __('Cancel'),
-                    secondary_action: function() {
-                        dialog.hide();
+                            });
+                        } else {
+                            log_rto_activity(frm, 'Registration Number Updated', 'Registration Update Failed', r.exc || JSON.stringify(r));
+                            frappe.msgprint({
+                                title: __('Error'),
+                                message: __('Error updating Registration Number: ') + (r.exc || JSON.stringify(r)),
+                                indicator: 'red'
+                            });
+                        }
                     }
                 });
-                dialog.show();
-            });
-        }
+            },
+            secondary_action_label: __('Cancel'),
+            secondary_action: function() {
+                dialog.hide();
+            }
+        });
+        dialog.show();
+    });
+}
 
-        // Override form status indicator to show custom status
-        frm.set_intro(__('Status: ') + frm.doc.status, 'blue');
+// Override form status indicator to show custom status
+frm.set_intro(__('Status: ') + frm.doc.status, 'blue');
     }
 });
 
@@ -1706,13 +1872,16 @@ if (frm.doc.status === 'Due Number Plate Installation' && frm.doc.number_plate_r
 
                 // Determine the status based on document_submitted_to_dto and document_received_from_dto
                 let new_status;
-                if (!frm.doc.document_submitted_to_dto) {
-                    new_status = 'Due Documents Submission to DTO';
-                } else if (!frm.doc.document_received_from_dto) {
-                    new_status = 'Documents Not Received from DTO';
-                } else {
-                    new_status = 'Due Scanning RC';
-                }
+                // new status should be due scanning rc thats it
+                new_status = 'Due Scanning RC';
+                
+                // if (!frm.doc.document_submitted_to_dto) {
+                //     new_status = 'Due Documents Submission to DTO';
+                // } else if (!frm.doc.document_received_from_dto) {
+                //     new_status = 'Documents Not Received from DTO';
+                // } else {
+                //     new_status = 'Due Scanning RC';
+                // }
 
                 frappe.call({
                     method: 'frappe.client.set_value',
@@ -1760,7 +1929,10 @@ if (frm.doc.status === 'Due Number Plate Installation' && frm.doc.number_plate_r
 }
 
 
-if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate_installed && !frm.doc.document_submitted_to_dto) {
+// if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate_installed && !frm.doc.document_submitted_to_dto) {
+// if (frm.doc.documents_status === 'Due Documents Submission to DTO' && frm.doc.number_plate_installed && !frm.doc.document_submitted_to_dto) {
+if (frm.doc.documents_status === 'Due Documents Submission to DTO') {
+
     frm.add_custom_button(__('Submit Documents to DTO'), function() {
         // Validate smart card payment status
         let smart_card_ids = frm.doc.additional_accounts
@@ -1843,8 +2015,9 @@ if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate
                                 doc_sub_date: values.doc_sub_date,
                                 doc_sub_remarks: values.doc_sub_remarks,
                                 document_submitted_to_dto: 1,
-                                status: 'Documents Not Received from DTO',
-                                registration_status: 'Documents Not Received from DTO'
+                                // status: 'Documents Not Received from DTO',
+                                // registration_status: 'Documents Not Received from DTO'
+                                documents_status: 'Documents Not Received from DTO'
 
                             }
                         },
@@ -1881,7 +2054,8 @@ if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate
 }
 
         // Add Documents Received from DTO button
-        if (frm.doc.status === 'Documents Not Received from DTO' && frm.doc.document_submitted_to_dto && !frm.doc.document_received_from_dto) {
+        // if (frm.doc.documents_status === 'Documents Not Received from DTO' && frm.doc.document_submitted_to_dto && !frm.doc.document_received_from_dto) {
+        if (frm.doc.documents_status === 'Documents Not Received from DTO') {
             frm.add_custom_button(__('Documents Received from DTO'), function() {
                 let dialog = new frappe.ui.Dialog({
                     title: __('Documents Received from DTO'),
@@ -1913,8 +2087,9 @@ if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate
                                     doc_rec_date: values.doc_rec_date,
                                     doc_rec_remarks: values.doc_rec_remarks,
                                     document_received_from_dto: 1,
-                                    status: 'Due Scanning RC',
-                                    registration_status: 'Applied'
+                                    // status: 'Due Scanning RC',
+                                    registration_status: 'Applied',
+                                    documents_status: 'Submitted & Received from DTO'
                                 }
                             },
                             callback: function(r) {
@@ -1949,8 +2124,25 @@ if (frm.doc.status === 'Due Documents Submission to DTO' && frm.doc.number_plate
         }
 
 
-        if (frm.doc.status === 'Due Scanning RC' && frm.doc.document_received_from_dto) {
+    //     if (frm.doc.status === 'Due Scanning RC' && frm.doc.document_received_from_dto) {
+    // frm.add_custom_button(__('Attach Scanned Document'), function() {
+
+    // Attacched Scanned Document button when click it should be check documents_status if there is not "Submitted & Received from DTO" then it should not allow to attach scanned document show button when status is Due Scanning RC but not execut ok
+
+if (frm.doc.status === 'Due Scanning RC' && frm.doc.document_received_from_dto) {
     frm.add_custom_button(__('Attach Scanned Document'), function() {
+        // Check if documents_status is 'Submitted & Received from DTO'
+        if (frm.doc.documents_status !== 'Submitted & Received from DTO') {
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Cannot attach scanned document. Documents status must be "Submitted & Received from DTO".'),
+                indicator: 'red'
+            });
+            return;
+        }
+        // Show dialog to attach scanned document
+
+
         let dialog = new frappe.ui.Dialog({
             title: __('Attach Scanned Document'),
             fields: [

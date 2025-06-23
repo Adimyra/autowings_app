@@ -227,6 +227,21 @@ def get_vehicle_misc_sales(journal_entries):
 
 # naming series for delivery note job card
 
+# import frappe
+
+# @frappe.whitelist()
+# def get_enabled_delivery_note_types():
+#     # Fetch the Autowings Naming Series document
+#     doc = frappe.get_doc("Autowings Naming Series", "Autowings Naming Series")
+#     enabled_types = []
+#     for entry in doc.delivery_note:
+#         if entry.enable:  # Only include enabled entries
+#             enabled_types.append({
+#                 "name": entry.delivery_note_type,
+#                 "label": entry.delivery_note_type,
+#                 "naming_series": entry.delivery_note_naming_series
+#             })
+#     return enabled_types
 import frappe
 
 @frappe.whitelist()
@@ -238,11 +253,11 @@ def get_enabled_delivery_note_types():
         if entry.enable:  # Only include enabled entries
             enabled_types.append({
                 "name": entry.delivery_note_type,
-                "label": entry.delivery_note_type,
-                "naming_series": entry.delivery_note_naming_series
+                "label": entry.label_name or entry.delivery_note_type,
+                "naming_series": entry.delivery_note_naming_series,
+                "warehouse": entry.warehouse or ""
             })
     return enabled_types
-
 
 import frappe
 

@@ -8,14 +8,17 @@
  "field_order": [
   "enable",
   "delivery_note_type",
-  "delivery_note_naming_series"
+  "label_name",
+  "delivery_note_naming_series",
+  "warehouse"
  ],
  "fields": [
   {
    "fieldname": "delivery_note_type",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Delivery Note Type"
+   "label": "Delivery Note Type",
+   "options": "\nNormal\nJob Card\nJob Card Return"
   },
   {
    "fieldname": "delivery_note_naming_series",
@@ -29,12 +32,25 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Enable"
+  },
+  {
+   "fieldname": "label_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label Name"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Warehouse",
+   "options": "Warehouse"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-16 02:24:52.215393",
+ "modified": "2025-06-23 14:01:13.707398",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Delivery Note Type",

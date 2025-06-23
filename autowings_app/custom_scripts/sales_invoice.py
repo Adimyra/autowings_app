@@ -1,54 +1,102 @@
 
 
+# import frappe
+# from frappe import _
+# from frappe.utils import getdate
+
+
+# def before_submit(doc, method):
+#     """
+#     Before Submit Hook for Sales Invoice:
+#     - Validate `custom_sale_type`, item count, quantity, and VIN details.
+#     - Update `serial_no` in Items Table from `custom_vin`.
+#     - If Spare or Other, uncheck update_stock.
+#     - No document creation here to avoid issues if submission fails.
+#     """
+#     # Ensure `custom_sale_type` is set
+#     if not doc.custom_sale_type:
+#         frappe.throw("Sale Type (`custom_sale_type`) is required.")
+
+#     # If Spare or Other, uncheck update_stock and skip vehicle processes
+#     if doc.custom_sale_type in ["Spare", "Other"]:
+#         doc.update_stock = 0
+#         return
+
+#     # Ensure only 1 item and qty == 1 in Vehicle Sale
+#     if len(doc.items) > 1:
+#         frappe.throw("Only one item is allowed in the Items table for Vehicle sales.")
+
+#     if doc.items[0].qty > 1:
+#         frappe.throw("Quantity must be 1 for a Vehicle sale.")
+
+#     # Ensure `custom_vin` is populated for Vehicle Sales when `update_stock` is checked
+#     if doc.update_stock:
+#         if not doc.custom_vin:
+#             frappe.throw("Chassis Number details are required in VIN table.")
+
+#         # Validate each VIN entry for mandatory fields and match with items
+#         vin_item_codes = {vin.item for vin in doc.custom_vin}
+#         item_codes = {item.item_code for item in doc.items}
+#         if not vin_item_codes.issubset(item_codes):
+#             frappe.throw("VIN entries must correspond to items in the Items table.")
+
+#         for vin in doc.custom_vin:
+#             if not vin.chassis_number or not vin.engine_number or not vin.vehicle_color or not vin.manufacturing_date:
+#                 frappe.throw(
+#                     f"VIN Entry for Item {vin.item} is incomplete. Please enter Chassis Number, Engine Number, Vehicle Color, and Manufacturing Date."
+#                 )
+
+#     # Update `serial_no` in Items Table from `custom_vin`
+#     update_items_with_chassis_numbers(doc)
+
 import frappe
 from frappe import _
 from frappe.utils import getdate
 
-
 def before_submit(doc, method):
     """
-    Before Submit Hook for Sales Invoice:
-    - Validate `custom_sale_type`, item count, quantity, and VIN details.
-    - Update `serial_no` in Items Table from `custom_vin`.
-    - If Spare or Other, uncheck update_stock.
-    - No document creation here to avoid issues if submission fails.
+    Before Submit Hook for Sales Invoice`:
+    - Validates `custom_sale_type`, and for `Vehicle` type, checks item count, quantity, and VIN details.
+    - Updates `serial_no` in Items Table from `custom_vin` for `Vehicle` type.
+    - For `Spare` or `Other`, unchecks `update_stock`.
+    - No document creation to avoid issues if submission fails.
     """
     # Ensure `custom_sale_type` is set
     if not doc.custom_sale_type:
-        frappe.throw("Sale Type (`custom_sale_type`) is required.")
+        frappe.throw(_("Sale Type (`custom_sale_type`) is required."))
 
     # If Spare or Other, uncheck update_stock and skip vehicle processes
     if doc.custom_sale_type in ["Spare", "Other"]:
         doc.update_stock = 0
         return
 
-    # Ensure only 1 item and qty == 1 in Vehicle Sale
-    if len(doc.items) > 1:
-        frappe.throw("Only one item is allowed in the Items table for Vehicle sales.")
+    # Vehicle sales validations
+    if doc.custom_sale_type == "Vehicle":
+        # Ensure only 1 item is allowed
+        if len(doc.items) > 1:
+            frappe.throw(_("Only one item is allowed in the items table for a Sales Invoice Vehicle Sale Type."))
+        if doc.items[0].qty > 1:
+            frappe.throw(_("Quantity must be 1 for a Sales Invoice Vehicle Sale Item."))
 
-    if doc.items[0].qty > 1:
-        frappe.throw("Quantity must be 1 for a Vehicle sale.")
+        # Ensure `custom_vin` is populated when `update_stock` is checked
+        if doc.update_stock:
+            if not doc.custom_vin or not len(doc.custom_vin):
+                frappe.throw("Chassis number details are required.")
 
-    # Ensure `custom_vin` is populated for Vehicle Sales when `update_stock` is checked
-    if doc.update_stock:
-        if not doc.custom_vin:
-            frappe.throw("Chassis Number details are required in VIN table.")
+            # Validate each VIN entry for mandatory fields and match with items
+            vin_item_codes = {vin.item_code for vin in doc.custom_vin}
+            item_codes = {item.item_code for item in doc.items}
+            if not vin_item_codes.issubset(item_subset(item_codes)):
+                frappe.throw("VIN entries must correspond to items in the items table.")
 
-        # Validate each VIN entry for mandatory fields and match with items
-        vin_item_codes = {vin.item for vin in doc.custom_vin}
-        item_codes = {item.item_code for item in doc.items}
-        if not vin_item_codes.issubset(item_codes):
-            frappe.throw("VIN entries must correspond to items in the Items table.")
+            for vin in doc.custom_vin:
+                if not (vin.chassis_number and vin.engine_number and vin.vehicle_color and vin.manufacturing_date):
+                    frappe.throw(
+                        f"VIN Entry ({vin.item_code}) for item {vin.item_code} is incomplete. Please enter Chassis Number, Engine Number, Vehicle Color, and Manufacturing Date."
+                    )
 
-        for vin in doc.custom_vin:
-            if not vin.chassis_number or not vin.engine_number or not vin.vehicle_color or not vin.manufacturing_date:
-                frappe.throw(
-                    f"VIN Entry for Item {vin.item} is incomplete. Please enter Chassis Number, Engine Number, Vehicle Color, and Manufacturing Date."
-                )
-
-    # Update `serial_no` in Items Table from `custom_vin`
-    update_items_with_chassis_numbers(doc)
-
+        # Update `serial_no` in Items Table from `custom_vin`
+        update_items_with_chassis_numbers(doc)
 
       
 import frappe
@@ -132,60 +180,8 @@ def after_insert_sales_invoice(doc, method):
         except Exception as e:
             frappe.log_error(f"Failed to save Sales Invoice {doc.name}: {str(e)}", "after_insert_sales_invoice")
 
-# ********************************************** this is correct code bellow
-# import frappe
+# -----------********-------------------
 
-# def after_insert_sales_invoice(doc, method):
-#     """Add suppliers to custom_miscellaneous child table based on custom_sub_sales_type's misc_accounts."""
-#     if not doc.custom_sub_sales_type:
-#         frappe.log_error(f"No custom_sub_sales_type found for Sales Invoice {doc.name}", "after_insert_sales_invoice")
-#         return
-
-#     # Fetch Sub Sale Type document where sub_sale_type matches custom_sub_sales_type and enabled = 1
-#     try:
-#         sub_sale_type_doc = frappe.get_doc("Sub Sale Type", {"sub_sale_type": doc.custom_sub_sales_type, "enabled": 1})
-#     except frappe.DoesNotExistError:
-#         frappe.log_error(f"Sub Sale Type {doc.custom_sub_sales_type} not found or not enabled for Sales Invoice {doc.name}", "after_insert_sales_invoice")
-#         return
-
-#     # Get misc_account values from Sub Sale Type's misc_accounts child table
-#     misc_accounts = [account.misc_account for account in sub_sale_type_doc.get("misc_accounts", [])]
-#     if not misc_accounts:
-#         frappe.log_error(f"No misc_accounts found in Sub Sale Type {doc.custom_sub_sales_type} for Sales Invoice {doc.name}", "after_insert_sales_invoice")
-#         return
-
-#     # Only add suppliers if custom_miscellaneous is empty
-#     if not doc.custom_miscellaneous:
-#         # Fetch suppliers where supplier_name matches misc_account and supplier_group is 'Misc Group'
-#         suppliers = frappe.get_all(
-#             "Supplier",
-#             filters={
-#                 "supplier_name": ["in", misc_accounts],
-#                 "supplier_group": "Misc Group"
-#             },
-#             fields=["supplier_name"]
-#         )
-
-#         if not suppliers:
-#             frappe.log_error(f"No suppliers found in 'Misc Group' for misc_accounts {misc_accounts} in Sales Invoice {doc.name}", "after_insert_sales_invoice")
-#             return
-
-#         # Add matching suppliers to custom_miscellaneous child table
-#         for supplier in suppliers:
-#             doc.append("custom_miscellaneous", {
-#                 "misc_account": supplier.supplier_name,
-#                 "amount": 0
-#             })
-
-#         # Save the document to persist changes
-#         try:
-#             doc.save()
-#             frappe.log_error(f"Successfully added {len(suppliers)} suppliers to custom_miscellaneous for Sales Invoice {doc.name}", "after_insert_sales_invoice")
-#         except Exception as e:
-#             frappe.log_error(f"Failed to save Sales Invoice {doc.name}: {str(e)}", "after_insert_sales_invoice")
-#     else:
-#         frappe.log_error(f"custom_miscellaneous already populated for Sales Invoice {doc.name}, skipping supplier addition", "after_insert_sales_invoice")
-  
 
 import frappe
 from frappe.utils import getdate
@@ -679,6 +675,7 @@ def create_or_update_vehicle_sales_master(doc, company):
             vsm_doc_name = vsm_doc.name
 
         frappe.db.set_value("Sales Invoice", doc.name, "custom_vsm_id", vsm_doc_name)
+        
 
         return vsm_doc_name
     except frappe.DuplicateEntryError:

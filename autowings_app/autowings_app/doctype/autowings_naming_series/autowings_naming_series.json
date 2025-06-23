@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "sales_invoice_naming_series_tab",
   "autowings_naming_series_configuration",
   "job_card_naming_series_tab",
   "delivery_note",
@@ -33,12 +34,17 @@
    "fieldtype": "Table",
    "label": "Job Card",
    "options": "Job Card Type"
+  },
+  {
+   "fieldname": "sales_invoice_naming_series_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sales invoice Naming Series"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-16 01:25:56.958367",
+ "modified": "2025-06-23 13:57:53.003288",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings Naming Series",

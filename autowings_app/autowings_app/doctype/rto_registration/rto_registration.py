@@ -116,7 +116,7 @@ def create_rto_registration_from_sales_invoice(sales_invoice, rto_office, regist
             "journal_status": "Draft",
             "payment_status": "Due",
             "status": "Due Application Entry",
-            "due_documents_flag": 0,
+            # "due_documents_flag": 0,
             "number_plate_ordered": 0,
             "number_plate_received": 0,
             "number_plate_installed": 0,

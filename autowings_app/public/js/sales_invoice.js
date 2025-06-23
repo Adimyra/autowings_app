@@ -1398,3 +1398,231 @@ function update_checkbox_state(frm, checkbox_field, provider_field, amount_field
 
 
 
+// sales invoice for job card
+
+frappe.ui.form.on("Sales Invoice", {
+    refresh: function(frm) {
+        if (frm.doc.custom_sale_type === "Service") {
+            frm.set_df_property("custom_job_card_id", "reqd", 1);
+            frm.set_value("update_stock", 0);
+            frm.set_value("debit_to", `Debtors - ${frm.doc.company_abbr || "A"}`);
+            frm.refresh_field("update_stock");
+            frm.refresh_field("debit_to");
+        } else {
+            frm.set_df_property("custom_job_card_id", "reqd", 0);
+        }
+    },
+
+    custom_sale_type: function(frm) {
+        if (frm.doc.custom_sale_type === "Service") {
+            frm.set_df_property("custom_job_card_id", "reqd", 1);
+            frm.set_value("update_stock", 0);
+            frm.set_value("debit_to", `Debtors - ${frm.doc.company_abbr || "A"}`);
+            frm.refresh_field("update_stock");
+            frm.refresh_field("debit_to");
+        } else {
+            frm.set_df_property("custom_job_card_id", "reqd", 0);
+            frm.set_value("custom_job_card_id", "");
+            frm.set_value("customer", "");
+            frm.set_df_property("customer", "read_only", 0);
+            frm.clear_table("items");
+            frm.refresh_field("items");
+            frm.refresh_field("custom_job_card_id");
+            frm.refresh_field("customer");
+        }
+    },
+
+    custom_job_card_id: function(frm) {
+        if (frm.doc.custom_sale_type === "Service" && frm.doc.custom_job_card_id) {
+            frm.set_value("update_stock", 0);
+            frm.set_value("debit_to", `Debtors - ${frm.doc.company_abbr || "A"}`);
+            frm.refresh_field("update_stock");
+            frm.refresh_field("debit_to");
+
+            frappe.call({
+                method: "frappe.client.get",
+                args: {
+                    doctype: "AW Job Card",
+                    name: frm.doc.custom_job_card_id
+                },
+                callback: function(response) {
+                    if (response.message) {
+                        const job_card = response.message;
+
+                        // Set customer from AW Job Card
+                        frm.set_value("customer", job_card.customer || "");
+                        frm.set_df_property("customer", "read_only", job_card.customer ? 1 : 0);
+                        frm.refresh_field("customer");
+
+                        // Clear existing items
+                        frm.clear_table("items");
+
+                        // Fetch company abbr
+                        frappe.call({
+                            method: "frappe.client.get_value",
+                            args: {
+                                doctype: "Company",
+                                filters: { name: frm.doc.company },
+                                fieldname: "abbr"
+                            },
+                            callback: function(company_response) {
+                                let company_abbr = company_response.message.abbr || "A";
+
+                                // Track added items to avoid duplicates
+                                let added_items = new Set();
+
+                                // Fetch all Delivery Notes
+                                if (job_card.items && job_card.items.length > 0) {
+                                    const delivery_note_ids = [...new Set(job_card.items
+                                        .filter(item => item.delivery_note_id)
+                                        .map(item => item.delivery_note_id))];
+
+                                    if (delivery_note_ids.length > 0) {
+                                        let dn_count = delivery_note_ids.length;
+                                        delivery_note_ids.forEach(dn_id => {
+                                            frappe.call({
+                                                method: "frappe.client.get",
+                                                args: {
+                                                    doctype: "Delivery Note",
+                                                    name: dn_id
+                                                },
+                                                callback: function(dn_response) {
+                                                    if (dn_response.message && dn_response.message.items) {
+                                                        dn_response.message.items.forEach(dn_item => {
+                                                            let item_key = `${dn_item.item_code}_${dn_response.message.name}`;
+                                                            if (!added_items.has(item_key)) {
+                                                                let item_row = frm.add_child("items");
+                                                                item_row.item_code = dn_item.item_code;
+                                                                item_row.item_name = dn_item.item_name;
+                                                                item_row.description = dn_item.description;
+                                                                item_row.qty = dn_item.qty;
+                                                                item_row.uom = dn_item.uom;
+                                                                item_row.stock_uom = dn_item.stock_uom;
+                                                                item_row.conversion_factor = dn_item.conversion_factor;
+                                                                item_row.rate = dn_item.rate;
+                                                                item_row.amount = dn_item.amount;
+                                                                item_row.warehouse = dn_item.warehouse || `Stores - ${company_abbr}`;
+                                                                item_row.income_account = `Sales - ${company_abbr}`;
+                                                                item_row.cost_center = `Main - ${company_abbr}`;
+                                                                item_row.delivery_note = dn_response.message.name;
+                                                                item_row.dn_detail = dn_item.name;
+                                                                added_items.add(item_key);
+                                                            }
+                                                        });
+                                                    }
+                                                    dn_count--;
+                                                    if (dn_count === 0) {
+                                                        // Add labour charges after all Delivery Notes
+                                                        add_labour_charges(frm, job_card, company_abbr, added_items);
+                                                    }
+                                                }
+                                            });
+                                        });
+                                    } else {
+                                        // Add labour charges if no Delivery Notes
+                                        add_labour_charges(frm, job_card, company_abbr, added_items);
+                                    }
+                                } else {
+                                    // Add labour charges if no items
+                                    add_labour_charges(frm, job_card, company_abbr, added_items);
+                                }
+                            }
+                        });
+                    } else {
+                        frappe.msgprint({
+                            title: __("Error"),
+                            indicator: "red",
+                            message: __("Job Card {0} not found.", [frm.doc.custom_job_card_id])
+                        });
+                        frm.set_value("customer", "");
+                        frm.set_df_property("customer", "read_only", 0);
+                        frm.clear_table("items");
+                        frm.refresh_field("items");
+                        frm.refresh_field("customer");
+                    }
+                }
+            });
+        } else if (frm.doc.custom_sale_type === "Service" && !frm.doc.custom_job_card_id) {
+            frm.set_value("customer", "");
+            frm.set_df_property("customer", "read_only", 0);
+            frm.clear_table("items");
+            frm.refresh_field("customer");
+            frm.refresh_field("items");
+            frm.set_value("update_stock", 0);
+            frm.refresh_field("update_stock");
+        }
+    },
+
+    before_submit: function(frm) {
+        if (frm.doc.custom_sale_type === "Service") {
+            if (!frm.doc.custom_job_card_id) {
+                frappe.msgprint({
+                    title: __("Error"),
+                    indicator: "red",
+                    message: __("Job Card ID is mandatory for Service Sales Invoice.")
+                });
+                frappe.validated = false;
+                return;
+            }
+
+            frm.set_value("update_stock", 0);
+            frm.set_value("debit_to", `Debtors - ${frm.doc.company_abbr || "A"}`);
+            frm.refresh_field("update_stock");
+            frm.refresh_field("debit_to");
+
+            // Update AW Job Card
+            frappe.call({
+                method: "frappe.client.set_value",
+                args: {
+                    doctype: "AW Job Card",
+                    name: frm.doc.custom_job_card_id,
+                    fieldname: {
+                        status: "Close",
+                        sales_invoice: frm.doc.name
+                    }
+                },
+                callback: function() {
+                    frappe.msgprint({
+                        title: __("Success"),
+                        indicator: "green",
+                        message: __("Job Card {0} updated to Close.", [frm.doc.custom_job_card_id])
+                    });
+                },
+                error: function(err) {
+                    frappe.msgprint({
+                        title: __("Error"),
+                        indicator: "red",
+                        message: __("Failed to update Job Card {0}: {1}", [frm.doc.custom_job_card_id, err.message])
+                    });
+                    frappe.validated = false;
+                }
+            });
+        }
+    }
+});
+
+// Helper function to add labour charges
+function add_labour_charges(frm, job_card, company_abbr, added_items) {
+    if (job_card.labour_charges && job_card.labour_charges.length > 0) {
+        job_card.labour_charges.forEach(labour => {
+            let item_key = `${labour.items}_labour`;
+            if (!added_items.has(item_key)) {
+                let item_row = frm.add_child("items");
+                item_row.item_code = labour.items;
+                item_row.item_name = labour.items;
+                item_row.description = labour.items;
+                item_row.qty = 1;
+                item_row.uom = "Nos";
+                item_row.stock_uom = "Nos";
+                item_row.conversion_factor = 1;
+                item_row.rate = labour.rate;
+                item_row.amount = labour.rate;
+                item_row.warehouse = `Stores - ${company_abbr}`;
+                item_row.income_account = `Sales - ${company_abbr}`;
+                item_row.cost_center = `Main - ${company_abbr}`;
+                added_items.add(item_key);
+            }
+        });
+        frm.refresh_field("items");
+    }
+}

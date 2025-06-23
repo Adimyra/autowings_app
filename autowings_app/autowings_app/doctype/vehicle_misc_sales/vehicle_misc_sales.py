@@ -314,9 +314,11 @@
 # #         message=message,
 # #         title=f"Payment Entry {doc.name} Submission Error"
 # #     )
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import getdate, now_datetime, date_diff
 
 class VehicleMiscSales(Document):
     def before_save(self):
@@ -326,8 +328,27 @@ class VehicleMiscSales(Document):
     def create_journal_entries_for_new_rows(self):
         # Create journal entries for new rows in misc_accounts
         for row in self.get("misc_accounts", []):
-            if not row.journal_entry_id and row.amount > 0:  # Ensure valid amount
-                self.create_journal_entry(row)
+            if not row.journal_entry_id and row.amount and float(row.amount) > 0:  # Ensure valid amount
+                try:
+                    self.create_journal_entry(row)
+                    # Log success in misc_activity
+                    self.log_activity(
+                        activity="Journal Entry Created",
+                        status="Success",
+                        remarks=f"Journal Entry {row.journal_entry_id} created for Misc Account {row.misc_account} with amount ₹{row.amount}."
+                    )
+                except Exception as e:
+                    # Log error in misc_activity
+                    self.log_activity(
+                        activity="Journal Entry Creation Failed",
+                        status="Failed",
+                        remarks=f"Failed to create Journal Entry for Misc Account {row.misc_account}: {str(e)}"
+                    )
+                    frappe.log_error(
+                        f"Vehicle Misc Sales Journal Error - {self.name}",
+                        f"Failed to create Journal Entry for Misc Account {row.misc_account}: {str(e)}"
+                    )
+                    frappe.throw(_("Failed to create Journal Entry for Misc Account {0}: {1}").format(row.misc_account, str(e)))
 
     def get_company(self):
         # Fetch company from Sales Invoice if available
@@ -337,7 +358,7 @@ class VehicleMiscSales(Document):
                 return sales_invoice.company
             except frappe.DoesNotExistError:
                 frappe.msgprint(_("Sales Invoice {0} does not exist.").format(self.sales_invoice))
-        # Fallback to default company from Global Defaults
+        # Fallback to default company
         return frappe.db.get_single_value("Global Defaults", "default_company") or "Autowings"
 
     def get_posting_date(self):
@@ -352,9 +373,24 @@ class VehicleMiscSales(Document):
         return frappe.utils.today()
 
     def create_journal_entry(self, row):
+        # Validate misc_account as a Supplier in Misc Group
+        if not frappe.db.exists("Supplier", {"name": row.misc_account, "supplier_group": "Misc Group"}):
+            frappe.throw(_("Misc Account {0} must be a Supplier in the 'Misc Group' group.").format(row.misc_account))
+
+        # Get company and abbreviation
+        company = self.get_company()
+        company_abbr = frappe.db.get_value("Company", company, "abbr") or "A"
+
+        # Validate accounts
+        accounts_to_validate = [f"{row.misc_account} Payable", "Debtors"]
+        accounts_valid = frappe.get_attr("autowings_app.custom_scripts.utils.validate_accounts")(
+            accounts=accounts_to_validate, company=company
+        )
+        if not accounts_valid:
+            frappe.throw(_("One or more accounts ({0} Payable, Debtors) do not exist for company {1}.").format(row.misc_account, company))
+
         # Create a new Journal Entry document
         je_doc = frappe.new_doc("Journal Entry")
-        company = self.get_company()
         posting_date = self.get_posting_date()
         je_doc.update({
             "voucher_type": "Journal Entry",
@@ -374,11 +410,11 @@ class VehicleMiscSales(Document):
 
         # Add debit entry (Customer/Debtors)
         je_doc.append("accounts", {
-            "account": "Debtors - A",
+            "account": f"Debtors - {company_abbr}",
             "account_type": "Receivable",
             "party_type": "Customer",
             "party": self.customer or frappe.throw(_("Customer is required for Journal Entry.")),
-            "cost_center": "Main - A",
+            "cost_center": f"Main - {company_abbr}",
             "account_currency": "INR",
             "exchange_rate": 1,
             "debit_in_account_currency": row.amount,
@@ -391,11 +427,11 @@ class VehicleMiscSales(Document):
 
         # Add credit entry (Misc Account Payable)
         je_doc.append("accounts", {
-            "account": f"{row.misc_account or 'Miscellaneous'} Payable - A",
+            "account": f"{row.misc_account or 'Miscellaneous'} Payable - {company_abbr}",
             "account_type": "Payable",
             "party_type": "Supplier",
             "party": row.misc_account or "Miscellaneous",
-            "cost_center": "Main - A",
+            "cost_center": f"Main - {company_abbr}",
             "account_currency": "INR",
             "exchange_rate": 1,
             "debit_in_account_currency": 0,
@@ -413,17 +449,20 @@ class VehicleMiscSales(Document):
         row.journal_entry_id = je_doc.name
         row.payment_status = "Due"
 
-
-
-        # for newly creation of misc account doc
-
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import getdate, now_datetime, date_diff
-
-class VehicleMiscSales(Document):
-    pass
+    def log_activity(self, activity, status, remarks):
+        # Log activity in misc_activity child table
+        activity_log = {
+            "doctype": "RTO Activity Log",
+            "activity": activity,
+            "status": status,
+            "user": frappe.session.user,
+            "update_on": now_datetime(),
+            "remarks": remarks,
+            "parent": self.name,
+            "parentfield": "misc_activity",
+            "parenttype": "Vehicle Misc Sales"
+        }
+        frappe.get_doc(activity_log).insert(ignore_permissions=True)
 
 @frappe.whitelist()
 def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id, misc_account, amount):
@@ -437,8 +476,11 @@ def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id
     - Returns the name of the created Vehicle Misc Sales document.
     """
     try:
-        # Debug log with a concise title
-        frappe.log_error("Received data for Vehicle Misc Sales", f"sales_invoice: {sales_invoice}, customer: {customer}, vsm_id: {vsm_id}, misc_account: {misc_account}, amount: {amount}")
+        # Debug log
+        frappe.log_error(
+            f"Create Vehicle Misc Sales - {sales_invoice}",
+            f"Inputs: sales_invoice={sales_invoice}, customer={customer}, vsm_id={vsm_id}, misc_account={misc_account}, amount={amount}"
+        )
 
         # Validate inputs
         if not sales_invoice:
@@ -472,7 +514,7 @@ def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id
 
         # Get company and abbreviation
         company = sales_doc.company
-        company_abbr = frappe.db.get_value("Company", company, "abbr")
+        company_abbr = frappe.db.get_value("Company", company, "abbr") or "A"
 
         # Validate accounts
         accounts_to_validate = [f"{misc_account} Payable", "Debtors"]
@@ -488,15 +530,14 @@ def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id
             frappe.throw(_("Sales Invoice posting date {0} cannot be in the future.").format(journal_posting_date))
 
         # Create Vehicle Misc Sales document
-        misc_doc = frappe.get_doc({
-            "doctype": "Vehicle Misc Sales",
+        misc_doc = frappe.new_doc("Vehicle Misc Sales")
+        misc_doc.update({
             "customer": customer,
             "customer_name": sales_doc.customer_name,
             "sales_invoice": sales_invoice,
             "vsm_id": vsm_id,
             "status": "Due Update",
-            "journal_status": "Draft",
-            "misc_accounts": []
+            "journal_status": "Draft"
         })
 
         # Add the single misc_account to the child table
@@ -526,7 +567,7 @@ def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id
             "cost_center": f"Main - {company_abbr}",
             "against_account": customer
         })
-        je_misc.insert(ignore_permissions=True)
+        je_misc.insert(ignore_permissions=False)
         je_misc_name = je_misc.name
 
         # Add to misc_accounts child table
@@ -538,10 +579,10 @@ def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id
         })
 
         # Insert Vehicle Misc Sales document
-        misc_doc.insert(ignore_permissions=True)
+        misc_doc.insert(ignore_permissions=False)
         misc_doc_name = misc_doc.name
 
-        # Log activity in misc_activity child table using RTO Activity Log
+        # Log activity in misc_activity child table
         activity_log = {
             "doctype": "RTO Activity Log",
             "activity": "Vehicle Misc Sales Created",
@@ -553,7 +594,7 @@ def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id
             "parentfield": "misc_activity",
             "parenttype": "Vehicle Misc Sales"
         }
-        frappe.get_doc(activity_log).insert(ignore_permissions=True)
+        frappe.get_doc(activity_log).insert(ignore_permissions=False)
 
         frappe.db.commit()
         return misc_doc_name
@@ -561,7 +602,10 @@ def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id
     except Exception as e:
         frappe.db.rollback()
         error_message = str(e)
-        frappe.log_error(f"Vehicle Misc Sales Error - {sales_invoice}", f"Failed to create Vehicle Misc Sales: {error_message}")
+        frappe.log_error(
+            f"Vehicle Misc Sales Error - {sales_invoice}",
+            f"Failed to create Vehicle Misc Sales: {error_message}"
+        )
         if "misc_doc_name" in locals():
             try:
                 activity_log = {
@@ -575,8 +619,278 @@ def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id
                     "parentfield": "misc_activity",
                     "parenttype": "Vehicle Misc Sales"
                 }
-                frappe.get_doc(activity_log).insert(ignore_permissions=True)
+                frappe.get_doc(activity_log).insert(ignore_permissions=False)
                 frappe.db.commit()
             except Exception as log_error:
-                frappe.log_error(f"Activity Log Error - {misc_doc_name}", f"Failed to log activity for Vehicle Misc Sales {misc_doc_name}: {str(log_error)}")
+                frappe.log_error(
+                    f"Activity Log Error - {misc_doc_name}",
+                    f"Failed to log activity for Vehicle Misc Sales {misc_doc_name}: {str(log_error)}"
+                )
         frappe.throw(_("Failed to create Vehicle Misc Sales: {0}").format(error_message))
+
+# import frappe
+# from frappe import _
+# from frappe.model.document import Document
+
+# class VehicleMiscSales(Document):
+#     def before_save(self):
+#         # Create journal entries for new rows in misc_accounts
+#         self.create_journal_entries_for_new_rows()
+
+#     def create_journal_entries_for_new_rows(self):
+#         # Create journal entries for new rows in misc_accounts
+#         for row in self.get("misc_accounts", []):
+#             if not row.journal_entry_id and row.amount > 0:  # Ensure valid amount
+#                 self.create_journal_entry(row)
+
+#     def get_company(self):
+#         # Fetch company from Sales Invoice if available
+#         if self.sales_invoice:
+#             try:
+#                 sales_invoice = frappe.get_doc("Sales Invoice", self.sales_invoice)
+#                 return sales_invoice.company
+#             except frappe.DoesNotExistError:
+#                 frappe.msgprint(_("Sales Invoice {0} does not exist.").format(self.sales_invoice))
+#         # Fallback to default company from Global Defaults
+#         return frappe.db.get_single_value("Global Defaults", "default_company") or "Autowings"
+
+#     def get_posting_date(self):
+#         # Fetch posting_date from Sales Invoice if available
+#         if self.sales_invoice:
+#             try:
+#                 sales_invoice = frappe.get_doc("Sales Invoice", self.sales_invoice)
+#                 return sales_invoice.posting_date
+#             except frappe.DoesNotExistError:
+#                 frappe.msgprint(_("Sales Invoice {0} does not exist.").format(self.sales_invoice))
+#         # Fallback to current date
+#         return frappe.utils.today()
+
+#     def create_journal_entry(self, row):
+#         # Create a new Journal Entry document
+#         je_doc = frappe.new_doc("Journal Entry")
+#         company = self.get_company()
+#         posting_date = self.get_posting_date()
+#         je_doc.update({
+#             "voucher_type": "Journal Entry",
+#             "company": company,
+#             "posting_date": posting_date,
+#             "title": f"Misc - {self.customer or 'Unknown'} - {row.misc_account or 'Unknown'}",
+#             "remark": f"Miscellaneous charge of ₹{row.amount} for Sales Invoice {self.sales_invoice or 'N/A'} paid to {row.misc_account or 'N/A'}.",
+#             "total_debit": row.amount,
+#             "total_credit": row.amount,
+#             "total_amount": row.amount,
+#             "total_amount_currency": "INR",
+#             "total_amount_in_words": frappe.utils.money_in_words(row.amount, main_currency="INR"),
+#             "write_off_based_on": "Accounts Receivable",
+#             "write_off_amount": 0,
+#             "is_opening": "No"
+#         })
+
+#         # Add debit entry (Customer/Debtors)
+#         je_doc.append("accounts", {
+#             "account": "Debtors - A",
+#             "account_type": "Receivable",
+#             "party_type": "Customer",
+#             "party": self.customer or frappe.throw(_("Customer is required for Journal Entry.")),
+#             "cost_center": "Main - A",
+#             "account_currency": "INR",
+#             "exchange_rate": 1,
+#             "debit_in_account_currency": row.amount,
+#             "debit": row.amount,
+#             "credit_in_account_currency": 0,
+#             "credit": 0,
+#             "is_advance": "No",
+#             "against_account": row.misc_account or "Miscellaneous"
+#         })
+
+#         # Add credit entry (Misc Account Payable)
+#         je_doc.append("accounts", {
+#             "account": f"{row.misc_account or 'Miscellaneous'} Payable - A",
+#             "account_type": "Payable",
+#             "party_type": "Supplier",
+#             "party": row.misc_account or "Miscellaneous",
+#             "cost_center": "Main - A",
+#             "account_currency": "INR",
+#             "exchange_rate": 1,
+#             "debit_in_account_currency": 0,
+#             "debit": 0,
+#             "credit_in_account_currency": row.amount,
+#             "credit": row.amount,
+#             "is_advance": "No",
+#             "against_account": self.customer or "Unknown"
+#         })
+
+#         # Save the journal entry as draft
+#         je_doc.insert(ignore_permissions=False)
+
+#         # Link the journal entry to the row and set payment_status to Due
+#         row.journal_entry_id = je_doc.name
+#         row.payment_status = "Due"
+
+
+
+#         # for newly creation of misc account doc
+
+# import frappe
+# from frappe import _
+# from frappe.model.document import Document
+# from frappe.utils import getdate, now_datetime, date_diff
+
+# class VehicleMiscSales(Document):
+#     pass
+
+# @frappe.whitelist()
+# def create_vehicle_misc_sales_from_sales_invoice(sales_invoice, customer, vsm_id, misc_account, amount):
+#     """
+#     Creates a Vehicle Misc Sales document with a single misc_account and an associated Journal Entry.
+#     - Validates Sales Invoice, fetches customer and posting_date from Sales Invoice.
+#     - Creates a Vehicle Misc Sales document with the provided misc_account and amount.
+#     - Creates a draft Journal Entry with Sales Invoice's posting_date.
+#     - Links the Journal Entry to the misc_accounts child table.
+#     - Logs activity in the misc_activity child table using RTO Activity Log.
+#     - Returns the name of the created Vehicle Misc Sales document.
+#     """
+#     try:
+#         # Debug log with a concise title
+#         frappe.log_error("Received data for Vehicle Misc Sales", f"sales_invoice: {sales_invoice}, customer: {customer}, vsm_id: {vsm_id}, misc_account: {misc_account}, amount: {amount}")
+
+#         # Validate inputs
+#         if not sales_invoice:
+#             frappe.throw(_("Please select a valid Sales Invoice."))
+#         if not customer:
+#             frappe.throw(_("Customer is required."))
+#         if not vsm_id:
+#             frappe.throw(_("Vehicle Sales Master ID is required."))
+#         if not misc_account:
+#             frappe.throw(_("Misc Account is required."))
+#         if not amount or float(amount) <= 0:
+#             frappe.throw(_("A valid Amount greater than 0 is required."))
+
+#         # Validate Sales Invoice
+#         sales_doc = frappe.get_doc("Sales Invoice", sales_invoice)
+#         if sales_doc.docstatus != 1:
+#             frappe.throw(_("Sales Invoice {0} must be submitted.").format(sales_invoice))
+
+#         # Validate customer
+#         if sales_doc.customer != customer:
+#             frappe.throw(_("Customer {0} does not match Sales Invoice {1}'s customer.").format(customer, sales_invoice))
+
+#         # Check if Vehicle Misc Sales already exists
+#         misc_doc_name = frappe.db.get_value("Vehicle Misc Sales", {"sales_invoice": sales_invoice, "docstatus": ["!=", 2]}, "name")
+#         if misc_doc_name:
+#             frappe.throw(_("Vehicle Misc Sales {0} already exists for Sales Invoice {1}.").format(misc_doc_name, sales_invoice))
+
+#         # Validate misc_account
+#         if not frappe.db.exists("Supplier", {"name": misc_account, "supplier_group": "Misc Group"}):
+#             frappe.throw(_("Misc Account {0} must be a Supplier in the 'Misc Group' group.").format(misc_account))
+
+#         # Get company and abbreviation
+#         company = sales_doc.company
+#         company_abbr = frappe.db.get_value("Company", company, "abbr")
+
+#         # Validate accounts
+#         accounts_to_validate = [f"{misc_account} Payable", "Debtors"]
+#         accounts_valid = frappe.get_attr("autowings_app.custom_scripts.utils.validate_accounts")(
+#             accounts=accounts_to_validate, company=company
+#         )
+#         if not accounts_valid:
+#             frappe.throw(_("One or more accounts ({0} Payable, Debtors) do not exist for company {1}.").format(misc_account, company))
+
+#         # Validate posting date
+#         journal_posting_date = sales_doc.posting_date
+#         if date_diff(journal_posting_date, getdate()) > 0:
+#             frappe.throw(_("Sales Invoice posting date {0} cannot be in the future.").format(journal_posting_date))
+
+#         # Create Vehicle Misc Sales document
+#         misc_doc = frappe.get_doc({
+#             "doctype": "Vehicle Misc Sales",
+#             "customer": customer,
+#             "customer_name": sales_doc.customer_name,
+#             "sales_invoice": sales_invoice,
+#             "vsm_id": vsm_id,
+#             "status": "Due Update",
+#             "journal_status": "Draft",
+#             "misc_accounts": []
+#         })
+
+#         # Add the single misc_account to the child table
+#         amount = float(amount)
+#         # Create draft Journal Entry for this misc_account
+#         je_misc = frappe.new_doc("Journal Entry")
+#         je_misc.voucher_type = "Journal Entry"
+#         je_misc.company = company
+#         je_misc.posting_date = journal_posting_date
+#         je_misc.title = f"Misc - {customer} - {misc_account}"
+#         je_misc.remark = f"Miscellaneous charge of ₹{amount} for Sales Invoice {sales_invoice} paid to {misc_account}."
+#         je_misc.append("accounts", {
+#             "account": f"Debtors - {company_abbr}",
+#             "party_type": "Customer",
+#             "party": customer,
+#             "debit_in_account_currency": amount,
+#             "credit_in_account_currency": 0,
+#             "cost_center": f"Main - {company_abbr}",
+#             "against_account": misc_account
+#         })
+#         je_misc.append("accounts", {
+#             "account": f"{misc_account} Payable - {company_abbr}",
+#             "party_type": "Supplier",
+#             "party": misc_account,
+#             "debit_in_account_currency": 0,
+#             "credit_in_account_currency": amount,
+#             "cost_center": f"Main - {company_abbr}",
+#             "against_account": customer
+#         })
+#         je_misc.insert(ignore_permissions=True)
+#         je_misc_name = je_misc.name
+
+#         # Add to misc_accounts child table
+#         misc_doc.append("misc_accounts", {
+#             "misc_account": misc_account,
+#             "amount": amount,
+#             "journal_entry_id": je_misc_name,
+#             "payment_status": "Due"
+#         })
+
+#         # Insert Vehicle Misc Sales document
+#         misc_doc.insert(ignore_permissions=True)
+#         misc_doc_name = misc_doc.name
+
+#         # Log activity in misc_activity child table using RTO Activity Log
+#         activity_log = {
+#             "doctype": "RTO Activity Log",
+#             "activity": "Vehicle Misc Sales Created",
+#             "status": "Created",
+#             "user": frappe.session.user,
+#             "update_on": now_datetime(),
+#             "remarks": f"Vehicle Misc Sales created for Sales Invoice {sales_invoice} with amount ₹{amount}.",
+#             "parent": misc_doc_name,
+#             "parentfield": "misc_activity",
+#             "parenttype": "Vehicle Misc Sales"
+#         }
+#         frappe.get_doc(activity_log).insert(ignore_permissions=True)
+
+#         frappe.db.commit()
+#         return misc_doc_name
+
+#     except Exception as e:
+#         frappe.db.rollback()
+#         error_message = str(e)
+#         frappe.log_error(f"Vehicle Misc Sales Error - {sales_invoice}", f"Failed to create Vehicle Misc Sales: {error_message}")
+#         if "misc_doc_name" in locals():
+#             try:
+#                 activity_log = {
+#                     "doctype": "RTO Activity Log",
+#                     "activity": "Vehicle Misc Sales Creation Failed",
+#                     "status": "Failed",
+#                     "user": frappe.session.user,
+#                     "update_on": now_datetime(),
+#                     "remarks": f"Failed to create Vehicle Misc Sales: {error_message}",
+#                     "parent": misc_doc_name,
+#                     "parentfield": "misc_activity",
+#                     "parenttype": "Vehicle Misc Sales"
+#                 }
+#                 frappe.get_doc(activity_log).insert(ignore_permissions=True)
+#                 frappe.db.commit()
+#             except Exception as log_error:
+#                 frappe.log_error(f"Activity Log Error - {misc_doc_name}", f"Failed to log activity for Vehicle Misc Sales {misc_doc_name}: {str(log_error)}")
+#         frappe.throw(_("Failed to create Vehicle Misc Sales: {0}").format(error_message))

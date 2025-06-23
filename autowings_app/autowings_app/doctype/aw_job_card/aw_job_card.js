@@ -560,3 +560,88 @@ function fadeOutAndCloseJobCardModal() {
         }, 300); // Match the transition duration
     }
 }
+
+
+
+
+
+//  for ready to deliver
+frappe.ui.form.on("AW Job Card", {
+    refresh: function(frm) {
+        // Apply read-only settings if status is "Ready to Deliver" or "Close"
+        if (frm.doc.status === "Ready to Deliver" || frm.doc.status === "Close") {
+            make_all_fields_read_only(frm);
+        }
+
+        // Add custom button "Ready to Deliver" only if the document is not new and status is "Open"
+        if (!frm.is_new() && frm.doc.status === "Open") {
+            frm.add_custom_button(__("Ready to Deliver"), function() {
+                // Validate labour charges table
+                if (frm.doc.labour_charges && frm.doc.labour_charges.length > 0) {
+                    // Show confirmation prompt
+                    frappe.confirm(
+                        __("Are you sure that Job Card is ready to deliver? Please recheck labour charge entries."),
+                        function() {
+                            // User confirmed, change status to "Ready to Deliver"
+                            frm.set_value("status", "Ready to Deliver");
+                            frm.save().then(() => {
+                                // Make all fields read-only after status change
+                                make_all_fields_read_only(frm);
+                                frappe.msgprint({
+                                    title: __("Success"),
+                                    indicator: "green",
+                                    message: __("Job Card status updated to Ready to Deliver.")
+                                });
+                            }).catch((err) => {
+                                frappe.msgprint({
+                                    title: __("Error"),
+                                    indicator: "red",
+                                    message: __("Failed to update Job Card status: {0}", [err.message])
+                                });
+                            });
+                        },
+                        function() {
+                            // User cancelled, do nothing
+                            frappe.msgprint({
+                                title: __("Cancelled"),
+                                indicator: "blue",
+                                message: __("Status change cancelled.")
+                            });
+                        }
+                    );
+                } else {
+                    // No labour charges, prompt to add records
+                    frappe.msgprint({
+                        title: __("Warning"),
+                        indicator: "orange",
+                        message: __("Please add at least one labour charge entry before marking the Job Card as Ready to Deliver.")
+                    });
+                }
+            });
+        }
+    }
+});
+
+function make_all_fields_read_only(frm) {
+    // Make all fields read-only
+    frm.fields.forEach(field => {
+        frm.set_df_property(field.df.fieldname, "read_only", 1);
+    });
+
+    // Make child tables read-only
+    frm.fields_dict.items.grid.toggle_enable("add_row", false);
+    frm.fields_dict.items.grid.toggle_enable("delete_rows", false);
+    frm.fields_dict.return_items.grid.toggle_enable("add_row", false);
+    frm.fields_dict.return_items.grid.toggle_enable("delete_rows", false);
+    frm.fields_dict.time_logs.grid.toggle_enable("add_row", false);
+    frm.fields_dict.time_logs.grid.toggle_enable("delete_rows", false);
+    frm.fields_dict.scheduled_time_logs.grid.toggle_enable("add_row", false);
+    frm.fields_dict.scheduled_time_logs.grid.toggle_enable("delete_rows", false);
+    frm.fields_dict.issues.grid.toggle_enable("add_row", false);
+    frm.fields_dict.issues.grid.toggle_enable("delete_rows", false);
+    frm.fields_dict.labour_charges.grid.toggle_enable("add_row", false);
+    frm.fields_dict.labour_charges.grid.toggle_enable("delete_rows", false);
+
+    // Refresh the form to apply changes
+    frm.refresh();
+}

@@ -508,27 +508,27 @@ def get_date_range(filter_type, date_range):
 #         doc.due_documents_flag = 0
 
 
-import frappe
+# import frappe
 
-def on_update(doc, method):
-    """
-    Triggered on update of RTO Registration document.
-    Checks registration_status and status fields, updates due_documents_flag accordingly.
-    """
-    frappe.log_error(f"RTO Registration on_update triggered for {doc.name}", "RTO Debug")
+# def on_update(doc, method):
+#     """
+#     Triggered on update of RTO Registration document.
+#     Checks registration_status and status fields, updates due_documents_flag accordingly.
+#     """
+#     frappe.log_error(f"RTO Registration on_update triggered for {doc.name}", "RTO Debug")
     
-    # Normalize strings for comparison (trim and case-insensitive)
-    reg_status = (doc.registration_status or "").strip().lower()
-    doc_status = (doc.status or "").strip().lower()
-    target_status = "due documents submission to dto".lower()
+#     # Normalize strings for comparison (trim and case-insensitive)
+#     reg_status = (doc.registration_status or "").strip().lower()
+#     doc_status = (doc.status or "").strip().lower()
+#     target_status = "due documents submission to dto".lower()
     
-    # Check condition
-    if reg_status == target_status or doc_status == target_status:
-        frappe.log_error(f"Setting due_documents_flag to 1 for {doc.name}", "RTO Debug")
-        frappe.db.set_value("RTO Registration", doc.name, "due_documents_flag", 1)
-    else:
-        frappe.log_error(f"Setting due_documents_flag to 0 for {doc.name}", "RTO Debug")
-        frappe.db.set_value("RTO Registration", doc.name, "due_documents_flag", 0)
+#     # Check condition
+#     if reg_status == target_status or doc_status == target_status:
+#         frappe.log_error(f"Setting due_documents_flag to 1 for {doc.name}", "RTO Debug")
+#         frappe.db.set_value("RTO Registration", doc.name, "due_documents_flag", 1)
+#     else:
+#         frappe.log_error(f"Setting due_documents_flag to 0 for {doc.name}", "RTO Debug")
+#         frappe.db.set_value("RTO Registration", doc.name, "due_documents_flag", 0)
     
-    # Commit changes to ensure they are saved
-    frappe.db.commit()
+#     # Commit changes to ensure they are saved
+#     frappe.db.commit()

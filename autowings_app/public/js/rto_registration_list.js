@@ -562,7 +562,7 @@ frappe.listview_settings['RTO Registration'] = {
                 method: 'frappe.client.get_list',
                 args: {
                     doctype: 'RTO Registration',
-                    filters: { status: 'Documents Not Received from DTO' },
+                    filters: { documents_status: 'Documents Not Received from DTO' },
                     fields: ['name', 'customer', 'chassis_number','registration_number', 'modified'],
                     limit_page_length: 0
                 },
@@ -678,8 +678,10 @@ frappe.listview_settings['RTO Registration'] = {
                                             doc_rec_date: values.doc_rec_date,
                                             doc_rec_remarks: values.doc_rec_remarks || '',
                                             document_received_from_dto: 1,
-                                            status: 'Due Scanning RC',
-                                            registration_status: "Applied"
+                                            // status: 'Due Scanning RC',
+                                            registration_status: "Applied",
+                                            documents_status: 'Submitted & Received from DTO'
+
                                         }
                                     },
                                     callback: function(r) {
@@ -773,318 +775,655 @@ frappe.listview_settings['RTO Registration'] = {
             });
         });
 
-        // Custom Button 2: Submit Documents to DTO
+        // // Custom Button 2: Submit Documents to DTO
+        // console.log("Adding Submit Documents to DTO action");
+        // listview.page.add_actions_menu_item(__("Submit Documents to DTO"), function() {
+        //     console.log("Submit Documents to DTO action triggered");
+        //     const selected_docs = listview.get_checked_items();
+        //     if (selected_docs.length === 0) {
+        //         frappe.msgprint({
+        //             title: __('No Selection'),
+        //             message: __('Please select at least one RTO Registration document.'),
+        //             indicator: 'orange'
+        //         });
+        //         return;
+        //     }
+
+        //     console.log("Selected Documents:", selected_docs);
+
+        //     // Filter documents: Check registration_status OR non-empty registration_number
+        //     // let filtered_docs = selected_docs.filter(doc => {
+        //     //     const hasDueRegistrationStatus = doc.registration_status === 'Due Documents Submission to DTO';
+        //     //     const hasValidRegistrationNumber = doc.registration_number && doc.registration_number.trim() !== '';
+        //     //     return hasDueRegistrationStatus || hasValidRegistrationNumber;
+        //     // });
+            
+        //     // listen filter only that docomuent which documents_status is "Due Documents Submission to DTO" thats it
+        //     let filtered_docs = selected_docs.filter(doc => {
+        //         return doc.documents_status === 'Due Documents Submission to DTO';
+        //     });
+        //     console.log("Filtered Documents (documents_status = Due Documents Submission to DTO):", filtered_docs);
+        //     // If no documents match the criteria, show a message
+        //     if (filtered_docs.length === 0) {
+        //         frappe.msgprint({
+        //             title: __('No Eligible Documents'),
+        //             message: __('No RTO Registration documents with status "Due Documents Submission to DTO" found.'),
+        //             indicator: 'orange'
+        //         });
+        //         return;
+        //     }
+        //     // Log the filtered documents for debugging
+        //     // console.log("Filtered Documents (registration_status = Due Documents Submission to DTO OR registration_number not empty):", filtered_docs);
+
+
+        //     console.log("Filtered Documents (registration_status = Due Documents Submission to DTO OR registration_number not empty):", filtered_docs);
+
+        //     let doc_names = filtered_docs.map(doc => doc.name);
+        //     let eligible_docs = [];
+        //     let not_eligible_docs = [];
+
+        //     let promises = doc_names.map(doc_name => {
+        //         return new Promise((resolve, reject) => {
+        //             frappe.call({
+        //                 method: 'frappe.client.get',
+        //                 args: {
+        //                     doctype: 'RTO Registration',
+        //                     name: doc_name,
+        //                     fields: ['name', 'status', 'customer', 'chassis_number', 'additional_accounts', 'modified', 'registration_status', 'registration_number', 'document_submitted_to_dto']
+        //                 },
+        //                 callback: function(response) {
+        //                     if (response.message) {
+        //                         resolve(response.message);
+        //                     } else {
+        //                         reject(new Error(`Unable to fetch document ${doc_name}`));
+        //                     }
+        //                 },
+        //                 error: function(err) {
+        //                     reject(err);
+        //                 }
+        //             });
+        //         });
+        //     });
+
+        //     Promise.all(promises)
+        //         .then(docs => {
+        //             console.log("Fetched Documents with Child Tables:", docs);
+
+        //             docs.forEach(doc => {
+        //                 // Double-check eligibility after fetching full document
+        //                 // const hasDueRegistrationStatus = doc.registration_status === 'Due Documents Submission to DTO';
+        //                 // const hasValidRegistrationNumber = doc.registration_number && doc.registration_number.trim() !== '';
+        //                 // const is_eligible = hasDueRegistrationStatus || hasValidRegistrationNumber;
+
+        //                 const hasDueRegistrationStatus = doc.documents_status === 'Due Documents Submission to DTO';
+        //                 const hasValidRegistrationNumber = doc.registration_number && doc.registration_number.trim() !== '';
+        //                 const is_eligible = hasDueRegistrationStatus || hasValidRegistrationNumber;
+
+
+        //                 let all_payments_paid = true;
+        //                 if (doc.additional_accounts && Array.isArray(doc.additional_accounts)) {
+        //                     all_payments_paid = doc.additional_accounts.every(account => account.payment_status === 'Paid');
+        //                 }
+
+        //                 if (is_eligible && all_payments_paid) {
+        //                     eligible_docs.push(doc);
+        //                 } else {
+        //                     not_eligible_docs.push(doc);
+        //                 }
+        //             });
+
+        //             console.log("Eligible Documents:", eligible_docs);
+        //             console.log("Not Eligible Documents:", not_eligible_docs);
+
+        //             let dialog_html = '<div style="margin-bottom: 20px;">';
+        //             dialog_html += '<h4 style="color: green;">' + __('Eligible for Submission') + '</h4>';
+        //             if (eligible_docs.length > 0) {
+        //                 dialog_html += `
+        //                     <div style="max-height: 200px; overflow-y: auto; border: 1px solid #28a745; padding: 10px; margin-bottom: 20px;">
+        //                         <table style="width: 100%; border-collapse: collapse;">
+        //                             <thead>
+        //                                 <tr style="background-color: #e9f7ef;">
+        //                                     <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Select</th>
+        //                                     <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">ID</th>
+        //                                     <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Customer</th>
+        //                                     <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Chassis Number</th>
+        //                                     <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Registration Number</th>
+
+        //                                 </tr>
+        //                             </thead>
+        //                             <tbody>`;
+        //                 eligible_docs.forEach(doc => {
+        //                     dialog_html += `
+        //                         <tr>
+        //                             <td style="border: 1px solid #28a745; padding: 8px;">
+        //                                 <input type="checkbox" class="eligible-doc" data-name="${doc.name}" checked>
+        //                             </td>
+        //                             <td style="border: 1px solid #28a745; padding: 8px;">
+        //                                 <a href="/app/rto-registration/${doc.name}" target="_blank">${doc.name}</a>
+        //                             </td>
+        //                             <td style="border: 1px solid #28a745; padding: 8px;">${doc.customer || 'N/A'}</td>
+        //                             <td style="border: 1px solid #28a745; padding: 8px;">${doc.chassis_number || 'N/A'}</td>
+
+        //                             <td style="border: 1px solid #28a745; padding: 8px;">${doc.registration_number || 'N/A'}</td>
+        //                         </tr>`;
+        //                 });
+        //                 dialog_html += `
+        //                     </tbody>
+        //                 </table>
+        //             </div>`;
+        //             } else {
+        //                 dialog_html += '<p>' + __('No eligible documents found. All documents have due payments or do not meet submission criteria.') + '</p>';
+        //             }
+
+        //             dialog_html += '<h4 style="color: red;">' + __('Not Eligible (Payment Due or Criteria Not Met)') + '</h4>';
+        //             if (not_eligible_docs.length > 0) {
+        //                 dialog_html += '<div style="max-height: 200px; overflow-y: auto; border: 1px solid #dc3545; padding: 10px;">';
+        //                 not_eligible_docs.forEach(doc => {
+        //                     let due_accounts = (doc.additional_accounts || [])
+        //                         .filter(account => account.payment_status === 'Due')
+        //                         .map(account => ({
+        //                             smart_card_id: account.smart_card_id || 'N/A',
+        //                             account: account.account,
+        //                             payment_status: account.payment_status
+        //                         }));
+
+        //                     dialog_html += `
+        //                         <div style="margin-bottom: 10px;">
+        //                             <strong>RTO ID: <a href="/app/rto-registration/${doc.name}" target="_blank">${doc.name}</a></strong><br>`;
+                            
+        //                     // Check reasons for ineligibility
+        //                     // const hasDueRegistrationStatus = doc.registration_status === 'Due Documents Submission to DTO';
+        //                     // const hasValidRegistrationNumber = doc.registration_number && doc.registration_number.trim() !== '';
+        //                     const hasDueRegistrationStatus = doc.documents_status === 'Due Documents Submission to DTO';
+        //                     const hasValidRegistrationNumber = doc.registration_number && doc.registration_number.trim() !== '';
+
+        //                     if (!due_accounts.length) {
+        //                         dialog_html += 'Reason: ';
+        //                         if (!hasDueRegistrationStatus && !hasValidRegistrationNumber) {
+        //                             dialog_html += 'Neither registration status is "Due Documents Submission to DTO" nor registration number is present<br>';
+        //                         } else {
+        //                             dialog_html += 'Does not meet submission criteria<br>';
+        //                         }
+        //                     } else {
+        //                         dialog_html += 'Reason: Smart Card Payment Due<br>';
+        //                         dialog_html += 'Details: ';
+        //                         due_accounts.forEach(account => {
+        //                             dialog_html += `
+        //                                 <span>
+        //                                     ${account.account} -
+        //                                     ${account.smart_card_id !== 'N/A' 
+        //                                         ? `<a href="/app/vehicle-smart-card/${account.smart_card_id}" target="_blank">${account.smart_card_id}</a>` 
+        //                                         : 'N/A'}, 
+        //                                     Payment Status: ${account.payment_status}
+        //                                 </span>, `;
+        //                         });
+        //                         dialog_html = dialog_html.slice(0, -2);
+        //                         dialog_html += '<br>';
+        //                     }
+        //                     dialog_html += '</div>';
+        //                 });
+        //                 dialog_html += '</div>';
+        //             } else {
+        //                 dialog_html += '<p>' + __('No documents with payment due or other ineligibility criteria.') + '</p>';
+        //             }
+        //             dialog_html += '</div>';
+
+        //             let dialog_fields = [
+        //                 {
+        //                     fieldtype: 'HTML',
+        //                     fieldname: 'doc_list',
+        //                     options: dialog_html
+        //                 }
+        //             ];
+
+        //             if (eligible_docs.length > 0) {
+        //                 dialog_fields.push(
+        //                     {
+        //                         label: __('Submission Date'),
+        //                         fieldname: 'doc_sub_date',
+        //                         fieldtype: 'Datetime',
+        //                         reqd: 1,
+        //                         default: frappe.datetime.now_datetime()
+        //                     },
+        //                     {
+        //                         label: __('Remarks'),
+        //                         fieldname: 'doc_sub_remarks',
+        //                         fieldtype: 'Small Text'
+        //                     }
+        //                 );
+        //             }
+
+        //             let dialog = new frappe.ui.Dialog({
+        //                 title: __('Submit Documents to DTO'),
+        //                 fields: dialog_fields,
+        //                 primary_action_label: __('Submit'),
+        //                 primary_action: function(values) {
+        //                     if (eligible_docs.length > 0 && !values.doc_sub_date) {
+        //                         frappe.throw(__('Submission Date is mandatory.'));
+        //                     }
+
+        //                     let checked_docs = [];
+        //                     dialog.$wrapper.find('.eligible-doc:checked').each(function() {
+        //                         checked_docs.push($(this).data('name'));
+        //                     });
+
+        //                     if (checked_docs.length === 0) {
+        //                         frappe.msgprint({
+        //                             title: __('No Documents Selected'),
+        //                             message: __('Please select at least one eligible document to submit.'),
+        //                             indicator: 'orange'
+        //                         });
+        //                         return;
+        //                     }
+
+        //                     const submit_doc = (doc_name, retry_count = 0, max_retries = 3) => {
+        //                         let doc = eligible_docs.find(d => d.name === doc_name);
+        //                         if (!doc) return;
+
+        //                         frappe.call({
+        //                             method: 'frappe.client.set_value',
+        //                             args: {
+        //                                 doctype: 'RTO Registration',
+        //                                 name: doc.name,
+        //                                 fieldname: {
+        //                                     doc_sub_date: values.doc_sub_date,
+        //                                     doc_sub_remarks: values.doc_sub_remarks || '',
+        //                                     document_submitted_to_dto: 1,
+        //                                     // status: 'Documents Not Received from DTO',
+        //                                     // registration_status: 'Documents Not Received from DTO'
+        //                                     documents_status: 'Documents Not Received from DTO',
+        //                                 }
+        //                             },
+        //                             callback: function(r) {
+        //                                 if (!r.exc) {
+        //                                     log_rto_activity(doc, 'Documents Submitted to DTO', 'Submission Completed', values.doc_sub_remarks);
+        //                                     frappe.msgprint({
+        //                                         title: __('Success'),
+        //                                         message: __('Documents submitted to DTO for {0}.', [doc.name]),
+        //                                         indicator: 'green'
+        //                                     });
+        //                                 } else if (r.exc.includes('TimestampMismatchError') && retry_count < max_retries) {
+        //                                     frappe.call({
+        //                                         method: 'frappe.client.get',
+        //                                         args: {
+        //                                             doctype: 'RTO Registration',
+        //                                             name: doc.name,
+        //                                             fields: ['name', 'status', 'customer', 'chassis_number', 'additional_accounts', 'modified', 'registration_status', 'registration_number', 'document_submitted_to_dto']
+        //                                         },
+        //                                         callback: function(refresh_response) {
+        //                                             if (refresh_response.message) {
+        //                                                 eligible_docs = eligible_docs.map(d => d.name === doc.name ? refresh_response.message : d);
+        //                                                 submit_doc(doc_name, retry_count + 1, max_retries);
+        //                                             }
+        //                                         }
+        //                                     });
+        //                                 } else {
+        //                                     log_rto_activity(doc, 'Documents Submitted to DTO', 'Submission Failed', r.exc || JSON.stringify(r));
+        //                                     frappe.msgprint({
+        //                                         title: __('Error'),
+        //                                         message: __('Error submitting documents for {0}: {1}', [doc.name, r.exc || JSON.stringify(r)]),
+        //                                         indicator: 'red'
+        //                                     });
+        //                                 }
+        //                             },
+        //                             error: function(err) {
+        //                                 log_rto_activity(doc, 'Documents Submitted to DTO', 'Submission Failed', err.message || JSON.stringify(err));
+        //                                 frappe.msgprint({
+        //                                     title: __('Error'),
+        //                                     message: __('Error submitting documents for {0}: {1}', [doc.name, err.message || JSON.stringify(err)]),
+        //                                     indicator: 'red'
+        //                                 });
+        //                             }
+        //                         });
+        //                     };
+
+        //                     checked_docs.forEach(doc_name => submit_doc(doc_name));
+
+        //                     dialog.hide();
+        //                     listview.refresh();
+        //                 },
+        //                 secondary_action_label: __('Cancel'),
+        //                 secondary_action: function() {
+        //                     dialog.hide();
+        //                     dialog.$wrapper.find('.eligible-doc:checked').each(function() {
+        //                         let doc_name = $(this).data('name');
+        //                         let doc = eligible_docs.find(d => d.name === doc_name);
+        //                         if (doc) {
+        //                             log_rto_activity(doc, 'Document Submission Cancelled', 'Submission Cancelled', '');
+        //                         }
+        //                     });
+        //                 }
+        //             });
+        //             dialog.show();
+        //         })
+        //         .catch(err => {
+        //             frappe.msgprint({
+        //                 title: __('Error'),
+        //                 message: __('Error fetching RTO Registration documents: {0}', [err.message || JSON.stringify(err)]),
+        //                 indicator: 'red'
+        //             });
+        //         });
+        // });
+
         console.log("Adding Submit Documents to DTO action");
-        listview.page.add_actions_menu_item(__("Submit Documents to DTO"), function() {
-            console.log("Submit Documents to DTO action triggered");
-            const selected_docs = listview.get_checked_items();
-            if (selected_docs.length === 0) {
-                frappe.msgprint({
-                    title: __('No Selection'),
-                    message: __('Please select at least one RTO Registration document.'),
-                    indicator: 'orange'
-                });
-                return;
-            }
+listview.page.add_actions_menu_item(__("Submit Documents to DTO"), function() {
+    console.log("Submit Documents to DTO action triggered");
+    const selected_docs = listview.get_checked_items();
+    if (selected_docs.length === 0) {
+        frappe.msgprint({
+            title: __('No Selection'),
+            message: __('Please select at least one RTO Registration document.'),
+            indicator: 'orange'
+        });
+        return;
+    }
 
-            console.log("Selected Documents:", selected_docs);
+    console.log("Selected Documents from List View:", selected_docs);
 
-            // Filter documents: Check registration_status OR non-empty registration_number
-            let filtered_docs = selected_docs.filter(doc => {
-                const hasDueRegistrationStatus = doc.registration_status === 'Due Documents Submission to DTO';
-                const hasValidRegistrationNumber = doc.registration_number && doc.registration_number.trim() !== '';
-                return hasDueRegistrationStatus || hasValidRegistrationNumber;
+    // Fetch full document details for all selected documents
+    let doc_names = selected_docs.map(doc => doc.name);
+    let promises = doc_names.map(doc_name => {
+        return new Promise((resolve, reject) => {
+            frappe.call({
+                method: 'frappe.client.get',
+                args: {
+                    doctype: 'RTO Registration',
+                    name: doc_name,
+                    fields: ['name', 'status', 'customer', 'chassis_number', 'additional_accounts', 'modified', 'documents_status', 'registration_number', 'document_submitted_to_dto']
+                },
+                callback: function(response) {
+                    if (response.message) {
+                        console.log(`Fetched document ${doc_name}:`, response.message);
+                        resolve(response.message);
+                    } else {
+                        reject(new Error(`Unable to fetch document ${doc_name}`));
+                    }
+                },
+                error: function(err) {
+                    console.error(`Error fetching document ${doc_name}:`, err);
+                    reject(err);
+                }
+            });
+        });
+    });
+
+    Promise.all(promises)
+        .then(docs => {
+            console.log("All Fetched Documents:", docs);
+
+            // Log all documents_status values for debugging
+            console.log("All documents_status values:", docs.map(doc => ({
+                name: doc.name,
+                documents_status: doc.documents_status || 'Not Set'
+            })));
+
+            // Filter documents with documents_status = "Due Documents Submission to DTO"
+            let filtered_docs = docs.filter(doc => {
+                return doc.documents_status && 
+                       doc.documents_status.trim().toLowerCase() === 'due documents submission to dto';
             });
 
+            console.log("Filtered Documents (documents_status = Due Documents Submission to DTO):", filtered_docs);
+
+            // If no documents match, show a detailed message with all statuses
             if (filtered_docs.length === 0) {
+                let message = __('No RTO Registration documents with status "Due Documents Submission to DTO" found.') + '<br><br>';
+                message += '<strong>Selected Documents and Statuses:</strong><ul>';
+                docs.forEach(doc => {
+                    message += `<li>${doc.name}: ${doc.documents_status || 'Not Set'}</li>`;
+                });
+                message += '</ul>';
                 frappe.msgprint({
                     title: __('No Eligible Documents'),
-                    message: __('None of the selected documents meet the criteria for submission: either registration status is "Due Documents Submission to DTO", or registration number is not empty.'),
+                    message: message,
                     indicator: 'orange'
                 });
                 return;
             }
 
-            console.log("Filtered Documents (registration_status = Due Documents Submission to DTO OR registration_number not empty):", filtered_docs);
-
-            let doc_names = filtered_docs.map(doc => doc.name);
             let eligible_docs = [];
             let not_eligible_docs = [];
 
-            let promises = doc_names.map(doc_name => {
-                return new Promise((resolve, reject) => {
-                    frappe.call({
-                        method: 'frappe.client.get',
-                        args: {
-                            doctype: 'RTO Registration',
-                            name: doc_name,
-                            fields: ['name', 'status', 'customer', 'chassis_number', 'additional_accounts', 'modified', 'registration_status', 'registration_number', 'document_submitted_to_dto']
-                        },
-                        callback: function(response) {
-                            if (response.message) {
-                                resolve(response.message);
-                            } else {
-                                reject(new Error(`Unable to fetch document ${doc_name}`));
-                            }
-                        },
-                        error: function(err) {
-                            reject(err);
-                        }
-                    });
-                });
+            // Check eligibility for filtered documents
+            filtered_docs.forEach(doc => {
+                let all_payments_paid = true;
+                if (doc.additional_accounts && Array.isArray(doc.additional_accounts)) {
+                    all_payments_paid = doc.additional_accounts.every(account => account.payment_status === 'Paid');
+                }
+
+                if (all_payments_paid && !doc.document_submitted_to_dto) {
+                    eligible_docs.push(doc);
+                } else {
+                    not_eligible_docs.push(doc);
+                }
             });
 
-            Promise.all(promises)
-                .then(docs => {
-                    console.log("Fetched Documents with Child Tables:", docs);
+            console.log("Eligible Documents:", eligible_docs);
+            console.log("Not Eligible Documents:", not_eligible_docs);
 
-                    docs.forEach(doc => {
-                        // Double-check eligibility after fetching full document
-                        const hasDueRegistrationStatus = doc.registration_status === 'Due Documents Submission to DTO';
-                        const hasValidRegistrationNumber = doc.registration_number && doc.registration_number.trim() !== '';
-                        const is_eligible = hasDueRegistrationStatus || hasValidRegistrationNumber;
-
-                        let all_payments_paid = true;
-                        if (doc.additional_accounts && Array.isArray(doc.additional_accounts)) {
-                            all_payments_paid = doc.additional_accounts.every(account => account.payment_status === 'Paid');
-                        }
-
-                        if (is_eligible && all_payments_paid) {
-                            eligible_docs.push(doc);
-                        } else {
-                            not_eligible_docs.push(doc);
-                        }
-                    });
-
-                    console.log("Eligible Documents:", eligible_docs);
-                    console.log("Not Eligible Documents:", not_eligible_docs);
-
-                    let dialog_html = '<div style="margin-bottom: 20px;">';
-                    dialog_html += '<h4 style="color: green;">' + __('Eligible for Submission') + '</h4>';
-                    if (eligible_docs.length > 0) {
-                        dialog_html += `
-                            <div style="max-height: 200px; overflow-y: auto; border: 1px solid #28a745; padding: 10px; margin-bottom: 20px;">
-                                <table style="width: 100%; border-collapse: collapse;">
-                                    <thead>
-                                        <tr style="background-color: #e9f7ef;">
-                                            <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Select</th>
-                                            <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">ID</th>
-                                            <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Customer</th>
-                                            <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Chassis Number</th>
-                                            <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Registration Number</th>
-
-                                        </tr>
-                                    </thead>
-                                    <tbody>`;
-                        eligible_docs.forEach(doc => {
-                            dialog_html += `
-                                <tr>
-                                    <td style="border: 1px solid #28a745; padding: 8px;">
-                                        <input type="checkbox" class="eligible-doc" data-name="${doc.name}" checked>
-                                    </td>
-                                    <td style="border: 1px solid #28a745; padding: 8px;">
-                                        <a href="/app/rto-registration/${doc.name}" target="_blank">${doc.name}</a>
-                                    </td>
-                                    <td style="border: 1px solid #28a745; padding: 8px;">${doc.customer || 'N/A'}</td>
-                                    <td style="border: 1px solid #28a745; padding: 8px;">${doc.chassis_number || 'N/A'}</td>
-
-                                    <td style="border: 1px solid #28a745; padding: 8px;">${doc.registration_number || 'N/A'}</td>
-                                </tr>`;
-                        });
-                        dialog_html += `
+            // Build dialog HTML
+            let dialog_html = '<div style="margin-bottom: 20px;">';
+            dialog_html += '<h4 style="color: green;">' + __('Eligible for Submission') + '</h4>';
+            if (eligible_docs.length > 0) {
+                dialog_html += `
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #28a745; padding: 10px; margin-bottom: 20px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: #e9f7ef;">
+                                    <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Select</th>
+                                    <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">ID</th>
+                                    <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Customer</th>
+                                    <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Chassis Number</th>
+                                    <th style="border: 1px solid #28a745; padding: 8px; text-align: left;">Registration Number</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                eligible_docs.forEach(doc => {
+                    dialog_html += `
+                        <tr>
+                            <td style="border: 1px solid #28a745; padding: 8px;">
+                                <input type="checkbox" class="eligible-doc" data-name="${doc.name}" checked>
+                            </td>
+                            <td style="border: 1px solid #28a745; padding: 8px;">
+                                <a href="/app/rto-registration/${doc.name}" target="_blank">${doc.name}</a>
+                            </td>
+                            <td style="border: 1px solid #28a745; padding: 8px;">${doc.customer || 'N/A'}</td>
+                            <td style="border: 1px solid #28a745; padding: 8px;">${doc.chassis_number || 'N/A'}</td>
+                            <td style="border: 1px solid #28a745; padding: 8px;">${doc.registration_number || 'N/A'}</td>
+                        </tr>`;
+                });
+                dialog_html += `
                             </tbody>
                         </table>
                     </div>`;
-                    } else {
-                        dialog_html += '<p>' + __('No eligible documents found. All documents have due payments or do not meet submission criteria.') + '</p>';
+            } else {
+                dialog_html += '<p>' + __('No eligible documents found. All documents have due payments or are already submitted.') + '</p>';
+            }
+
+            dialog_html += '<h4 style="color: red;">' + __('Not Eligible (Payment Due or Already Submitted)') + '</h4>';
+            if (not_eligible_docs.length > 0) {
+                dialog_html += '<div style="max-height: 200px; overflow-y: auto; border: 1px solid #dc3545; padding: 10px;">';
+                not_eligible_docs.forEach(doc => {
+                    let due_accounts = (doc.additional_accounts || [])
+                        .filter(account => account.payment_status === 'Due')
+                        .map(account => ({
+                            smart_card_id: account.smart_card_id || 'N/A',
+                            account: account.account,
+                            payment_status: account.payment_status
+                        }));
+
+                    dialog_html += `
+                        <div style="margin-bottom: 10px;">
+                            <strong>RTO ID: <a href="/app/rto-registration/${doc.name}" target="_blank">${doc.name}</a></strong><br>`;
+                    
+                    let reasons = [];
+                    if (due_accounts.length > 0) {
+                        reasons.push('Smart Card Payment Due');
+                    }
+                    if (doc.document_submitted_to_dto) {
+                        reasons.push('Documents already submitted to DTO');
                     }
 
-                    dialog_html += '<h4 style="color: red;">' + __('Not Eligible (Payment Due or Criteria Not Met)') + '</h4>';
-                    if (not_eligible_docs.length > 0) {
-                        dialog_html += '<div style="max-height: 200px; overflow-y: auto; border: 1px solid #dc3545; padding: 10px;">';
-                        not_eligible_docs.forEach(doc => {
-                            let due_accounts = (doc.additional_accounts || [])
-                                .filter(account => account.payment_status === 'Due')
-                                .map(account => ({
-                                    smart_card_id: account.smart_card_id || 'N/A',
-                                    account: account.account,
-                                    payment_status: account.payment_status
-                                }));
+                    dialog_html += 'Reason: ' + (reasons.length > 0 ? reasons.join(', ') : 'Does not meet submission criteria') + '<br>';
 
+                    if (due_accounts.length > 0) {
+                        dialog_html += 'Details: ';
+                        due_accounts.forEach(account => {
                             dialog_html += `
-                                <div style="margin-bottom: 10px;">
-                                    <strong>RTO ID: <a href="/app/rto-registration/${doc.name}" target="_blank">${doc.name}</a></strong><br>`;
-                            
-                            // Check reasons for ineligibility
-                            const hasDueRegistrationStatus = doc.registration_status === 'Due Documents Submission to DTO';
-                            const hasValidRegistrationNumber = doc.registration_number && doc.registration_number.trim() !== '';
-
-                            if (!due_accounts.length) {
-                                dialog_html += 'Reason: ';
-                                if (!hasDueRegistrationStatus && !hasValidRegistrationNumber) {
-                                    dialog_html += 'Neither registration status is "Due Documents Submission to DTO" nor registration number is present<br>';
-                                } else {
-                                    dialog_html += 'Does not meet submission criteria<br>';
-                                }
-                            } else {
-                                dialog_html += 'Reason: Smart Card Payment Due<br>';
-                                dialog_html += 'Details: ';
-                                due_accounts.forEach(account => {
-                                    dialog_html += `
-                                        <span>
-                                            ${account.account} -
-                                            ${account.smart_card_id !== 'N/A' 
-                                                ? `<a href="/app/vehicle-smart-card/${account.smart_card_id}" target="_blank">${account.smart_card_id}</a>` 
-                                                : 'N/A'}, 
-                                            Payment Status: ${account.payment_status}
-                                        </span>, `;
-                                });
-                                dialog_html = dialog_html.slice(0, -2);
-                                dialog_html += '<br>';
-                            }
-                            dialog_html += '</div>';
+                                <span>
+                                    ${account.account} -
+                                    ${account.smart_card_id !== 'N/A' 
+                                        ? `<a href="/app/vehicle-smart-card/${account.smart_card_id}" target="_blank">${account.smart_card_id}</a>` 
+                                        : 'N/A'}, 
+                                    Payment Status: ${account.payment_status}
+                                </span>, `;
                         });
-                        dialog_html += '</div>';
-                    } else {
-                        dialog_html += '<p>' + __('No documents with payment due or other ineligibility criteria.') + '</p>';
+                        dialog_html = dialog_html.slice(0, -2);
+                        dialog_html += '<br>';
                     }
                     dialog_html += '</div>';
+                });
+                dialog_html += '</div>';
+            } else {
+                dialog_html += '<p>' + __('No documents with payment due or already submitted.') + '</p>';
+            }
+            dialog_html += '</div>';
 
-                    let dialog_fields = [
-                        {
-                            fieldtype: 'HTML',
-                            fieldname: 'doc_list',
-                            options: dialog_html
-                        }
-                    ];
+            let dialog_fields = [
+                {
+                    fieldtype: 'HTML',
+                    fieldname: 'doc_list',
+                    options: dialog_html
+                }
+            ];
 
-                    if (eligible_docs.length > 0) {
-                        dialog_fields.push(
-                            {
-                                label: __('Submission Date'),
-                                fieldname: 'doc_sub_date',
-                                fieldtype: 'Datetime',
-                                reqd: 1,
-                                default: frappe.datetime.now_datetime()
-                            },
-                            {
-                                label: __('Remarks'),
-                                fieldname: 'doc_sub_remarks',
-                                fieldtype: 'Small Text'
-                            }
-                        );
+            if (eligible_docs.length > 0) {
+                dialog_fields.push(
+                    {
+                        label: __('Submission Date'),
+                        fieldname: 'doc_sub_date',
+                        fieldtype: 'Datetime',
+                        reqd: 1,
+                        default: frappe.datetime.now_datetime()
+                    },
+                    {
+                        label: __('Remarks'),
+                        fieldname: 'doc_sub_remarks',
+                        fieldtype: 'Small Text'
+                    }
+                );
+            }
+
+            let dialog = new frappe.ui.Dialog({
+                title: __('Submit Documents to DTO'),
+                fields: dialog_fields,
+                primary_action_label: __('Submit'),
+                primary_action: function(values) {
+                    if (eligible_docs.length > 0 && !values.doc_sub_date) {
+                        frappe.throw(__('Submission Date is mandatory.'));
                     }
 
-                    let dialog = new frappe.ui.Dialog({
-                        title: __('Submit Documents to DTO'),
-                        fields: dialog_fields,
-                        primary_action_label: __('Submit'),
-                        primary_action: function(values) {
-                            if (eligible_docs.length > 0 && !values.doc_sub_date) {
-                                frappe.throw(__('Submission Date is mandatory.'));
-                            }
+                    let checked_docs = [];
+                    dialog.$wrapper.find('.eligible-doc:checked').each(function() {
+                        checked_docs.push($(this).data('name'));
+                    });
 
-                            let checked_docs = [];
-                            dialog.$wrapper.find('.eligible-doc:checked').each(function() {
-                                checked_docs.push($(this).data('name'));
-                            });
+                    if (checked_docs.length === 0) {
+                        frappe.msgprint({
+                            title: __('No Documents Selected'),
+                            message: __('Please select at least one eligible document to submit.'),
+                            indicator: 'orange'
+                        });
+                        return;
+                    }
 
-                            if (checked_docs.length === 0) {
-                                frappe.msgprint({
-                                    title: __('No Documents Selected'),
-                                    message: __('Please select at least one eligible document to submit.'),
-                                    indicator: 'orange'
-                                });
-                                return;
-                            }
+                    const submit_doc = (doc_name, retry_count = 0, max_retries = 3) => {
+                        let doc = eligible_docs.find(d => d.name === doc_name);
+                        if (!doc) return;
 
-                            const submit_doc = (doc_name, retry_count = 0, max_retries = 3) => {
-                                let doc = eligible_docs.find(d => d.name === doc_name);
-                                if (!doc) return;
-
-                                frappe.call({
-                                    method: 'frappe.client.set_value',
-                                    args: {
-                                        doctype: 'RTO Registration',
-                                        name: doc.name,
-                                        fieldname: {
-                                            doc_sub_date: values.doc_sub_date,
-                                            doc_sub_remarks: values.doc_sub_remarks || '',
-                                            document_submitted_to_dto: 1,
-                                            status: 'Documents Not Received from DTO',
-                                            registration_status: 'Documents Not Received from DTO'
-                                        }
-                                    },
-                                    callback: function(r) {
-                                        if (!r.exc) {
-                                            log_rto_activity(doc, 'Documents Submitted to DTO', 'Submission Completed', values.doc_sub_remarks);
-                                            frappe.msgprint({
-                                                title: __('Success'),
-                                                message: __('Documents submitted to DTO for {0}.', [doc.name]),
-                                                indicator: 'green'
-                                            });
-                                        } else if (r.exc.includes('TimestampMismatchError') && retry_count < max_retries) {
-                                            frappe.call({
-                                                method: 'frappe.client.get',
-                                                args: {
-                                                    doctype: 'RTO Registration',
-                                                    name: doc.name,
-                                                    fields: ['name', 'status', 'customer', 'chassis_number', 'additional_accounts', 'modified', 'registration_status', 'registration_number', 'document_submitted_to_dto']
-                                                },
-                                                callback: function(refresh_response) {
-                                                    if (refresh_response.message) {
-                                                        eligible_docs = eligible_docs.map(d => d.name === doc.name ? refresh_response.message : d);
-                                                        submit_doc(doc_name, retry_count + 1, max_retries);
-                                                    }
-                                                }
-                                            });
-                                        } else {
-                                            log_rto_activity(doc, 'Documents Submitted to DTO', 'Submission Failed', r.exc || JSON.stringify(r));
-                                            frappe.msgprint({
-                                                title: __('Error'),
-                                                message: __('Error submitting documents for {0}: {1}', [doc.name, r.exc || JSON.stringify(r)]),
-                                                indicator: 'red'
-                                            });
-                                        }
-                                    },
-                                    error: function(err) {
-                                        log_rto_activity(doc, 'Documents Submitted to DTO', 'Submission Failed', err.message || JSON.stringify(err));
-                                        frappe.msgprint({
-                                            title: __('Error'),
-                                            message: __('Error submitting documents for {0}: {1}', [doc.name, err.message || JSON.stringify(err)]),
-                                            indicator: 'red'
-                                        });
-                                    }
-                                });
-                            };
-
-                            checked_docs.forEach(doc_name => submit_doc(doc_name));
-
-                            dialog.hide();
-                            listview.refresh();
-                        },
-                        secondary_action_label: __('Cancel'),
-                        secondary_action: function() {
-                            dialog.hide();
-                            dialog.$wrapper.find('.eligible-doc:checked').each(function() {
-                                let doc_name = $(this).data('name');
-                                let doc = eligible_docs.find(d => d.name === doc_name);
-                                if (doc) {
-                                    log_rto_activity(doc, 'Document Submission Cancelled', 'Submission Cancelled', '');
+                        frappe.call({
+                            method: 'frappe.client.set_value',
+                            args: {
+                                doctype: 'RTO Registration',
+                                name: doc.name,
+                                fieldname: {
+                                    doc_sub_date: values.doc_sub_date,
+                                    doc_sub_remarks: values.doc_sub_remarks || '',
+                                    document_submitted_to_dto: 1,
+                                    documents_status: 'Documents Not Received from DTO'
                                 }
-                            });
+                            },
+                            callback: function(r) {
+                                if (!r.exc) {
+                                    log_rto_activity(doc, 'Documents Submitted to DTO', 'Submission Completed', values.doc_sub_remarks);
+                                    frappe.msgprint({
+                                        title: __('Success'),
+                                        message: __('Documents submitted to DTO for {0}.', [doc.name]),
+                                        indicator: 'green'
+                                    });
+                                } else if (r.exc.includes('TimestampMismatchError') && retry_count < max_retries) {
+                                    frappe.call({
+                                        method: 'frappe.client.get',
+                                        args: {
+                                            doctype: 'RTO Registration',
+                                            name: doc.name,
+                                            fields: ['name', 'status', 'customer', 'chassis_number', 'additional_accounts', 'modified', 'documents_status', 'registration_number', 'document_submitted_to_dto']
+                                        },
+                                        callback: function(refresh_response) {
+                                            if (refresh_response.message) {
+                                                eligible_docs = eligible_docs.map(d => d.name === doc.name ? refresh_response.message : d);
+                                                submit_doc(doc_name, retry_count + 1, max_retries);
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    log_rto_activity(doc, 'Documents Submitted to DTO', 'Submission Failed', r.exc || JSON.stringify(r));
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Error submitting documents for {0}: {1}', [doc.name, r.exc || JSON.stringify(r)]),
+                                        indicator: 'red'
+                                    });
+                                }
+                            },
+                            error: function(err) {
+                                log_rto_activity(doc, 'Documents Submitted to DTO', 'Submission Failed', err.message || JSON.stringify(err));
+                                frappe.msgprint({
+                                    title: __('Error'),
+                                    message: __('Error submitting documents for {0}: {1}', [doc.name, err.message || JSON.stringify(err)]),
+                                    indicator: 'red'
+                                });
+                            }
+                        });
+                    };
+
+                    checked_docs.forEach(doc_name => submit_doc(doc_name));
+
+                    dialog.hide();
+                    listview.refresh();
+                },
+                secondary_action_label: __('Cancel'),
+                secondary_action: function() {
+                    dialog.hide();
+                    dialog.$wrapper.find('.eligible-doc:checked').each(function() {
+                        let doc_name = $(this).data('name');
+                        let doc = eligible_docs.find(d => d.name === doc_name);
+                        if (doc) {
+                            log_rto_activity(doc, 'Document Submission Cancelled', 'Submission Cancelled', '');
                         }
                     });
-                    dialog.show();
-                })
-                .catch(err => {
-                    frappe.msgprint({
-                        title: __('Error'),
-                        message: __('Error fetching RTO Registration documents: {0}', [err.message || JSON.stringify(err)]),
-                        indicator: 'red'
-                    });
-                });
+                }
+            });
+            dialog.show();
+        })
+        .catch(err => {
+            console.error("Error fetching documents:", err);
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Error fetching RTO Registration documents: {0}', [err.message || JSON.stringify(err)]),
+                indicator: 'red'
+            });
         });
+});
 
         // Custom Button 3: Order Number Plates
         console.log("Adding Order Number Plates action");
