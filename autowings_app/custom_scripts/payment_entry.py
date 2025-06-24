@@ -234,6 +234,14 @@ def update_vehicle_misc_sales(doc, method):
                                 )
                                 frappe.db.commit()
 
+                                # frappe msgprint sucess message
+
+                                frappe.msgprint(
+                                    title="Success",
+                                    msg=f"Vehicle Misc Sales {vms.parent} status updated to 'Completed'.",
+                                    indicator="green"
+                                )
+
                         frappe.log_error(
                             f"Updated Vehicle Misc Sales misc_accounts for Journal Entry {ref.reference_name} with Payment Entry {doc.name}",
                             "Payment Entry Update"

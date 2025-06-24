@@ -139,7 +139,7 @@ doc_events = {
     },
     "Payment Entry": {
         # "after_insert": "autowings_app.custom_scripts.payment_entry.update_journal_entries",
-        "after_insert": "autowings_app.custom_scripts.payment_entry.update_vehicle_misc_sales"
+        "on_submit": "autowings_app.custom_scripts.payment_entry.update_vehicle_misc_sales"
     }
     # "RTO Registration": {
     #     "on_update": "autowings_app.custom_scripts.api.on_update"
