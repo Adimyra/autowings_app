@@ -685,3 +685,223 @@ function fadeOutAndCloseDeliveryNoteModal() {
         window.deliveryNoteTypeDialogActive = false;
     }
 }
+
+// -------
+
+frappe.ui.form.on('Delivery Note', {
+    onload: function(frm) {
+        // Set query for return_against to filter Delivery Notes linked to custom_job_card_id
+        frm.set_query("return_against", function() {
+            if (frm.doc.custom_delivery_note_type === "Job Card Return" && frm.doc.custom_job_card_id) {
+                return {
+                    filters: {
+                        custom_job_card_id: frm.doc.custom_job_card_id,
+                        docstatus: 1, // Ensure only submitted Delivery Notes
+                        // which is not a return delivery note filtered that also
+                        is_return: 0 // Uncomment if you want to exclude return delivery notes
+
+                    }
+                };
+            }
+            return {};
+        });
+    },
+
+    // custom_vin table show only if custom_delivery note type is "Normal" add function on load form
+    custom_delivery_note_type: function(frm) {
+        // Show or hide custom_vin table based on custom_delivery_note_type
+        if (frm.doc.custom_delivery_note_type === "Normal") {
+            frm.set_df_property("custom_vin", "hidden", 0);
+            // frm.set_df_property("custom_vin", "reqd", 1);
+        } else {
+            frm.set_df_property("custom_vin", "hidden", 1);
+            frm.set_df_property("custom_vin", "reqd", 0);
+        }
+        frm.refresh_field("custom_vin");
+    },
+
+    return_against: function(frm) {
+        // Trigger modal when return_against is selected for Job Card Return
+        if (frm.doc.custom_delivery_note_type === "Job Card Return" && frm.doc.custom_job_card_id && frm.doc.return_against) {
+            show_item_selection_modal(frm);
+        }
+    },
+
+    validate: function(frm) {
+        // Remove blank rows from items table
+        if (frm.doc.items) {
+            frm.doc.items = frm.doc.items.filter(item => item.item_code && item.qty);
+            frm.refresh_field("items");
+        }
+    }
+});
+
+function show_item_selection_modal(frm) {
+    // Fetch AW Job Card items for the selected return_against Delivery Note with required_qty > 0
+    frappe.call({
+        method: "frappe.client.get",
+        args: {
+            doctype: "AW Job Card",
+            name: frm.doc.custom_job_card_id
+        },
+        callback: function(r) {
+            if (r.message) {
+                let job_card_items = r.message.items
+                    .filter(item => item.delivery_note_id === frm.doc.return_against && item.required_qty > 0)
+                    .map(item => ({
+                        item_code: item.item_code,
+                        item_name: item.item_name,
+                        required_qty: item.required_qty
+                    }));
+
+                if (!job_card_items.length) {
+                    frappe.msgprint(__("No items with required quantity > 0 found for Delivery Note {0} in Job Card {1}", [frm.doc.return_against, frm.doc.custom_job_card_id]));
+                    return;
+                }
+
+                // Fetch the Delivery Note to get item details
+                frappe.call({
+                    method: "frappe.client.get",
+                    args: {
+                        doctype: "Delivery Note",
+                        name: frm.doc.return_against
+                    },
+                    callback: function(r2) {
+                        if (r2.message) {
+                            let dn_items = r2.message.items
+                                .filter(dn_item => job_card_items.some(jc_item => jc_item.item_code === dn_item.item_code))
+                                .map(dn_item => {
+                                    let jc_item = job_card_items.find(jc => jc.item_code === dn_item.item_code);
+                                    return {
+                                        item_code: dn_item.item_code,
+                                        item_name: dn_item.item_name,
+                                        warehouse: dn_item.warehouse,
+                                        uom: dn_item.uom,
+                                        stock_uom: dn_item.stock_uom,
+                                        item_group: dn_item.item_group,
+                                        description: dn_item.description,
+                                        rate: dn_item.rate,
+                                        base_rate: dn_item.base_rate,
+                                        price_list_rate: dn_item.price_list_rate,
+                                        base_price_list_rate: dn_item.base_price_list_rate,
+                                        stock_uom_rate: dn_item.stock_uom_rate,
+                                        net_rate: dn_item.net_rate,
+                                        base_net_rate: dn_item.base_net_rate,
+                                        gst_hsn_code: dn_item.gst_hsn_code,
+                                        conversion_factor: dn_item.conversion_factor,
+                                        expense_account: dn_item.expense_account,
+                                        cost_center: dn_item.cost_center,
+                                        gst_treatment: dn_item.gst_treatment,
+                                        required_qty: jc_item.required_qty
+                                    };
+                                });
+
+                            // Create modal for selecting items
+                            let d = new frappe.ui.Dialog({
+                                title: __("Select Items to Return"),
+                                fields: [
+                                    {
+                                        fieldtype: "HTML",
+                                        fieldname: "item_table",
+                                        options: build_item_table(dn_items)
+                                    }
+                                ],
+                                primary_action_label: __("Add Items"),
+                                primary_action: function() {
+                                    let selected_items = get_selected_items(dn_items);
+                                    if (!selected_items.length) {
+                                        frappe.msgprint(__("Please select at least one item"));
+                                        return;
+                                    }
+                                    // Clear existing items and append selected items
+                                    frm.clear_table("items");
+                                    selected_items.forEach(item => {
+                                        let row = frm.add_child("items");
+                                        row.item_code = item.item_code;
+                                        row.item_name = item.item_name;
+                                        row.warehouse = item.warehouse;
+                                        row.uom = item.uom;
+                                        row.stock_uom = item.stock_uom;
+                                        row.item_group = item.item_group;
+                                        row.description = item.description;
+                                        row.qty = -item.return_qty; // Negative quantity for return
+                                        row.rate = item.rate;
+                                        row.base_rate = item.base_rate;
+                                        row.price_list_rate = item.price_list_rate;
+                                        row.base_price_list_rate = item.base_price_list_rate;
+                                        row.stock_uom_rate = item.stock_uom_rate;
+                                        row.net_rate = item.net_rate;
+                                        row.base_net_rate = item.base_net_rate;
+                                        row.gst_hsn_code = item.gst_hsn_code;
+                                        row.conversion_factor = item.conversion_factor;
+                                        row.expense_account = item.expense_account;
+                                        row.cost_center = item.cost_center;
+                                        row.gst_treatment = item.gst_treatment;
+                                        row.amount = row.qty * row.rate;
+                                        row.base_amount = row.qty * row.base_rate;
+                                        row.net_amount = row.qty * row.net_rate;
+                                        row.base_net_amount = row.qty * row.base_net_rate;
+                                    });
+                                    frm.refresh_field("items");
+                                    d.hide();
+                                    frappe.msgprint(__("Items added to Delivery Note"));
+                                }
+                            });
+                            d.show();
+                        }
+                    }
+                });
+            }
+        }
+    });
+}
+
+function build_item_table(items) {
+    let html = `
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Select</th>
+                    <th style="width: 20%;">Item Code</th>
+                    <th style="width: 25%;">Item Name</th>
+                    <th style="width: 20%;">Warehouse</th>
+                    <th style="width: 15%;">Required Qty</th>
+                    <th style="width: 10%;">Return Qty</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    items.forEach(item => {
+        html += `
+            <tr>
+                <td><input type="checkbox" class="item-checkbox" data-item-code="${item.item_code}"></td>
+                <td>${item.item_code}</td>
+                <td>${item.item_name}</td>
+                <td>${item.warehouse}</td>
+                <td>${item.required_qty}</td>
+                <td><input type="number" class="return-qty" data-item-code="${item.item_code}" min="1" max="${item.required_qty}" value="1"></td>
+            </tr>
+        `;
+    });
+    html += `</tbody></table>`;
+    return html;
+}
+
+function get_selected_items(items) {
+    let selected_items = [];
+    document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
+        let item_code = cb.dataset.itemCode;
+        let return_qty_input = document.querySelector(`.return-qty[data-item-code="${item_code}"]`);
+        let return_qty = parseFloat(return_qty_input.value);
+        let item = items.find(i => i.item_code === item_code);
+        if (return_qty > 0 && return_qty <= item.required_qty) {
+            selected_items.push({
+                ...item,
+                return_qty: return_qty
+            });
+        } else {
+            frappe.msgprint(__("Return quantity for item {0} must be between 1 and {1}", [item_code, item.required_qty]));
+        }
+    });
+    return selected_items;
+}

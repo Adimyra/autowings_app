@@ -1,6 +1,6 @@
 {
  "actions": [],
- "creation": "2025-06-03 12:19:14.409049",
+ "creation": "2025-06-28 13:30:04.632152",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -11,16 +11,13 @@
   "uom",
   "item_group",
   "delivery_note_id",
+  "return_against_delivery_note",
   "column_break_3",
   "stock_uom",
   "description",
   "qty_section",
-  "required_qty",
-  "column_break_9",
-  "delivered_qty",
   "return_qty",
-  "return_against_delivery_note",
-  "return_delivery_note_id"
+  "column_break_9"
  ],
  "fields": [
   {
@@ -31,9 +28,19 @@
    "options": "Item"
   },
   {
+   "columns": 2,
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Name",
+   "read_only": 1
+  },
+  {
    "fieldname": "source_warehouse",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
+   "in_list_view": 1,
    "label": "Source Warehouse",
    "options": "Warehouse"
   },
@@ -52,6 +59,13 @@
    "read_only": 1
   },
   {
+   "fieldname": "delivery_note_id",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Delivery Note Id",
+   "options": "Delivery Note"
+  },
+  {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
   },
@@ -61,14 +75,6 @@
    "fieldtype": "Link",
    "label": "Stock UOM",
    "options": "UOM"
-  },
-  {
-   "columns": 2,
-   "fetch_from": "item_code.item_name",
-   "fieldname": "item_name",
-   "fieldtype": "Data",
-   "label": "Item Name",
-   "read_only": 1
   },
   {
    "fieldname": "description",
@@ -82,27 +88,8 @@
    "label": "Qty"
   },
   {
-   "fieldname": "required_qty",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Required Qty"
-  },
-  {
    "fieldname": "column_break_9",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "delivery_note_id",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Delivery Note Id",
-   "options": "Delivery Note"
-  },
-  {
-   "fieldname": "delivered_qty",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Delivered Qty"
   },
   {
    "default": "0",
@@ -114,25 +101,18 @@
   {
    "fieldname": "return_against_delivery_note",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Return Against Delivery Note",
-   "options": "Delivery Note",
-   "read_only": 1
-  },
-  {
-   "fieldname": "return_delivery_note_id",
-   "fieldtype": "Link",
-   "label": "Return Delivery note ID",
-   "options": "Delivery Note",
-   "read_only": 1
+   "options": "Delivery Note"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-28 14:02:30.906964",
+ "modified": "2025-06-28 13:31:31.221604",
  "modified_by": "Administrator",
  "module": "Autowings App",
- "name": "AW Job Card Item",
+ "name": "AW Job Card Item Return",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,

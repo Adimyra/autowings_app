@@ -562,11 +562,9 @@ function fadeOutAndCloseJobCardModal() {
 }
 
 
+// -------
 
-
-
-//  for ready to deliver
-frappe.ui.form.on("AW Job Card", {
+frappe.ui.form.on('AW Job Card', {
     refresh: function(frm) {
         // Apply read-only settings if status is "Ready to Deliver" or "Close"
         if (frm.doc.status === "Ready to Deliver" || frm.doc.status === "Close") {
@@ -583,25 +581,57 @@ frappe.ui.form.on("AW Job Card", {
                         __("Are you sure that Job Card is ready to deliver? Please recheck labour charge entries."),
                         function() {
                             // User confirmed, change status to "Ready to Deliver"
-                            frm.set_value("status", "Ready to Deliver");
-                            frm.save().then(() => {
-                                // Make all fields read-only after status change
-                                make_all_fields_read_only(frm);
-                                frappe.msgprint({
-                                    title: __("Success"),
-                                    indicator: "green",
-                                    message: __("Job Card status updated to Ready to Deliver.")
-                                });
-                            }).catch((err) => {
-                                frappe.msgprint({
-                                    title: __("Error"),
-                                    indicator: "red",
-                                    message: __("Failed to update Job Card status: {0}", [err.message])
-                                });
+                            frappe.call({
+                                method: "frappe.client.set_value",
+                                args: {
+                                    doctype: "AW Job Card",
+                                    name: frm.doc.name,
+                                    fieldname: "status",
+                                    value: "Ready to Deliver"
+                                },
+                                freeze: true, // Show loading spinner
+                                freeze_message: __("Updating Job Card status..."),
+                                callback: function(r) {
+                                    if (r && r.message) {
+                                        // Refresh the form to reflect the status change
+                                        frm.reload_doc().then(() => {
+                                            // Make all fields read-only
+                                            make_all_fields_read_only(frm);
+                                            frappe.msgprint({
+                                                title: __("Success"),
+                                                indicator: "green",
+                                                message: __("Job Card ready to deliver.")
+                                            });
+                                        });
+                                    } else {
+                                        // Handle unexpected response
+                                        frappe.log_error(
+                                            `Unexpected response when updating Job Card ${frm.doc.name} status: ${JSON.stringify(r)}`,
+                                            "AW Job Card Status Update"
+                                        );
+                                        frappe.msgprint({
+                                            title: __("Error"),
+                                            indicator: "red",
+                                            message: __("Failed to update Job Card status. Please check the Error Log for details.")
+                                        });
+                                    }
+                                },
+                                error: function(err) {
+                                    // Log detailed error and show user-friendly message
+                                    frappe.log_error(
+                                        `Failed to update Job Card ${frm.doc.name} status: ${err.message || JSON.stringify(err)}`,
+                                        "AW Job Card Status Update"
+                                    );
+                                    frappe.msgprint({
+                                        title: __("Error"),
+                                        indicator: "red",
+                                        message: __("Failed to update Job Card status. Please check the Error Log for details.")
+                                    });
+                                }
                             });
                         },
                         function() {
-                            // User cancelled, do nothing
+                            // User cancelled
                             frappe.msgprint({
                                 title: __("Cancelled"),
                                 indicator: "blue",
@@ -610,7 +640,7 @@ frappe.ui.form.on("AW Job Card", {
                         }
                     );
                 } else {
-                    // No labour charges, prompt to add records
+                    // No labour charges
                     frappe.msgprint({
                         title: __("Warning"),
                         indicator: "orange",
@@ -619,8 +649,39 @@ frappe.ui.form.on("AW Job Card", {
                 }
             });
         }
+
+        // Ensure labour_charges table updates rate_included_tax on load
+        if (frm.doc.labour_charges) {
+            frm.doc.labour_charges.forEach(row => {
+                update_rate_included_tax(frm, row);
+            });
+            frm.refresh_field('labour_charges');
+        }
     }
 });
+
+frappe.ui.form.on('Labour Items', {
+    rate: function(frm, cdt, cdn) {
+        // Update rate_included_tax when rate changes
+        let row = locals[cdt][cdn];
+        update_rate_included_tax(frm, row);
+    },
+    tax: function(frm, cdt, cdn) {
+        // Update rate_included_tax when tax changes
+        let row = locals[cdt][cdn];
+        update_rate_included_tax(frm, row);
+    }
+});
+
+function update_rate_included_tax(frm, row) {
+    // Calculate rate_included_tax = rate * (1 + tax/100)
+    if (row.rate && row.tax) {
+        row.rate_included_tax = flt(row.rate * (1 + row.tax / 100), 2);
+    } else {
+        row.rate_included_tax = flt(row.rate || 0, 2);
+    }
+    frm.refresh_field('labour_charges');
+}
 
 function make_all_fields_read_only(frm) {
     // Make all fields read-only
@@ -629,19 +690,13 @@ function make_all_fields_read_only(frm) {
     });
 
     // Make child tables read-only
-    frm.fields_dict.items.grid.toggle_enable("add_row", false);
-    frm.fields_dict.items.grid.toggle_enable("delete_rows", false);
-    frm.fields_dict.return_items.grid.toggle_enable("add_row", false);
-    frm.fields_dict.return_items.grid.toggle_enable("delete_rows", false);
-    frm.fields_dict.time_logs.grid.toggle_enable("add_row", false);
-    frm.fields_dict.time_logs.grid.toggle_enable("delete_rows", false);
-    frm.fields_dict.scheduled_time_logs.grid.toggle_enable("add_row", false);
-    frm.fields_dict.scheduled_time_logs.grid.toggle_enable("delete_rows", false);
-    frm.fields_dict.issues.grid.toggle_enable("add_row", false);
-    frm.fields_dict.issues.grid.toggle_enable("delete_rows", false);
-    frm.fields_dict.labour_charges.grid.toggle_enable("add_row", false);
-    frm.fields_dict.labour_charges.grid.toggle_enable("delete_rows", false);
+    ['items', 'return_items', 'time_logs', 'scheduled_time_logs', 'issues', 'labour_charges'].forEach(table => {
+        if (frm.fields_dict[table] && frm.fields_dict[table].grid) {
+            frm.fields_dict[table].grid.toggle_enable("add_row", false);
+            frm.fields_dict[table].grid.toggle_enable("delete_rows", false);
+        }
+    });
 
-    // Refresh the form to apply changes
+    // Refresh the form
     frm.refresh();
 }
