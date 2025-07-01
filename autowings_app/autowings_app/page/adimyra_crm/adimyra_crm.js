@@ -2,7 +2,7 @@ frappe.pages['adimyra-crm'].on_page_load = function(wrapper) {
     let page = frappe.ui.make_app_page({
         parent: wrapper,
         // title should be none not set
-		// title: 'Adimyra CRM', // Uncomment if you want a title
+        // title: 'Adimyra CRM', // Uncomment if you want a title
         single_column: true
     });
 
@@ -29,17 +29,12 @@ frappe.pages['adimyra-crm'].on_page_load = function(wrapper) {
                     <li><a class="adi-crm-link active" data-section="My Day"> <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="6" fill="none"/><path d="M8 12l2 2 4-4" stroke="#232b3b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="3" width="18" height="18" rx="6" stroke="#232b3b" stroke-width="2"/></svg>My Day</a></li>
                     <li><a class="adi-crm-link" data-section="My Leads"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M6 10l6-6 6 6M6 10v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8" stroke="#232b3b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 16v-4h6v4" stroke="#232b3b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>My Leads</a></li>
                     <li><a class="adi-crm-link" data-section="Customers"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" stroke="#232b3b" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="#232b3b" stroke-width="2"/></svg>Customers</a></li>
-                    <li><a class="adi-crm-link" data-section="Team Feed"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#232b3b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" stroke="#232b3b" stroke-width="2"/></svg>Team Feed</a></li>
                     <li><a class="adi-crm-link" data-section="Calendar"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#232b3b" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#232b3b" stroke-width="2" stroke-linecap="round"/></svg>Calendar</a></li>
                 </ul>
                 <div class="adi-crm-section-title">DATA & MORE</div>
                 <ul class="adi-crm-data">
                     <li><a class="adi-crm-link" data-section="Dashboard"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm10 8h8v-6h-8v6zm0-8h8V3h-8v10zm-10 8h8v-6H3v6z" stroke="#232b3b" stroke-width="2"/></svg>Dashboard</a></li>
-                    <li><a class="adi-crm-link" data-section="Inventory"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M3 7h18M3 7l1.5 13a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2L21 7M3 7l1.5-4A2 2 0 0 1 6.5 1h11a2 2 0 0 1 2 2l1.5 4" stroke="#232b3b" stroke-width="2"/></svg>Inventory</a></li>
-                    <li><a class="adi-crm-link" data-section="Service"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M22 19.5l-8.5-8.5M2 19.5l8.5-8.5M12 3v8.5" stroke="#232b3b" stroke-width="2"/></svg>Service</a></li>
-                    <li><a class="adi-crm-link" data-section="Trade-ins"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" stroke="#232b3b" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="#232b3b" stroke-width="2"/></svg>Trade-ins</a></li>
-                    <li><a class="adi-crm-link" data-section="Finance"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke="#232b3b" stroke-width="2"/><path d="M16 3v4M8 3v4M2 11h20" stroke="#232b3b" stroke-width="2"/></svg>Finance</a></li>
-                    <li><a class="adi-crm-link" data-section="Settings"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="#232b3b" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09c.7 0 1.31-.4 1.51-1a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09c.7 0 1.31-.4 1.51-1V3a2 2 0 1 1 4 0v.09c0 .7.4 1.31 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09c0 .7.4 1.31 1 1.51a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09c-.7 0-1.31.4-1.51 1z" stroke="#232b3b" stroke-width="2"/></svg>Settings</a></li>
+                  <li><a class="adi-crm-link" data-section="Settings"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="#232b3b" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09c.7 0 1.31-.4 1.51-1a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09c.7 0 1.31-.4 1.51-1V3a2 2 0 1 1 4 0v.09c0 .7.4 1.31 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09c0 .7.4 1.31 1 1.51a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09c-.7 0-1.31.4-1.51 1z" stroke="#232b3b" stroke-width="2"/></svg>Settings</a></li>
                 </ul>
             </div>
             <div id="adi-crm-main-content">
@@ -451,27 +446,56 @@ frappe.pages['adimyra-crm'].on_page_load = function(wrapper) {
                         </div>
                     </div>
                     <div class="adi-settings-card">
-                        <div class="adi-settings-title">Notifications</div>
+                        <div class="adi-settings-title">Profile</div>
                         <div class="adi-settings-row">
-                            <span>Email Notifications</span>
-                            <label class="adi-switch">
-                                <input type="checkbox" checked id="email-notif-toggle">
-                                <span class="adi-slider"></span>
-                            </label>
+                            <span>Logged in as: <b>${frappe.session && frappe.session.user ? frappe.session.user : 'User'}</b></span>
                         </div>
                         <div class="adi-settings-row">
-                            <span>Push Notifications</span>
-                            <label class="adi-switch">
-                                <input type="checkbox" checked id="push-notif-toggle">
-                                <span class="adi-slider"></span>
-                            </label>
+                            <a href="/app/user-profile" style="color:#7ed321;text-decoration:none;">View/Edit Profile</a>
+                        </div>
+                    </div>
+             
+                    <div class="adi-settings-card">
+                        <div class="adi-settings-title">Feedback</div>
+                        <div class="adi-settings-row">
+                            <span>Have suggestions or found a bug?</span>
+                            <a href="mailto:support@adimyra.com?subject=Feedback%20for%20Adimyra%20CRM" style="color:#7ed321;text-decoration:none;">Send Feedback</a>
+                        </div>
+                    </div>
+                    <div class="adi-settings-card">
+                        <div class="adi-settings-title">Support</div>
+                        <div class="adi-settings-row">
+                            <span>For any issues or support, please contact us:</span>
                         </div>
                         <div class="adi-settings-row">
-                            <span>SMS Notifications</span>
-                            <label class="adi-switch">
-                                <input type="checkbox" id="sms-notif-toggle">
-                                <span class="adi-slider"></span>
-                            </label>
+                            <a href="mailto:faiyaz@adimyra.com" style="color:#7ed321;text-decoration:none;">faiyaz@adimyra.com</a>
+                        </div>
+                        <div class="adi-settings-row">
+                            <a href="tel:+919999999999" style="color:#1e2a78;text-decoration:none;">+91 70044 90431</a>
+                        </div>
+                        <div class="adi-settings-row">
+                            <a href="https://adimyra.com/support" target="_blank" style="color:#43e97b;text-decoration:none;">Visit Support Portal</a>
+                        </div>
+                    </div>
+                    <div class="adi-settings-card">
+                        <div class="adi-settings-title">Privacy & Security</div>
+                        <div class="adi-settings-row">
+                            <a href="/privacy-policy" target="_blank" style="color:#1e2a78;text-decoration:none;">Privacy Policy</a>
+                        </div>
+                        <div class="adi-settings-row">
+                            <a href="/terms-of-service" target="_blank" style="color:#1e2a78;text-decoration:none;">Terms of Service</a>
+                        </div>
+                    </div>
+                    <div class="adi-settings-card">
+                        <div class="adi-settings-title">About</div>
+                        <div class="adi-settings-row">
+                            <span>Version: 1.0.0</span>
+                        </div>
+                        <div class="adi-settings-row">
+                            <span>Developed by: Adimyra Systems Pvt Ltd</span>
+                        </div>
+                        <div class="adi-settings-row">
+                            <a href="https://adimyra.com" target="_blank" style="color:#7ed321;text-decoration:none;">https://www.adimyra.com</a>
                         </div>
                     </div>
                 </div>

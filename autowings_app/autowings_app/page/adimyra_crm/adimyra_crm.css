@@ -16,13 +16,13 @@
   Change these variables to update the theme everywhere.
 */
 :root {
-  --adi-primary: #a6e32d;
-  --adi-primary-hover: #8fc41f;
+  --adi-primary: #7ed321;
+  --adi-primary-hover: color-mix(in srgb, #7ed321 80%, #000 20%);
   --adi-sidebar-bg: #fff;
   --adi-sidebar-text: #232b3b;
   --adi-sidebar-active-text: #fff;
   --adi-sidebar-hover-bg: #f5f7fa;
-  --adi-sidebar-active-bg: var(--adi-primary);
+  --adi-sidebar-active-bg: #7ed321;
   --adi-dark-bg: #181e29;
   --adi-dark-sidebar: #23272f;
   --adi-dark-active-bg: #3a4252;
@@ -36,7 +36,7 @@ body, #adi-crm-layout, #adi-crm-sidebar, #adi-crm-main-content {
     background: var(--adi-sidebar-bg);
     border-right: 1px solid #e0e0e0;
     min-height: 100vh;
-    padding: 0;
+    padding: 0 10px;
     width: 260px;
     transition: width 0.2s, background 0.2s;
 }
@@ -99,20 +99,78 @@ body, #adi-crm-layout, #adi-crm-sidebar, #adi-crm-main-content {
     transition: color 0.15s, filter 0.15s;
 }
 .adi-crm-link.active {
-    background: var(--adi-sidebar-active-bg);
+    background: #7ed321;
     color: var(--adi-sidebar-active-text);
-    box-shadow: 0 4px 16px 0 var(--adi-primary)33;
+    box-shadow: 0 4px 16px 0 #7ed32133;
 }
 .adi-crm-link.active svg {
     color: var(--adi-sidebar-active-text);
 }
 .adi-crm-link:hover {
-    background: var(--adi-primary-hover);
+    background: #7ed321;
     color: var(--adi-sidebar-active-text);
     text-decoration: none;
 }
 .adi-crm-link:hover svg {
     color: var(--adi-sidebar-active-text);
+}
+.adi-settings-card, .adi-dash-card {
+  border-top: 3px solid #7ed321;
+}
+.adi-settings-title {
+  background: #fafbfc;
+  color: #232b3b;
+}
+.adi-settings-row a,
+.adi-settings-row span,
+.adi-settings-row label {
+  color: #7ed321;
+}
+.adi-crm-btn, .adi-settings-btn, button, .btn {
+  background: #7ed321;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.adi-crm-btn:hover, .adi-settings-btn:hover, button:hover, .btn:hover {
+  background: #6bc11d;
+  color: #fff;
+}
+.adi-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+}
+.adi-switch input { display: none; }
+.adi-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #e9ebef;
+    border-radius: 28px;
+    transition: background 0.2s;
+}
+.adi-slider:before {
+    position: absolute;
+    content: '';
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 4px #0001;
+}
+.adi-switch input:checked + .adi-slider {
+    background: #7ed321;
+}
+.adi-switch input:checked + .adi-slider:before {
+    transform: translateX(24px);
 }
 /* DARK MODE */
 .adi-dark-mode #adi-crm-sidebar {
@@ -122,7 +180,7 @@ body, #adi-crm-layout, #adi-crm-sidebar, #adi-crm-main-content {
 .adi-dark-mode .adi-crm-logo {
     color: #fff;
 }
-.adi-dark-mode .adi-crm-logo .crm-green { color: #a6e32d; }
+.adi-dark-mode .adi-crm-logo .crm-green { color: #7ed321; }
 .adi-dark-mode .adi-crm-section-title {
     color: #b0b4be;
 }
@@ -212,7 +270,7 @@ body, #adi-crm-layout, #adi-crm-sidebar, #adi-crm-main-content {
     box-shadow: 0 1px 4px #0001;
 }
 .adi-switch input:checked + .adi-slider {
-    background: #a6e32d;
+    background: #7ed321;
 }
 .adi-switch input:checked + .adi-slider:before {
     transform: translateX(24px);
@@ -235,7 +293,7 @@ body, #adi-crm-layout, #adi-crm-sidebar, #adi-crm-main-content {
     background: #444b5a;
 }
 .adi-dark-mode .adi-switch input:checked + .adi-slider {
-    background: #a6e32d;
+    background: #7ed321;
 }
 /* Ensure full viewport background is dark in dark mode */
 body.adi-dark-mode, .adi-dark-mode body, .adi-dark-mode html {
@@ -296,10 +354,10 @@ body.adi-dark-mode, .adi-dark-mode body, .adi-dark-mode html {
     transition: background 0.15s;
 }
 #adi-crm-main-content .adi-calendar-table td.today {
-    background: #eaf9d6 !important;
+    background: color-mix(in srgb, #7ed321 18%, #fff 82%) !important;
 }
 #adi-crm-main-content .adi-calendar-table .adi-calendar-event {
-    background: #22c55e;
+    background: #7ed321;
     color: #fff;
     border-radius: 6px;
     padding: 2px 8px;
@@ -316,11 +374,11 @@ body.adi-dark-mode, .adi-dark-mode body, .adi-dark-mode html {
     border-radius: 10px;
     font-weight: 600;
     font-size: 1.1rem;
-    box-shadow: 0 2px 8px #a6e32d22;
+    box-shadow: 0 2px 8px #7ed32122;
     transition: background 0.15s;
 }
 #adi-crm-main-content #adi-add-event-btn:hover {
-    background: #a6e32d;
+    background: #6bc11d;
 }
 #adi-event-modal-bg {
     position: fixed;
