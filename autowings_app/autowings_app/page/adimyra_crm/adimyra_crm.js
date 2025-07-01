@@ -30,6 +30,7 @@ frappe.pages['adimyra-crm'].on_page_load = function(wrapper) {
                     <li><a class="adi-crm-link" data-section="My Leads"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M6 10l6-6 6 6M6 10v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8" stroke="#232b3b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 16v-4h6v4" stroke="#232b3b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>My Leads</a></li>
                     <li><a class="adi-crm-link" data-section="Customers"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" stroke="#232b3b" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="#232b3b" stroke-width="2"/></svg>Customers</a></li>
                     <li><a class="adi-crm-link" data-section="Calendar"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#232b3b" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#232b3b" stroke-width="2" stroke-linecap="round"/></svg>Calendar</a></li>
+                    <li><a class="adi-crm-link" data-section="Finance"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18M9 6v12M15 6v12" stroke="#232b3b" stroke-width="2"/></svg>Finance</a></li>
                 </ul>
                 <div class="adi-crm-section-title">DATA & MORE</div>
                 <ul class="adi-crm-data">

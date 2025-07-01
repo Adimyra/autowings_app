@@ -15,6 +15,10 @@
   ...
   Change these variables to update the theme everywhere.
 */
+
+.page-head .page-head-content {
+    display: none;
+}
 :root {
   --adi-primary: #7ed321;
   --adi-primary-hover: color-mix(in srgb, #7ed321 80%, #000 20%);
