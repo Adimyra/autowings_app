@@ -1,0 +1,386 @@
+/*
+  ADI CRM CSS Theme Variables
+  --------------------------------------
+  --adi-primary:      Main accent color (sidebar select, button, etc)
+  --adi-primary-hover: Accent color for hover
+  --adi-sidebar-bg:   Sidebar background
+  --adi-sidebar-text: Sidebar text color
+  --adi-sidebar-active-text: Sidebar selected text color
+  --adi-sidebar-hover-bg: Sidebar hover background
+  --adi-sidebar-active-bg: Sidebar selected background
+  --adi-dark-bg:      Dark mode background
+  --adi-dark-sidebar: Dark mode sidebar background
+  --adi-dark-active-bg: Dark mode selected background
+  --adi-dark-hover-bg: Dark mode hover background
+  ...
+  Change these variables to update the theme everywhere.
+*/
+:root {
+  --adi-primary: #a6e32d;
+  --adi-primary-hover: #8fc41f;
+  --adi-sidebar-bg: #fff;
+  --adi-sidebar-text: #232b3b;
+  --adi-sidebar-active-text: #fff;
+  --adi-sidebar-hover-bg: #f5f7fa;
+  --adi-sidebar-active-bg: var(--adi-primary);
+  --adi-dark-bg: #181e29;
+  --adi-dark-sidebar: #23272f;
+  --adi-dark-active-bg: #3a4252;
+  --adi-dark-hover-bg: #2d3440;
+}
+
+body, #adi-crm-layout, #adi-crm-sidebar, #adi-crm-main-content {
+    font-family: 'Inter', Arial, sans-serif;
+}
+#adi-crm-sidebar {
+    background: var(--adi-sidebar-bg);
+    border-right: 1px solid #e0e0e0;
+    min-height: 100vh;
+    padding: 0;
+    width: 260px;
+    transition: width 0.2s, background 0.2s;
+}
+.adi-crm-logo {
+    display: flex;
+    align-items: center;
+    padding: 32px 0 16px 32px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+.adi-crm-logo-img {
+    height: 22px;
+    width: auto;
+    margin-right: 10px;
+    vertical-align: middle;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px #0001;
+    transition: height 0.15s;
+}
+.adi-crm-logo svg {
+    margin-right: 10px;
+    color: #ff9100;
+}
+.adi-crm-logo .crm-green { color: #7ed321; font-weight: 700; }
+.adi-crm-section-title {
+    color: #b0b4be;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 32px 0 8px 32px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.adi-crm-menu, .adi-crm-data {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.adi-crm-menu li, .adi-crm-data li {
+    margin-bottom: 12px;
+}
+.adi-crm-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--adi-sidebar-text);
+    font-size: 1.13rem;
+    padding: 12px 24px 12px 32px;
+    border-radius: 12px;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: none;
+    background: none;
+}
+.adi-crm-link svg {
+    margin-right: 14px;
+    font-size: 1.2em;
+    color: var(--adi-sidebar-text);
+    transition: color 0.15s, filter 0.15s;
+}
+.adi-crm-link.active {
+    background: var(--adi-sidebar-active-bg);
+    color: var(--adi-sidebar-active-text);
+    box-shadow: 0 4px 16px 0 var(--adi-primary)33;
+}
+.adi-crm-link.active svg {
+    color: var(--adi-sidebar-active-text);
+}
+.adi-crm-link:hover {
+    background: var(--adi-primary-hover);
+    color: var(--adi-sidebar-active-text);
+    text-decoration: none;
+}
+.adi-crm-link:hover svg {
+    color: var(--adi-sidebar-active-text);
+}
+/* DARK MODE */
+.adi-dark-mode #adi-crm-sidebar {
+    background: var(--adi-dark-sidebar);
+    border-right: 1px solid #2d3440;
+}
+.adi-dark-mode .adi-crm-logo {
+    color: #fff;
+}
+.adi-dark-mode .adi-crm-logo .crm-green { color: #a6e32d; }
+.adi-dark-mode .adi-crm-section-title {
+    color: #b0b4be;
+}
+.adi-dark-mode .adi-crm-link {
+    color: #fff;
+    background: none;
+}
+.adi-dark-mode .adi-crm-link svg {
+    color: #fff !important;
+    filter: invert(1) brightness(1.5) contrast(1.2);
+}
+.adi-dark-mode .adi-crm-link.active {
+    background: var(--adi-dark-active-bg);
+    color: #fff;
+    box-shadow: 0 4px 16px 0 #232b3b33;
+}
+.adi-dark-mode .adi-crm-link.active svg {
+    color: #fff !important;
+    filter: invert(0) brightness(1.2) contrast(1.2);
+}
+.adi-dark-mode .adi-crm-link:hover {
+    background: var(--adi-dark-hover-bg);
+    color: #fff;
+}
+.adi-dark-mode .adi-crm-link:hover svg {
+    color: #fff !important;
+}
+#adi-crm-main-content {
+    flex: 1;
+    padding: 30px;
+    transition: margin-left 0.2s, background 0.2s;
+    background: #fff;
+}
+.adi-dark-mode #adi-crm-main-content {
+    background: #181e29;
+}
+/* Settings Card Dark Mode */
+.adi-settings-card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px #00000008;
+    margin-bottom: 32px;
+    padding: 10px;
+    overflow: hidden;
+    border: 1px solid #f2f2f2;
+}
+.adi-settings-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    padding: 28px 32px 16px 32px;
+    background: #fafbfc;
+}
+.adi-settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 32px;
+    border-top: 1px solid #f2f2f2;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+.adi-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+}
+.adi-switch input { display: none; }
+.adi-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #e9ebef;
+    border-radius: 28px;
+    transition: background 0.2s;
+}
+.adi-slider:before {
+    position: absolute;
+    content: '';
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 4px #0001;
+}
+.adi-switch input:checked + .adi-slider {
+    background: #a6e32d;
+}
+.adi-switch input:checked + .adi-slider:before {
+    transform: translateX(24px);
+}
+/* Settings Card Dark Mode */
+.adi-dark-mode .adi-settings-card {
+    background: #232b36;
+    border-color: #2d3440;
+    color: #fff;
+}
+.adi-dark-mode .adi-settings-title {
+    background: #232b36;
+    color: #fff;
+}
+.adi-dark-mode .adi-settings-row {
+    border-top: 1px solid #2d3440;
+    color: #fff;
+}
+.adi-dark-mode .adi-slider {
+    background: #444b5a;
+}
+.adi-dark-mode .adi-switch input:checked + .adi-slider {
+    background: #a6e32d;
+}
+/* Ensure full viewport background is dark in dark mode */
+body.adi-dark-mode, .adi-dark-mode body, .adi-dark-mode html {
+    background: var(--adi-dark-bg) !important;
+    color: #fff;
+}
+
+/* Fix table background and text color in dark mode */
+.adi-dark-mode .adi-crm-table, 
+.adi-dark-mode .adi-crm-table th, 
+.adi-dark-mode .adi-crm-table td {
+    background: #232b36 !important;
+    color: #fff !important;
+    border-color: #2d3440 !important;
+}
+.adi-dark-mode .adi-crm-table thead th {
+    background: #232b36 !important;
+    color: #b0b4be !important;
+}
+.adi-dark-mode .adi-crm-table input[type="text"] {
+    background: #181e29 !important;
+    color: #fff !important;
+    border: 1px solid #2d3440 !important;
+}
+
+/* Remove white gap outside container in dark mode */
+.adi-dark-mode #adi-crm-layout {
+    background: transparent !important;
+}
+
+/* Ensure all scrollbars are dark in dark mode */
+.adi-dark-mode ::-webkit-scrollbar {
+    background: #232b36;
+}
+.adi-dark-mode ::-webkit-scrollbar-thumb {
+    background: #2d3440;
+}
+
+/* Calendar styles */
+#adi-crm-main-content .adi-calendar-table th,
+#adi-crm-main-content .adi-calendar-table td {
+    text-align: left;
+    padding: 0.5em 0.7em;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: 8px;
+    font-size: 1.08rem;
+}
+#adi-crm-main-content .adi-calendar-table th {
+    color: #b0b4be;
+    font-weight: 600;
+    background: none;
+}
+#adi-crm-main-content .adi-calendar-table td {
+    background: #f8fafb;
+    vertical-align: top;
+    position: relative;
+    transition: background 0.15s;
+}
+#adi-crm-main-content .adi-calendar-table td.today {
+    background: #eaf9d6 !important;
+}
+#adi-crm-main-content .adi-calendar-table .adi-calendar-event {
+    background: #22c55e;
+    color: #fff;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.98rem;
+    margin-top: 6px;
+    white-space: nowrap;
+    display: inline-block;
+}
+#adi-crm-main-content #adi-add-event-btn {
+    background: #7ed321;
+    color: #fff;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px #a6e32d22;
+    transition: background 0.15s;
+}
+#adi-crm-main-content #adi-add-event-btn:hover {
+    background: #a6e32d;
+}
+#adi-event-modal-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.35);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#adi-event-modal {
+    background: #fff;
+    padding: 32px 28px 24px 28px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px #0002;
+    min-width: 320px;
+    max-width: 90vw;
+    position: relative;
+}
+#adi-event-modal h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+#adi-event-modal label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+#adi-event-modal input[type="text"],
+#adi-event-modal input[type="datetime-local"],
+#adi-event-modal textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+#adi-event-modal textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+#adi-event-modal button[type="submit"] {
+    background: #7ed321;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-left: 8px;
+}
+#adi-event-modal button[type="button"] {
+    background: #eee;
+    color: #232b3b;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 1rem;
+}

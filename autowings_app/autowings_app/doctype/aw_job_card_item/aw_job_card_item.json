@@ -121,6 +121,7 @@
   {
    "fieldname": "return_delivery_note_id",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Return Delivery note ID",
    "options": "Delivery Note",
    "read_only": 1
@@ -129,7 +130,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-28 14:02:30.906964",
+ "modified": "2025-06-28 18:50:38.364597",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "AW Job Card Item",
