@@ -221,7 +221,8 @@
    "fieldname": "return_items",
    "fieldtype": "Table",
    "label": "Return Items",
-   "options": "AW Job Card Item Return"
+   "options": "AW Job Card Item Return",
+   "read_only": 1
   },
   {
    "default": "Open",
@@ -360,7 +361,7 @@
   }
  ],
  "links": [],
- "modified": "2025-06-28 13:31:43.846224",
+ "modified": "2025-07-03 17:07:33.611524",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "AW Job Card",

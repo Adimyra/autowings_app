@@ -28,10 +28,11 @@
   },
   {
    "fieldname": "tax",
-   "fieldtype": "Link",
+   "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Tax",
-   "options": "Tax Category"
+   "default": 18,
+   "description": "Tax percentage on the rate. Default is 18%."
   },
   {
    "fieldname": "rate_included_tax",
