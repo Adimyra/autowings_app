@@ -7,6 +7,56 @@ from frappe.utils import cint
 from frappe.model.document import Document
 from frappe import whitelist
 
+@frappe.whitelist()
+def convert_lead_to_opportunity(lead_id):
+    """
+    Convert a Lead to Opportunity and return the new Opportunity name.
+    """
+    lead = frappe.get_doc('Lead', lead_id)
+    # Mark lead as Converted
+    lead.status = 'Converted'
+    lead.save(ignore_permissions=True)
+    # Prepare Opportunity fields
+    opp_fields = {
+        'doctype': 'Opportunity',
+        'opportunity_from': 'Lead',
+        'party_name': lead.name,
+        'customer_name': lead.company_name or lead.lead_name,
+        'status': 'Open',
+        'opportunity_type': 'Sales',
+        'source': lead.source,
+        'opportunity_owner': lead.owner,
+        'sales_stage': 'Prospecting',
+        'probability': 100,
+        'industry': lead.industry,
+        'custom_area': getattr(lead, 'custom_area', None),
+        'city': lead.city,
+        'state': lead.state,
+        'country': lead.country,
+        'territory': lead.territory,
+        'company': frappe.defaults.get_user_default('Company') or 'Autowings',
+        'title': lead.company_name or lead.lead_name,
+        'contact_person': lead.lead_name,
+        'contact_email': lead.email_id,
+        'contact_mobile': lead.mobile_no,
+        'phone': lead.phone,
+        'contact_display': lead.lead_name,
+        'currency': frappe.defaults.get_user_default('Currency') or 'INR',
+        'transaction_date': frappe.utils.nowdate(),
+    }
+    opp = frappe.get_doc(opp_fields)
+    opp.insert(ignore_permissions=True)
+    frappe.db.commit()
+    return {'opportunity_name': opp.name}
+# Copyright (c) 2025, Magvibe and contributors
+# For license information, please see license.txt
+
+import frappe
+from frappe import _
+from frappe.utils import cint
+from frappe.model.document import Document
+from frappe import whitelist
+
 def get_context(context):
     # You can add custom context variables here if needed
     context.title = _('ADI CRM')
@@ -15,24 +65,41 @@ def get_context(context):
 @frappe.whitelist()
 def get_leads(limit=10, name_filter=None):
     limit = cint(limit)
-    filters = {}
+    filters = {
+        'status': ['in', ['Lead', 'Open']]  # Filter only leads with status "Lead" or "Open"
+    }
     if name_filter and name_filter.strip():
         filters['lead_name'] = ["like", f"%{name_filter.strip()}%"]
     leads = frappe.get_all(
         'Lead',
-        fields=['name', 'lead_name', 'email_id', 'status', 'phone'],
+        fields=[
+            'name', 'lead_name', 'email_id', 'status', 'phone', 'mobile_no', 'owner', 'gender', 'type', 'source',
+            'company_name', 'territory', 'industry', 'custom_area', 'city', 'state', 'country'
+        ],
         filters=filters if filters else None,
         limit_page_length=limit
     )
     return leads
 
 @frappe.whitelist()
-def add_lead(lead_name, phone, email_id=None):
+def add_lead(first_name, last_name=None, gender=None, source=None, type=None, industry=None, company_name=None, email_id=None, mobile_no=None, custom_area=None, city=None, state=None, custom_query=None):
+    lead_name = first_name + (f" {last_name}" if last_name else "")
     doc = frappe.get_doc({
         'doctype': 'Lead',
         'lead_name': lead_name,
-        'phone': phone,
-        'email_id': email_id or ''
+        'first_name': first_name,
+        'last_name': last_name or '',
+        'gender': gender or '',
+        'source': source or '',
+        'type': type or '',
+        'industry': industry or '',
+        'company_name': company_name or '',
+        'email_id': email_id or '',
+        'mobile_no': mobile_no or '',
+        'custom_area': custom_area or '',
+        'city': city or '',
+        'state': state or '',
+        'custom_query': custom_query or ''
     })
     doc.insert(ignore_permissions=True)
     frappe.db.commit()
@@ -216,3 +283,18 @@ def get_dashboard_stats(from_date=None, to_date=None):
         'customer_growth_labels': customer_growth_labels,
         'customer_growth_data': customer_growth_data
     }
+
+@frappe.whitelist()
+def get_opportunities(limit=1000, name_filter=None):
+    limit = cint(limit)
+    filters = {}
+    if name_filter and name_filter.strip():
+        filters['name'] = ["like", f"%{name_filter.strip()}%"]
+    # You can add more filters as needed (e.g., by customer_name, status, etc.)
+    opportunities = frappe.get_all(
+        'Opportunity',
+        fields=['name', 'customer_name', 'status', 'opportunity_type', 'opportunity_amount'],
+        filters=filters if filters else None,
+        limit_page_length=limit
+    )
+    return opportunities
