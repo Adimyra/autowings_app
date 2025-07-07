@@ -8,7 +8,7 @@
  "field_order": [
   "items",
   "rate",
-  "tax",
+  "labour_tax",
   "rate_included_tax"
  ],
  "fields": [
@@ -27,16 +27,16 @@
    "label": "Rate"
   },
   {
-   "fieldname": "tax",
+   "default": "18",
+   "fieldname": "labour_tax",
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Tax",
-   "default": 18,
-   "description": "Tax percentage on the rate. Default is 18%."
+   "precision": "0"
   },
   {
    "fieldname": "rate_included_tax",
-   "fieldtype": "Float",
+   "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Rate Included Tax"
   }
@@ -44,7 +44,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-28 14:56:21.543655",
+ "modified": "2025-07-07 13:40:31.639317",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Labour Items",

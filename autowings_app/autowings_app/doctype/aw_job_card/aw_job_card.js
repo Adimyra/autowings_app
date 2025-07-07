@@ -666,7 +666,7 @@ frappe.ui.form.on('Labour Items', {
         let row = locals[cdt][cdn];
         update_rate_included_tax(frm, row);
     },
-    tax: function(frm, cdt, cdn) {
+    labour_tax: function(frm, cdt, cdn) {
         // Update rate_included_tax when tax changes
         let row = locals[cdt][cdn];
         update_rate_included_tax(frm, row);
@@ -675,8 +675,8 @@ frappe.ui.form.on('Labour Items', {
 
 function update_rate_included_tax(frm, row) {
     // Calculate rate_included_tax = rate * (1 + tax/100)
-    if (row.rate && row.tax) {
-        row.rate_included_tax = flt(row.rate * (1 + row.tax / 100), 2);
+    if (row.rate && row.labour_tax) {
+        row.rate_included_tax = flt(row.rate * (1 + row.labour_tax / 100), 2);
     } else {
         row.rate_included_tax = flt(row.rate || 0, 2);
     }
