@@ -271,6 +271,8 @@ def get_delivery_note_series():
         return series_list
     return []
 
+
+
 @frappe.whitelist()
 def get_job_card_series():
     doctype_name = "AW Job Card"
