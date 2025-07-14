@@ -242,6 +242,7 @@ def get_vehicle_misc_sales(journal_entries):
 #                 "naming_series": entry.delivery_note_naming_series
 #             })
 #     return enabled_types
+
 import frappe
 
 @frappe.whitelist()
@@ -259,8 +260,6 @@ def get_enabled_delivery_note_types():
             })
     return enabled_types
 
-import frappe
-
 @frappe.whitelist()
 def get_delivery_note_series():
     doctype_name = "Delivery Note"
@@ -270,6 +269,35 @@ def get_delivery_note_series():
         series_list = naming_series_field.options.split("\n")  # Convert to list
         return series_list
     return []
+
+# import frappe
+
+# @frappe.whitelist()
+# def get_enabled_delivery_note_types():
+#     # Fetch the Autowings Naming Series document
+#     doc = frappe.get_doc("Autowings Naming Series", "Autowings Naming Series")
+#     enabled_types = []
+#     for entry in doc.delivery_note:
+#         if entry.enable:  # Only include enabled entries
+#             enabled_types.append({
+#                 "name": entry.delivery_note_type,
+#                 "label": entry.label_name or entry.delivery_note_type,
+#                 "naming_series": entry.delivery_note_naming_series,
+#                 "warehouse": entry.warehouse or ""
+#             })
+#     return enabled_types
+
+# import frappe
+
+# @frappe.whitelist()
+# def get_delivery_note_series():
+#     doctype_name = "Delivery Note"
+#     naming_series_field = frappe.get_meta(doctype_name).get_field("naming_series")
+    
+#     if naming_series_field and naming_series_field.options:
+#         series_list = naming_series_field.options.split("\n")  # Convert to list
+#         return series_list
+#     return []
 
 
 
