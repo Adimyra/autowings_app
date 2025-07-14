@@ -381,6 +381,11 @@ function show_return_delivery_note_modal(frm) {
                                     }
                                 }
                             },
+                            // add column break
+                            {
+                                fieldtype: "Column Break"
+                            },
+                
                             {
                                 fieldtype: "Data",
                                 fieldname: "customer",
@@ -394,6 +399,9 @@ function show_return_delivery_note_modal(frm) {
                                 label: __("Customer Name"),
                                 depends_on: "eval:doc.job_card_id",
                                 read_only: 1
+                            },
+                               {
+                                fieldtype: "Column Break"
                             },
                             {
                                 fieldtype: "Data",
@@ -410,9 +418,17 @@ function show_return_delivery_note_modal(frm) {
                                 // read_only: 1
                             },
                             {
+                                fieldtype: "Section Break",
+                                label: "",
+                                depends_on: "eval:doc.job_card_id"
+                            },
+                            {
+                                fieldtype: "Column Break"
+                            },
+                            {
                                 fieldtype: "Link",
                                 fieldname: "item",
-                                label: __("Item"),
+                                label: __("Item Search"),
                                 depends_on: "eval:doc.job_card_id",
                                 options: "Item",
                                 get_query: function() {
@@ -423,14 +439,19 @@ function show_return_delivery_note_modal(frm) {
                                     };
                                 }
                             },
+                            
+                            {
+                                fieldtype: "Column Break"
+                            },
                             {
                                 fieldtype: "Float",
                                 fieldname: "return_qty",
                                 label: __("Return Qty"),
-                                reqd: 1,
+                                // reqd: 1,
                                 default: 0,
                                 depends_on: "eval:doc.item"
                             },
+                            
                             {
                                 fieldtype: "Button",
                                 fieldname: "update_return_items",
@@ -464,32 +485,43 @@ function show_return_delivery_note_modal(frm) {
                                     }
                                     d.set_value("return_items", d.original_return_items);
                                     applyTableFilters(d);
+                                    // Clear item and return_qty fields after update
+                                    d.set_value("item", null);
+                                    d.set_value("return_qty", null);
                                 }
                             },
+                            
                             {
-                                fieldtype: "HTML",
-                                fieldname: "item_filter_controls",
-                                depends_on: "eval:doc.job_card_id",
-                                label: __("Filter Items"),
-                                read_only: 1,
-                                options: `
-                                    <div class="row" style="margin-bottom: 10px;">
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control item-filter" data-fieldname="item_code" placeholder="${__('Filter Item Code')}">
-                                        </div>
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control item-filter" data-fieldname="item_name" placeholder="${__('Filter Item Name')}">
-                                        </div>
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control item-filter" data-fieldname="delivery_note_id" placeholder="${__('Filter Delivery Note ID')}">
-                                        </div>
-                                    </div>
-                                `
+                                fieldtype: "Section Break",
+                                label: __("Return Items"),
+                                depends_on: "eval:doc.job_card_id"
+                                // add top margin above this
                             },
+                            // {
+                            //     fieldtype: "HTML",
+                            //     fieldname: "item_filter_controls",
+                            //     depends_on: "eval:doc.job_card_id",
+                            //     label: __("Filter Items"),
+                            //     read_only: 1,
+                            //     options: `
+                            //         <div class="row" style="margin-bottom: 10px; border-top: 1px solid #ccc; padding-top: 10px;">
+                            //         
+                            //             <div class="col-sm-3">
+                            //                 <input type="text" class="form-control item-filter" data-fieldname="item_code" placeholder="${__('Filter Item Code')}">
+                            //             </div>
+                            //             <div class="col-sm-3">
+                            //                 <input type="text" class="form-control item-filter" data-fieldname="item_name" placeholder="${__('Filter Item Name')}">
+                            //             </div>
+                            //             <div class="col-sm-3">
+                            //                 <input type="text" class="form-control item-filter" data-fieldname="delivery_note_id" placeholder="${__('Filter Delivery Note ID')}">
+                            //             </div>
+                            //         </div>
+                            //     `
+                            // },
                             {
                                 fieldtype: "Table",
                                 fieldname: "return_items",
-                                label: __("Return Items"),
+                                // label: __("Return Items"),
                                 depends_on: "eval:doc.job_card_id",
                                 cannot_add_rows: true,
                                 cannot_delete_rows: true,
@@ -601,6 +633,7 @@ function show_return_delivery_note_modal(frm) {
                                         frappe.msgprint(__("No return items found."));
                                         return;
                                     }
+                                    // Group items by delivery_note_id
                                     const grouped_by_dn = {};
                                     summary_items.forEach(item => {
                                         if (!grouped_by_dn[item.delivery_note_id]) {
@@ -613,8 +646,42 @@ function show_return_delivery_note_modal(frm) {
                                             warehouse: selectedType.warehouse
                                         });
                                     });
-                                    const promises = Object.entries(grouped_by_dn).map(([dn_id, items]) => {
-                                        // Call custom backend API to insert and submit
+                                    // Create a promise chain to ensure sequential creation
+                                    let dn_ids = Object.keys(grouped_by_dn);
+                                    let created_dn_names = [];
+                                    function createNextDN(index) {
+                                        if (index >= dn_ids.length) {
+                                            // All done
+                                            let msg = '';
+                                            if (created_dn_names.length > 0) {
+                                                msg = __('Created Return Delivery Notes:') + '<br>' + created_dn_names.map(name => `<a href="/app/delivery-note/${name}" target="_blank">${name}</a>`).join(', ');
+                                            } else {
+                                                msg = __('No Return Delivery Notes were created.');
+                                            }
+                                            frappe.msgprint({
+                                                title: __('Return Delivery Note Creation'),
+                                                message: msg,
+                                                indicator: 'green'
+                                            });
+                                            summary_dialog.hide();
+                                            d.hide();
+                                            frm.get_field("custom_job_card_id").$wrapper.closest(".form-layout").css({
+                                                "filter": "none",
+                                                "pointer-events": "auto",
+                                                "opacity": "1"
+                                            });
+                                            frm.reload_doc();
+                                            window.deliveryNoteTypeDialogActive = false;
+                                            fadeOutAndCloseDeliveryNoteModal();
+                                            summary_dialog.$wrapper.remove();
+                                            // Optionally, redirect after a short delay
+                                            setTimeout(function() {
+                                                window.location.href = "/app/delivery-note?is_return=1";
+                                            }, 1500);
+                                            return;
+                                        }
+                                        let dn_id = dn_ids[index];
+                                        let items = grouped_by_dn[dn_id];
                                         const doc = {
                                             doctype: "Delivery Note",
                                             is_return: 1,
@@ -627,44 +694,22 @@ function show_return_delivery_note_modal(frm) {
                                             docstatus: 0, // Always draft, will submit in backend
                                             items: items
                                         };
-                                        return frappe.call({
+                                        frappe.call({
                                             method: "autowings_app.api.create_and_submit_return_delivery_note",
                                             args: { doc_json: JSON.stringify(doc) },
                                             freeze: true,
                                             freeze_message: __('Creating and submitting Return Delivery Note...')
+                                        }).then((r) => {
+                                            if (r && r.message) {
+                                                created_dn_names.push(r.message);
+                                            }
+                                            createNextDN(index + 1);
+                                        }).catch(() => {
+                                            // Continue with next even if error
+                                            createNextDN(index + 1);
                                         });
-                                    });
-                                    Promise.all(promises)
-                                        .then(() => {
-                                            // Route immediately after doc creation, regardless of any msgprint
-                                            summary_dialog.hide();
-                                            d.hide();
-                                            frm.get_field("custom_job_card_id").$wrapper.closest(".form-layout").css({
-                                                "filter": "none",
-                                                "pointer-events": "auto",
-                                                "opacity": "1"
-                                            });
-                                            frm.reload_doc();
-                                            window.deliveryNoteTypeDialogActive = false;
-                                            fadeOutAndCloseDeliveryNoteModal();
-                                            summary_dialog.$wrapper.remove();
-                                            window.location.href = "/app/delivery-note?is_return=1";
-                                        })
-                                        .catch(() => {
-                                            // Route even if there are errors about missing items
-                                            summary_dialog.hide();
-                                            d.hide();
-                                            frm.get_field("custom_job_card_id").$wrapper.closest(".form-layout").css({
-                                                "filter": "none",
-                                                "pointer-events": "auto",
-                                                "opacity": "1"
-                                            });
-                                            frm.reload_doc();
-                                            window.deliveryNoteTypeDialogActive = false;
-                                            fadeOutAndCloseDeliveryNoteModal();
-                                            summary_dialog.$wrapper.remove();
-                                            window.location.href = "/app/delivery-note?is_return=1";
-                                        });
+                                    }
+                                    createNextDN(0);
                                 }
                             });
                             summary_dialog.show();
@@ -703,13 +748,17 @@ function show_return_delivery_note_modal(frm) {
                             summary_dialog.get_close_btn().hide();
                         }
                     });
-                    d.current_filters = {};
+                    // d.current_filters = {};
+                    // d.show();
+                    // // Ensure filter inputs exist before binding events
+                    // setTimeout(function() {
+                    //     d.$wrapper.find('.item-filter').off('input').on('input', function() {
+                    //         const fieldname = $(this).data('fieldname');
+                    //         d.current_filters[fieldname] = $(this).val().toLowerCase();
+                    //         applyTableFilters(d);
+                    //     });
+                    // }, 300); // 300ms delay to ensure DOM is ready
                     d.show();
-                    d.$wrapper.find('.item-filter').on('input', function() {
-                        const fieldname = $(this).data('fieldname');
-                        d.current_filters[fieldname] = $(this).val().toLowerCase();
-                        applyTableFilters(d);
-                    });
                     d.$wrapper.css({
                         "position": "fixed",
                         "top": "0",

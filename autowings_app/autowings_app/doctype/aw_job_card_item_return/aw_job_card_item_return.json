@@ -40,7 +40,6 @@
    "fieldname": "source_warehouse",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
-   "in_list_view": 1,
    "label": "Source Warehouse",
    "options": "Warehouse"
   },
@@ -109,7 +108,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-28 13:31:31.221604",
+ "modified": "2025-07-14 17:27:50.584162",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "AW Job Card Item Return",
