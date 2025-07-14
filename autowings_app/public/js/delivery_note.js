@@ -385,12 +385,14 @@ function show_return_delivery_note_modal(frm) {
                                 fieldtype: "Data",
                                 fieldname: "customer",
                                 label: __("Customer"),
+                                depends_on: "eval:doc.job_card_id",
                                 read_only: 1
                             },
                             {
                                 fieldtype: "Data",
                                 fieldname: "customer_name",
                                 label: __("Customer Name"),
+                                depends_on: "eval:doc.job_card_id",
                                 read_only: 1
                             },
                             {
@@ -411,6 +413,7 @@ function show_return_delivery_note_modal(frm) {
                                 fieldtype: "Link",
                                 fieldname: "item",
                                 label: __("Item"),
+                                depends_on: "eval:doc.job_card_id",
                                 options: "Item",
                                 get_query: function() {
                                     return {
@@ -425,12 +428,14 @@ function show_return_delivery_note_modal(frm) {
                                 fieldname: "return_qty",
                                 label: __("Return Qty"),
                                 reqd: 1,
-                                default: 0
+                                default: 0,
+                                depends_on: "eval:doc.item"
                             },
                             {
                                 fieldtype: "Button",
                                 fieldname: "update_return_items",
                                 label: __("Update Return Items"),
+                                depends_on: "eval:doc.item",
                                 click: function() {
                                     const item_code = d.get_value("item");
                                     const return_qty_input = flt(d.get_value("return_qty"));
@@ -464,6 +469,9 @@ function show_return_delivery_note_modal(frm) {
                             {
                                 fieldtype: "HTML",
                                 fieldname: "item_filter_controls",
+                                depends_on: "eval:doc.job_card_id",
+                                label: __("Filter Items"),
+                                read_only: 1,
                                 options: `
                                     <div class="row" style="margin-bottom: 10px;">
                                         <div class="col-sm-3">
@@ -482,6 +490,7 @@ function show_return_delivery_note_modal(frm) {
                                 fieldtype: "Table",
                                 fieldname: "return_items",
                                 label: __("Return Items"),
+                                depends_on: "eval:doc.job_card_id",
                                 cannot_add_rows: true,
                                 cannot_delete_rows: true,
                                 fields: [
@@ -803,3 +812,5 @@ function show_item_selection_modal(frm) {
         });
     }
 }
+
+
