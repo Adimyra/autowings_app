@@ -1,3 +1,4 @@
+
 import frappe
 
 @frappe.whitelist()
@@ -269,6 +270,27 @@ def get_delivery_note_series():
         series_list = naming_series_field.options.split("\n")  # Convert to list
         return series_list
     return []
+
+
+
+# --- API for creating and submitting Delivery Note Return (Job Card Return) ---
+import json
+
+@frappe.whitelist()
+def create_and_submit_return_delivery_note(doc_json):
+    """
+    Create a Delivery Note (Return) as draft, then submit it, and return the docname.
+    This is required because Frappe does not allow direct submission (docstatus=1) via client.insert.
+    """
+    try:
+        doc_dict = json.loads(doc_json)
+        dn = frappe.get_doc(doc_dict)
+        dn.insert(ignore_permissions=True)
+        dn.submit()
+        return dn.name
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Return Delivery Note Creation Error")
+        frappe.throw(f"Failed to create and submit Return Delivery Note: {str(e)}")
 
 # import frappe
 
