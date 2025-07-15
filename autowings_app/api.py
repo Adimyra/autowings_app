@@ -1,4 +1,3 @@
-
 import frappe
 
 @frappe.whitelist()
@@ -91,6 +90,7 @@ def submit_lead(full_name, email, phone, message, area=None):
 
 
 import frappe
+
 
 @frappe.whitelist()
 def get_sales_invoice_series():

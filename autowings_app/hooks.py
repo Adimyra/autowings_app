@@ -64,9 +64,9 @@ doctype_js = {
 
 
 }
-override_doctype_class = {
-    "Customer": "autowings_app.custom_scripts.customer_mobile_no_validation.Customer"
-}
+# override_doctype_class = {
+#     "Customer": "autowings_app.custom_scripts.customer_mobile_no_validation.Customer"
+# }
 
 # doctype_query = {
 #     "Unified Account Entity": "autowings_app.custom_scripts.journal_entry.get_unified_account_query"
@@ -157,7 +157,7 @@ web_routes = [
 
 
 fixtures = [
-    {"dt": "Client Script"}
+    {"dt": "Server Script"}
 ]
 # fixtures = [
 #     {"dt": "Party Type", "filters": [["name", "in", ["Financer"]]]},

@@ -381,6 +381,23 @@ function show_return_delivery_note_modal(frm) {
                                     }
                                 }
                             },
+
+                            // {
+                            //     fieldtype: "Date",
+                            //     fieldname: "return_date",
+                            //     label: __("Return Date"),
+                            //     default: frappe.datetime.get_today(),
+                            //     reqd: 1,
+                            //     onchange: function() {
+                            //         const returnDate = d.get_value("return_date");
+                            //         if (returnDate && !frappe.datetime.validate_date(returnDate)) {
+                            //             frappe.msgprint(__("Please enter a valid return date."));
+                            //             d.set_value("return_date", frappe.datetime.get_today());
+                            //         }
+                            //     }
+                            // },
+                
+
                             // add column break
                             {
                                 fieldtype: "Column Break"

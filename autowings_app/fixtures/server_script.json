@@ -1,0 +1,21 @@
+[
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Save",
+  "enable_rate_limit": 0,
+  "event_frequency": "All",
+  "modified": "2025-07-15 15:01:05.917668",
+  "module": "Autowings App",
+  "name": "Customer Mobile Number Validation",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "reference_doctype": "Customer",
+  "script": "# Prevent duplicate customer based on mobile_no\nif doc.mobile_no:\n    existing_customer = frappe.db.get_value(\n        'Customer',\n        {'mobile_no': doc.mobile_no, 'name': ['!=', doc.name]},\n        'name'\n    )\n    if existing_customer:\n        frappe.throw(f\"A customer with mobile number {doc.mobile_no} already exists (Customer: {existing_customer}).\")",
+  "script_type": "DocType Event"
+ }
+]
