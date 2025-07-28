@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-28 16:03:07.545284",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "service_no",
+  "kilo_meter",
+  "days",
+  "is_free",
+  "scheduled_date",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "service_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Service No"
+  },
+  {
+   "fieldname": "kilo_meter",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Kilo Meter"
+  },
+  {
+   "fieldname": "days",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Days"
+  },
+  {
+   "fieldname": "is_free",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Is Free",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "scheduled_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Scheduled Date"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nCompleted\nPending\nDue\nCancelled\nUpcoming"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-28 16:05:25.826016",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Service Scheduled Info",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

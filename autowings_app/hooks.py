@@ -100,8 +100,19 @@ doc_events = {
     "Sales Invoice": {
         "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit",
         "after_insert": "autowings_app.custom_scripts.sales_invoice.after_insert_sales_invoice",
-        "on_submit": "autowings_app.custom_scripts.sales_invoice.on_submit_sales_invoice",
-        "on_cancel": "autowings_app.custom_scripts.sales_invoice.on_cancel_sales_invoice"
+        # "on_submit": "autowings_app.custom_scripts.sales_invoice.on_submit_sales_invoice",
+        # "on_submit": "autowings_app.custom_scripts.sales_invoice_service_schedule.on_submit_sales_invoice_create_schedule",
+
+        #  above both submits are same, in once
+
+        "on_submit": [
+            "autowings_app.custom_scripts.sales_invoice.on_submit_sales_invoice",
+            "autowings_app.custom_scripts.sales_invoice_service_schedule.on_submit_sales_invoice_create_schedule"
+        ],
+        "on_cancel": [
+            "autowings_app.custom_scripts.sales_invoice.on_cancel_sales_invoice",
+            "autowings_app.custom_scripts.sales_invoice_service_schedule.on_cancel_sales_invoice_create_schedule"
+        ]
     },
      "Purchase Invoice": {
         "validate": "autowings_app.custom_scripts.serial_no_validation.validate_chassis_and_engine_number"
@@ -306,6 +317,13 @@ fixtures = [
 
 # Scheduled Tasks
 # ---------------
+
+# Add daily scheduled event
+scheduler_events = {
+    "daily": [
+        "autowings_app.autowings_app.doctype.service_schedule.service_schedule.create_service_reminder_tasks"
+    ]
+}
 
 # scheduler_events = {
 # 	"all": [

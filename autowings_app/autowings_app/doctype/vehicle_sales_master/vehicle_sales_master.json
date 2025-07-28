@@ -18,6 +18,7 @@
   "invoice_status",
   "delivery_note",
   "is_delivered",
+  "service_schedule_id",
   "section_break_himi",
   "rto_registration",
   "is_smart_card",
@@ -433,6 +434,12 @@
   {
    "fieldname": "column_break_nszg",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "service_schedule_id",
+   "fieldtype": "Link",
+   "label": "Service Schedule ID",
+   "options": "Service Schedule"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -473,7 +480,7 @@
    "link_fieldname": "vsm_id"
   }
  ],
- "modified": "2025-06-19 14:29:10.768531",
+ "modified": "2025-07-28 16:57:09.830108",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Vehicle Sales Master",
@@ -516,6 +523,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

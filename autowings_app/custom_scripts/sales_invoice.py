@@ -1271,3 +1271,6 @@ def on_cancel_sales_invoice(doc, method):
         frappe.db.rollback()
         frappe.log_error(f"Sales Invoice Cancel Error: {str(e)}")
         frappe.throw(f"Failed to cancel Sales Invoice: {str(e)}. No statuses updated.")
+
+
+

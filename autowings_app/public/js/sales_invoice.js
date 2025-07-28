@@ -1914,3 +1914,13 @@ function add_labour_charges(frm, job_card, company_abbr, added_items) {
 //         frm.refresh_field("items");
 //     }
 // }
+
+
+
+
+
+
+
+
+
+
