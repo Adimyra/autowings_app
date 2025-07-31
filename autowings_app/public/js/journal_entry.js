@@ -4,6 +4,142 @@ frappe.ui.form.on("Journal Entry", {
 	}
 });
 
+frappe.ui.form.on('Journal Entry', {
+    refresh: function(frm) {
+        frm.add_custom_button('Quick Entry', () => {
+            frappe.prompt([
+                {
+                    fieldname: 'debit_account_head',
+                    label: 'Debit Account Head',
+                    fieldtype: 'Link',
+                    options: 'Unified Account Entity',
+                    get_query: () => ({
+                        query: 'autowings_app.custom_scripts.journal_entry.get_unified_account_query'
+                    }),
+                    reqd: 1
+                },
+                {
+                    fieldname: 'credit_account_head',
+                    label: 'Credit Account Head',
+                    fieldtype: 'Link',
+                    options: 'Unified Account Entity',
+                    get_query: () => ({
+                        query: 'autowings_app.custom_scripts.journal_entry.get_unified_account_query'
+                    }),
+                    reqd: 1
+                },
+                {
+                    fieldname: 'amount',
+                    label: 'Amount',
+                    fieldtype: 'Float',
+                    reqd: 1
+                }
+            ], async (values) => {
+                const company = frm.doc.company;
+                const company_abbr = await frappe.db.get_value('Company', company, 'abbr').then(r => r.message.abbr || 'A');
+
+                async function process_account(value, type) {
+                    if (!value.includes(':')) return { account: value };
+                    const [doctype, name] = value.split(':').map(s => s.trim());
+                    if (doctype === 'Customer') {
+                        return frappe.db.get_value('Customer', name, 'customer_group').then(r => {
+                            const group = r.message.customer_group;
+                            if (group === 'Financer') {
+                                return {
+                                    account: `${name} Receivable - ${company_abbr}`,
+                                    party_type: 'Customer',
+                                    party: name
+                                };
+                            } else {
+                                return {
+                                    account: `Debtors - ${company_abbr}`,
+                                    party_type: 'Customer',
+                                    party: name
+                                };
+                            }
+                        });
+                    } else if (doctype === 'Supplier') {
+                        return {
+                            account: `${name} Payable - ${company_abbr}`,
+                            party_type: 'Supplier',
+                            party: name
+                        };
+                    } else if (doctype === 'Serial No') {
+                        return frappe.db.get_value('Serial No', name, ['custom_customer_id', 'custom_customer_name']).then(r => {
+                            const customer_id = r.message.custom_customer_id;
+                            return frappe.db.get_value('Customer', customer_id, 'customer_group').then(c => {
+                                const group = c.message.customer_group;
+                                if (group === 'Financer') {
+                                    return {
+                                        account: `${customer_id} Receivable - ${company_abbr}`,
+                                        party_type: 'Customer',
+                                        party: customer_id
+                                    };
+                                } else {
+                                    return {
+                                        account: `Debtors - ${company_abbr}`,
+                                        party_type: 'Customer',
+                                        party: customer_id
+                                    };
+                                }
+                            });
+                        });
+                    } else {
+                        return { account: name };
+                    }
+                }
+
+                const debit = await process_account(values.debit_account_head, 'debit');
+                const credit = await process_account(values.credit_account_head, 'credit');
+
+                // Append Debit row
+                const debit_row = frm.add_child('accounts');
+                debit_row.account = debit.account;
+                debit_row.debit_in_account_currency = values.amount;
+                if (debit.party_type) {
+                    debit_row.party_type = debit.party_type;
+                    debit_row.party = debit.party;
+                }
+
+                // Append Credit row
+                const credit_row = frm.add_child('accounts');
+                credit_row.account = credit.account;
+                credit_row.credit_in_account_currency = values.amount;
+                if (credit.party_type) {
+                    credit_row.party_type = credit.party_type;
+                    credit_row.party = credit.party;
+                }
+
+                frm.refresh_field('accounts');
+
+                // Confirm Save
+                const confirm_dialog = new frappe.ui.Dialog({
+                    title: 'Confirm Save',
+                    fields: [
+                        {
+                            label: 'Do you want to save this Journal Entry?',
+                            fieldname: 'confirmation_note',
+                            fieldtype: 'HTML',
+                            options: '<p>Save this Journal Entry now?</p>'
+                        }
+                    ],
+                    primary_action_label: 'Yes',
+                    primary_action: () => {
+                        frm.save();
+                        confirm_dialog.hide();
+                    },
+                    secondary_action_label: 'No',
+                    secondary_action: () => {
+                        confirm_dialog.hide();
+                    }
+                });
+                confirm_dialog.show();
+            }, 'Select Account Heads');
+        });
+    }
+});
+
+
 // frappe.ui.form.on('Journal Entry', {
 //     refresh: function(frm) {
 //         // Check if the document is new
@@ -1338,140 +1474,6 @@ frappe.ui.form.on("Journal Entry", {
 
 // new one
 
-frappe.ui.form.on('Journal Entry', {
-    refresh: function(frm) {
-        frm.add_custom_button('Quick Entry', () => {
-            frappe.prompt([
-                {
-                    fieldname: 'debit_account_head',
-                    label: 'Debit Account Head',
-                    fieldtype: 'Link',
-                    options: 'Unified Account Entity',
-                    get_query: () => ({
-                        query: 'autowings_app.custom_scripts.journal_entry.get_unified_account_query'
-                    }),
-                    reqd: 1
-                },
-                {
-                    fieldname: 'credit_account_head',
-                    label: 'Credit Account Head',
-                    fieldtype: 'Link',
-                    options: 'Unified Account Entity',
-                    get_query: () => ({
-                        query: 'autowings_app.custom_scripts.journal_entry.get_unified_account_query'
-                    }),
-                    reqd: 1
-                },
-                {
-                    fieldname: 'amount',
-                    label: 'Amount',
-                    fieldtype: 'Float',
-                    reqd: 1
-                }
-            ], async (values) => {
-                const company = frm.doc.company;
-                const company_abbr = await frappe.db.get_value('Company', company, 'abbr').then(r => r.message.abbr || 'A');
-
-                async function process_account(value, type) {
-                    if (!value.includes(':')) return { account: value };
-                    const [doctype, name] = value.split(':').map(s => s.trim());
-                    if (doctype === 'Customer') {
-                        return frappe.db.get_value('Customer', name, 'customer_group').then(r => {
-                            const group = r.message.customer_group;
-                            if (group === 'Financer') {
-                                return {
-                                    account: `${name} Receivable - ${company_abbr}`,
-                                    party_type: 'Customer',
-                                    party: name
-                                };
-                            } else {
-                                return {
-                                    account: `Debtors - ${company_abbr}`,
-                                    party_type: 'Customer',
-                                    party: name
-                                };
-                            }
-                        });
-                    } else if (doctype === 'Supplier') {
-                        return {
-                            account: `${name} Payable - ${company_abbr}`,
-                            party_type: 'Supplier',
-                            party: name
-                        };
-                    } else if (doctype === 'Serial No') {
-                        return frappe.db.get_value('Serial No', name, ['custom_customer_id', 'custom_customer_name']).then(r => {
-                            const customer_id = r.message.custom_customer_id;
-                            return frappe.db.get_value('Customer', customer_id, 'customer_group').then(c => {
-                                const group = c.message.customer_group;
-                                if (group === 'Financer') {
-                                    return {
-                                        account: `${customer_id} Receivable - ${company_abbr}`,
-                                        party_type: 'Customer',
-                                        party: customer_id
-                                    };
-                                } else {
-                                    return {
-                                        account: `Debtors - ${company_abbr}`,
-                                        party_type: 'Customer',
-                                        party: customer_id
-                                    };
-                                }
-                            });
-                        });
-                    } else {
-                        return { account: name };
-                    }
-                }
-
-                const debit = await process_account(values.debit_account_head, 'debit');
-                const credit = await process_account(values.credit_account_head, 'credit');
-
-                // Append Debit row
-                const debit_row = frm.add_child('accounts');
-                debit_row.account = debit.account;
-                debit_row.debit_in_account_currency = values.amount;
-                if (debit.party_type) {
-                    debit_row.party_type = debit.party_type;
-                    debit_row.party = debit.party;
-                }
-
-                // Append Credit row
-                const credit_row = frm.add_child('accounts');
-                credit_row.account = credit.account;
-                credit_row.credit_in_account_currency = values.amount;
-                if (credit.party_type) {
-                    credit_row.party_type = credit.party_type;
-                    credit_row.party = credit.party;
-                }
-
-                frm.refresh_field('accounts');
-
-                // Confirm Save
-                const confirm_dialog = new frappe.ui.Dialog({
-                    title: 'Confirm Save',
-                    fields: [
-                        {
-                            label: 'Do you want to save this Journal Entry?',
-                            fieldname: 'confirmation_note',
-                            fieldtype: 'HTML',
-                            options: '<p>Save this Journal Entry now?</p>'
-                        }
-                    ],
-                    primary_action_label: 'Yes',
-                    primary_action: () => {
-                        frm.save();
-                        confirm_dialog.hide();
-                    },
-                    secondary_action_label: 'No',
-                    secondary_action: () => {
-                        confirm_dialog.hide();
-                    }
-                });
-                confirm_dialog.show();
-            }, 'Select Account Heads');
-        });
-    }
-});
 
 // frappe.ui.form.on('Journal Entry', {
 //     refresh: function(frm) {

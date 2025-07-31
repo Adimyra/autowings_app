@@ -10,7 +10,8 @@
   "sales_type",
   "sub_sales_type",
   "sales_naming_series",
-  "misc_account"
+  "misc_account",
+  "is_this_tax_included_in_basic_rate"
  ],
  "fields": [
   {
@@ -48,17 +49,25 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Enable"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_this_tax_included_in_basic_rate",
+   "fieldtype": "Check",
+   "label": "Is this Tax included in Basic Rate?"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-20 02:59:26.599508",
+ "modified": "2025-07-31 13:53:24.477015",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings Naming Child",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

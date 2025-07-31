@@ -504,6 +504,33 @@ function enforce_sale_type_selection(frm) {
             sales_types.forEach((sales_type, index) => {
                 document.getElementById(`sell_${index}`).addEventListener("click", function() {
                     frm.set_value("custom_sale_type", sales_type);
+                    // if custom sales type is "Vehicle" then i want items filtered item group "Vehicles" in itmes childtable
+                    if (sales_type === "Vehicle") {
+                        frm.set_query("item_code", "items", function() {
+                            return {
+                                filters: {
+                                    item_group: "Vehicles"
+                                }
+                            };
+                        });
+                    } else {
+                        frm.set_query("item_code", "items", null); // Reset query for other sales types
+                    }
+                    //  i want this'debit_to', 'Debtors - ' + company_abbr what ever custom_sales type is
+                    frappe.call({
+                        method: 'frappe.client.get',
+                        args: {
+                            doctype: 'Company',
+                            name: frm.doc.company
+                        },
+                        callback: function(company_response) {
+                            if (company_response.message) {
+                                let company_abbr = company_response.message.abbr || 'ZV'; // Fallback to 'ZV' if abbr is not found
+                                frm.set_value("debit_to", 'Debtors - ' + company_abbr);
+                            }
+                        }
+                    });
+
                     fadeOutAndCloseSaleModal();
                 });
             });
@@ -1914,11 +1941,6 @@ function add_labour_charges(frm, job_card, company_abbr, added_items) {
 //         frm.refresh_field("items");
 //     }
 // }
-
-
-
-
-
 
 
 

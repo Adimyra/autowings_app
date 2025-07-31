@@ -100,6 +100,7 @@ doc_events = {
     "Sales Invoice": {
         "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit",
         "after_insert": "autowings_app.custom_scripts.sales_invoice.after_insert_sales_invoice",
+        "before_save": "autowings_app.custom_scripts.sales_invoice_taxes_include_or_not.before_save_sales_invoice",
         # "on_submit": "autowings_app.custom_scripts.sales_invoice.on_submit_sales_invoice",
         # "on_submit": "autowings_app.custom_scripts.sales_invoice_service_schedule.on_submit_sales_invoice_create_schedule",
 
