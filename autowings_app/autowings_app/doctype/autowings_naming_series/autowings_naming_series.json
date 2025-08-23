@@ -9,7 +9,9 @@
   "autowings_naming_series_configuration",
   "job_card_naming_series_tab",
   "delivery_note",
-  "job_card"
+  "job_card",
+  "feedback_tab",
+  "feedback"
  ],
  "fields": [
   {
@@ -39,12 +41,23 @@
    "fieldname": "sales_invoice_naming_series_tab",
    "fieldtype": "Tab Break",
    "label": "Sales invoice Naming Series"
+  },
+  {
+   "fieldname": "feedback_tab",
+   "fieldtype": "Tab Break",
+   "label": "Feedback"
+  },
+  {
+   "fieldname": "feedback",
+   "fieldtype": "Table",
+   "label": "Feedback",
+   "options": "AW Feedback"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-23 13:57:53.003288",
+ "modified": "2025-08-23 13:55:44.723066",
  "modified_by": "Administrator",
  "module": "Autowings App",
  "name": "Autowings Naming Series",
@@ -61,6 +74,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

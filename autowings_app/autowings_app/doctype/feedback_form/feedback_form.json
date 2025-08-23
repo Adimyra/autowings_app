@@ -1,0 +1,62 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-08-23 14:28:45.439325",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "feedback_type",
+  "question",
+  "response_type",
+  "response",
+  "rating"
+ ],
+ "fields": [
+  {
+   "fieldname": "feedback_type",
+   "fieldtype": "Link",
+   "label": "Feedback Type",
+   "options": "Feedback Type"
+  },
+  {
+   "fieldname": "question",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Question"
+  },
+  {
+   "fieldname": "response_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Response Type",
+   "options": "\nRating\nText\nYes\nNo"
+  },
+  {
+   "fieldname": "response",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Response"
+  },
+  {
+   "fieldname": "rating",
+   "fieldtype": "Rating",
+   "in_list_view": 1,
+   "label": "Rating"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-23 14:32:14.354504",
+ "modified_by": "Administrator",
+ "module": "Autowings App",
+ "name": "Feedback Form",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -98,23 +98,31 @@ doc_events = {
     #     "on_submit": "autowings_app.custom_scripts.events.on_submit_sales_invoice"
     # },
     "Sales Invoice": {
-        "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit",
-        "after_insert": "autowings_app.custom_scripts.sales_invoice.after_insert_sales_invoice",
-        # "before_save": "autowings_app.custom_scripts.sales_invoice_taxes_include_or_not.before_save_sales_invoice",
+        # "before_submit": ["autowings_app.custom_scripts.sales_invoice.before_submit",
+        # "autowings_app.custom_scripts.sales_invoice_taxes_include_or_not.before_save_sales_invoice"],
         # "on_submit": "autowings_app.custom_scripts.sales_invoice.on_submit_sales_invoice",
         # "on_submit": "autowings_app.custom_scripts.sales_invoice_service_schedule.on_submit_sales_invoice_create_schedule",
+        # "before_save": "autowings_app.custom_scripts.sales_invoice_taxes_include_or_not.before_save_sales_invoice",
+
 
         #  above both submits are same, in once
 
+        "before_submit": "autowings_app.custom_scripts.sales_invoice.before_submit",
+
+        "after_insert": "autowings_app.custom_scripts.sales_invoice.after_insert_sales_invoice",
+
         "on_submit": [
             "autowings_app.custom_scripts.sales_invoice.on_submit_sales_invoice",
-            "autowings_app.custom_scripts.sales_invoice_service_schedule.on_submit_sales_invoice_create_schedule"
+            "autowings_app.custom_scripts.sales_invoice_service_schedule.on_submit_sales_invoice_create_schedule",
+            "autowings_app.custom_scripts.sales_invoice_sales_feedback.sales_invoice_after_submit"
         ],
         "on_cancel": [
             "autowings_app.custom_scripts.sales_invoice.on_cancel_sales_invoice",
             "autowings_app.custom_scripts.sales_invoice_service_schedule.on_cancel_sales_invoice_create_schedule"
-        ]
+        ],
+        # "after_submit": "autowings_app.custom_scripts.sales_invoice_sales_feedback.sales_invoice_after_submit"
     },
+
      "Purchase Invoice": {
         "validate": "autowings_app.custom_scripts.serial_no_validation.validate_chassis_and_engine_number"
     },
@@ -152,6 +160,9 @@ doc_events = {
     "Payment Entry": {
         # "after_insert": "autowings_app.custom_scripts.payment_entry.update_journal_entries",
         "on_submit": "autowings_app.custom_scripts.payment_entry.update_vehicle_misc_sales"
+    },
+    "AW Job Card": {
+        "after_save": "autowings_app.custom_scripts.service_feedback_creation.create_service_feedback_on_job_card_close"
     }
     # "RTO Registration": {
     #     "on_update": "autowings_app.custom_scripts.api.on_update"
@@ -320,9 +331,16 @@ fixtures = [
 # ---------------
 
 # Add daily scheduled event
+# scheduler_events = {
+#     "daily": [
+#         "autowings_app.autowings_app.doctype.service_schedule.service_schedule.create_service_reminder_tasks"
+#     ]
+# }
 scheduler_events = {
     "daily": [
-        "autowings_app.autowings_app.doctype.service_schedule.service_schedule.create_service_reminder_tasks"
+        "autowings_app.autowings_app.doctype.service_schedule.service_schedule.create_service_reminder_tasks",
+        "autowings_app.custom_scripts.sales_invoice_sales_feedback.update_feedback_status",
+        "autowings_app.custom_scripts.service_feedback_creation.update_service_feedback_status"
     ]
 }
 

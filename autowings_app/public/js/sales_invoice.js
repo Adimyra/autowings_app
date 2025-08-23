@@ -1634,58 +1634,134 @@ frappe.ui.form.on("Sales Invoice", {
         }
     },
 
+    // before_submit: function(frm) {
+    //     if (frm.doc.custom_sale_type === "Service") {
+    //         if (!frm.doc.custom_job_card_id) {
+    //             frappe.msgprint({
+    //                 title: __("Error"),
+    //                 indicator: "red",
+    //                 message: __("Job Card ID is mandatory for Service Sales Invoice.")
+    //             });
+    //             frappe.validated = false;
+    //             return;
+    //         }
+
+    //         frm.set_value("update_stock", 0);
+    //         frm.set_value("debit_to", `Debtors - ${frm.doc.company_abbr || "A"}`);
+    //         frm.refresh_field("update_stock");
+    //         frm.refresh_field("debit_to");
+
+    //         // Update AW Job Card status to Close and set sales_invoice
+    //         frappe.call({
+    //             method: "frappe.client.set_value",
+    //             args: {
+    //                 doctype: "AW Job Card",
+    //                 name: frm.doc.custom_job_card_id,
+    //                 fieldname: {
+    //                     status: "Close",
+    //                     sales_invoice: frm.doc.name
+    //                 }
+    //             },
+    //             freeze: true,
+    //             freeze_message: __("Updating Job Card status..."),
+    //             callback: function() {
+    //                 frappe.msgprint({
+    //                     title: __("Success"),
+    //                     indicator: "green",
+    //                     message: __("Job Card {0} updated to Close.", [frm.doc.custom_job_card_id])
+    //                 });
+    //             },
+    //             error: function(err) {
+    //                 frappe.log_error(
+    //                     `Failed to update Job Card ${frm.doc.custom_job_card_id} status: ${err.message || JSON.stringify(err)}`,
+    //                     "Sales Invoice Job Card Update"
+    //                 );
+    //                 frappe.msgprint({
+    //                     title: __("Error"),
+    //                     indicator: "red",
+    //                     message: __("Failed to update Job Card {0}: {1}", [frm.doc.custom_job_card_id, err.message || JSON.stringify(err)])
+    //                 });
+    //                 frappe.validated = false;
+    //             }
+    //         });
+    //     }
+    // }
     before_submit: function(frm) {
-        if (frm.doc.custom_sale_type === "Service") {
-            if (!frm.doc.custom_job_card_id) {
+    if (frm.doc.custom_sale_type === "Service") {
+        if (!frm.doc.custom_job_card_id) {
+            frappe.msgprint({
+                title: __("Error"),
+                indicator: "red",
+                message: __("Job Card ID is mandatory for Service Sales Invoice.")
+            });
+            frappe.validated = false;
+            return;
+        }
+
+        frm.set_value("update_stock", 0);
+        frm.set_value("debit_to", `Debtors - ${frm.doc.company_abbr || "A"}`);
+        frm.refresh_field("update_stock");
+        frm.refresh_field("debit_to");
+
+        // Update AW Job Card status to Close and set sales_invoice, then create Service Feedback
+        frappe.call({
+            method: "frappe.client.set_value",
+            args: {
+                doctype: "AW Job Card",
+                name: frm.doc.custom_job_card_id,
+                fieldname: {
+                    status: "Close",
+                    sales_invoice: frm.doc.name
+                }
+            },
+            freeze: true,
+            freeze_message: __("Updating Job Card status and creating Service Feedback..."),
+            callback: function(r) {
+                if (r.message) {
+                    // Trigger Service Feedback creation
+                    frappe.call({
+                        method: "autowings_app.custom_scripts.service_feedback_creation.create_service_feedback_on_job_card_close",
+                        args: {
+                            doc: r.message  // Pass the updated doc if returned
+                        },
+                        callback: function(r2) {
+                            if (!r2.exc) {
+                                frappe.msgprint({
+                                    title: __("Success"),
+                                    indicator: "green",
+                                    message: __("Job Card {0} updated to Close and Service Feedback created.", [frm.doc.custom_job_card_id])
+                                });
+                            }
+                        },
+                        error: function(err) {
+                            frappe.log_error(
+                                `Failed to create Service Feedback for Job Card ${frm.doc.custom_job_card_id}: ${err.message || JSON.stringify(err)}`,
+                                "Service Feedback Creation"
+                            );
+                            frappe.msgprint({
+                                title: __("Error"),
+                                indicator: "red",
+                                message: __("Failed to create Service Feedback for Job Card {0}: {1}", [frm.doc.custom_job_card_id, err.message || JSON.stringify(err)])
+                            });
+                        }
+                    });
+                }
+            },
+            error: function(err) {
+                frappe.log_error(
+                    `Failed to update Job Card ${frm.doc.custom_job_card_id} status: ${err.message || JSON.stringify(err)}`,
+                    "Sales Invoice Job Card Update"
+                );
                 frappe.msgprint({
                     title: __("Error"),
                     indicator: "red",
-                    message: __("Job Card ID is mandatory for Service Sales Invoice.")
+                    message: __("Failed to update Job Card {0}: {1}", [frm.doc.custom_job_card_id, err.message || JSON.stringify(err)])
                 });
                 frappe.validated = false;
-                return;
             }
-
-            frm.set_value("update_stock", 0);
-            frm.set_value("debit_to", `Debtors - ${frm.doc.company_abbr || "A"}`);
-            frm.refresh_field("update_stock");
-            frm.refresh_field("debit_to");
-
-            // Update AW Job Card status to Close and set sales_invoice
-            frappe.call({
-                method: "frappe.client.set_value",
-                args: {
-                    doctype: "AW Job Card",
-                    name: frm.doc.custom_job_card_id,
-                    fieldname: {
-                        status: "Close",
-                        sales_invoice: frm.doc.name
-                    }
-                },
-                freeze: true,
-                freeze_message: __("Updating Job Card status..."),
-                callback: function() {
-                    frappe.msgprint({
-                        title: __("Success"),
-                        indicator: "green",
-                        message: __("Job Card {0} updated to Close.", [frm.doc.custom_job_card_id])
-                    });
-                },
-                error: function(err) {
-                    frappe.log_error(
-                        `Failed to update Job Card ${frm.doc.custom_job_card_id} status: ${err.message || JSON.stringify(err)}`,
-                        "Sales Invoice Job Card Update"
-                    );
-                    frappe.msgprint({
-                        title: __("Error"),
-                        indicator: "red",
-                        message: __("Failed to update Job Card {0}: {1}", [frm.doc.custom_job_card_id, err.message || JSON.stringify(err)])
-                    });
-                    frappe.validated = false;
-                }
-            });
-        }
+        });
     }
+}
 });
 
 // Helper function to add labour charges
