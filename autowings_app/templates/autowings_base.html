@@ -1,0 +1,309 @@
+{% extends "templates/base.html" %}
+{#- Shared shell for the public Autowings pages: fonts, theme, navbar, footer. -#}
+
+{% block favicon %}
+<link rel="icon" type="image/png" href="/assets/autowings_app/images/autowings_favicon.png">
+{% endblock %}
+
+{% block head_include %}
+<meta name="description" content="{% block meta_description %}Autowings, Ranchi: Yamaha motorcycles and scooters, genuine parts and certified service{% if since %} since {{ since }}{% endif %}.{% endblock %}">
+{% endblock %}
+
+
+{#- theme styles live in the navbar block: Web Page replaces style/script, login replaces head_include -#}
+{% block navbar %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html:has(body.aw-landing) { background: #0c0d10; }
+  body.aw-landing {
+    --bg: #0c0d10; --panel: #15171c; --line: rgba(255,255,255,.09);
+    --text: #f4f2ee; --muted: #a3a3aa; --red: #c8232c; --red-hi: #e0333c;
+    background: var(--bg) !important; color: var(--text); margin: 0;
+    font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  }
+  .aw-landing *, .aw-landing *::before, .aw-landing *::after { box-sizing: border-box; }
+  .aw-landing a { text-decoration: none; }
+  .aw-wrap { width: min(1180px, 100% - 32px); margin-inline: auto; }
+  .aw-display { font-family: Archivo, Inter, sans-serif; font-stretch: 118%; letter-spacing: -.01em; }
+
+  /* buttons */
+  .aw-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 52px; padding: 0 26px;
+    border-radius: 999px; font-weight: 600; font-size: 15px; border: 1px solid transparent; cursor: pointer;
+    position: relative; overflow: hidden; transition: transform .25s, background .25s, border-color .25s; }
+  .aw-btn:hover { transform: translateY(-2px); }
+  .aw-btn-red { background: var(--red); color: #fff !important; }
+  .aw-btn-red:hover { background: var(--red-hi); }
+  .aw-btn-red::after { content: ""; position: absolute; inset: 0; transform: translateX(-120%);
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.28) 50%, transparent 70%); transition: transform .7s; }
+  .aw-btn-red:hover::after { transform: translateX(120%); }
+  .aw-btn-ghost { color: var(--text) !important; border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.04); backdrop-filter: blur(6px); }
+  .aw-btn-ghost:hover { border-color: #fff; }
+  .aw-btn svg { width: 18px; height: 18px; transition: transform .25s; }
+  .aw-btn:hover svg { transform: translateX(3px); }
+
+  /* navbar */
+  .aw-nav { position: sticky; top: 0; z-index: 50; transition: background .3s, border-color .3s; border-bottom: 1px solid transparent; }
+  .aw-nav.is-solid { background: rgba(12,13,16,.82); backdrop-filter: blur(14px); border-color: var(--line); }
+  .aw-nav .aw-wrap { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+  .aw-nav img { height: 44px; width: auto; display: block; }
+  .aw-nav-right { display: flex; align-items: center; gap: 22px; }
+  .aw-nav-link { color: var(--muted) !important; font-size: 14px; font-weight: 500; transition: color .2s; }
+  .aw-nav-link:hover, .aw-nav-link.is-active { color: #fff !important; }
+  .aw-nav .aw-btn { height: 42px; padding: 0 20px; font-size: 14px; }
+  .aw-nav .aw-admin svg { width: 16px; height: 16px; }
+  .aw-nav .aw-admin:hover svg { transform: none; }
+
+  /* form fields (floating labels) */
+  .aw-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .aw-field { position: relative; margin-bottom: 14px; }
+  .aw-field input, .aw-field textarea, .aw-field select { width: 100%; background: #0f1014; border: 1px solid var(--line); border-radius: 14px; color: #fff;
+    font: inherit; font-size: 15px; padding: 24px 16px 9px; outline: none; transition: border-color .2s, box-shadow .2s; appearance: none; }
+  .aw-field select { cursor: pointer; background-image: linear-gradient(45deg, transparent 50%, #a3a3aa 50%), linear-gradient(135deg, #a3a3aa 50%, transparent 50%);
+    background-position: calc(100% - 22px) 26px, calc(100% - 16px) 26px; background-size: 6px 6px; background-repeat: no-repeat; }
+  .aw-field select option { background: #15171c; }
+  .aw-field textarea { min-height: 120px; resize: vertical; }
+  .aw-field label { position: absolute; left: 17px; top: 17px; color: var(--muted); font-size: 15px; pointer-events: none; transition: all .18s; }
+  .aw-field input:focus, .aw-field textarea:focus, .aw-field select:focus { border-color: var(--red); box-shadow: 0 0 0 4px rgba(200,35,44,.18); }
+  .aw-field input:focus + label, .aw-field input:not(:placeholder-shown) + label,
+  .aw-field textarea:focus + label, .aw-field textarea:not(:placeholder-shown) + label,
+  .aw-field select + label { top: 8px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #ff9da2; }
+  .aw-submit { width: 100%; height: 56px; margin-top: 6px; font-size: 16px; }
+  .aw-submit[disabled] { opacity: .7; cursor: wait; transform: none; }
+  .aw-spin { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: aw-rot .7s linear infinite; }
+  .aw-msg { margin-top: 12px; font-size: 14px; color: #ff9da2; min-height: 20px; }
+  .aw-done { display: none; text-align: center; padding: 40px 0; }
+  .aw-done.show { display: block; animation: aw-fade .5s ease both; }
+  .aw-done svg { width: 76px; height: 76px; }
+  .aw-done circle { stroke: var(--red-hi); stroke-dasharray: 230; stroke-dashoffset: 230; animation: aw-draw .7s ease forwards; }
+  .aw-done path { stroke: #fff; stroke-dasharray: 60; stroke-dashoffset: 60; animation: aw-draw .4s ease .6s forwards; }
+  .aw-done h3 { font-size: 28px; font-weight: 800; color: #fff; margin: 18px 0 6px; text-transform: uppercase; }
+  .aw-done p { color: var(--muted); margin: 0 0 22px; }
+
+  /* footer */
+  .aw-foot { border-top: 1px solid var(--line); padding: 48px 0 28px; color: var(--muted); font-size: 14px; }
+  .aw-foot-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 32px; }
+  .aw-foot img { height: 52px; width: auto; display: block; margin-bottom: 14px; }
+  .aw-foot h4 { color: #fff; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; margin: 0 0 12px; }
+  .aw-foot p { margin: 0 0 6px; line-height: 1.6; }
+  .aw-foot a { color: var(--muted) !important; transition: color .2s; }
+  .aw-foot a:hover { color: #fff !important; }
+  .aw-foot ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .aw-foot-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; }
+
+  /* motion */
+  .aw-in { animation: aw-fade .9s ease both; }
+  [data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1); }
+  [data-reveal].is-in { opacity: 1; transform: none; }
+  @keyframes aw-fade { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes aw-rise { from { transform: translateY(105%); } to { transform: none; } }
+  @keyframes aw-rot { to { transform: rotate(360deg); } }
+  @keyframes aw-draw { to { stroke-dashoffset: 0; } }
+  @keyframes aw-ping { 70% { box-shadow: 0 0 0 9px rgba(224,51,60,0); } 100% { box-shadow: 0 0 0 0 rgba(224,51,60,0); } }
+
+  /* content pages (About, Web Pages: terms, privacy...) rendered through templates/web.html */
+  .aw-landing .page-breadcrumbs { display: none; }
+  .aw-landing .page-content-wrapper { position: relative; padding: clamp(40px, 7vw, 88px) 0 clamp(64px, 9vw, 110px); overflow: hidden; }
+  .aw-landing .page-content-wrapper::before { content: ""; position: absolute; right: -12vmax; top: -20vmax; width: 50vmax; height: 50vmax; border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,35,44,.18), transparent 62%); pointer-events: none; }
+  .aw-landing .page-content-wrapper > main { position: relative; max-width: 880px; margin-inline: auto; padding-inline: 16px; }
+  .aw-landing .page-header-wrapper:not(:has(h1, h2, h3, h4)) { display: none; }
+  body.aw-doc .about-content > :first-child, body.aw-doc .about-content .section:first-child { padding-top: 0 !important; margin-top: 0 !important; }
+  .aw-landing .page-header-wrapper { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--line); animation: aw-fade .8s ease both; }
+  .aw-kicker { font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #ff9da2; }
+  .aw-landing .aw-doc-title { font-size: clamp(36px, 6vw, 72px); font-weight: 900; line-height: .98; margin: 12px 0 0; color: #fff; text-transform: uppercase; }
+  body.aw-doc .page_content { color: #cfcfd4; font-size: 16px; line-height: 1.8; animation: aw-fade .8s ease .15s both; }
+  body.aw-doc .page_content .ql-editor { padding: 0; }
+  body.aw-doc .page_content h1, body.aw-doc .page_content h2, body.aw-doc .page_content h3, body.aw-doc .page_content h4 {
+    font-family: Archivo, Inter, sans-serif; font-stretch: 112%; color: #fff; line-height: 1.15; margin: 1.8em 0 .6em; }
+  body.aw-doc .page_content h1 { font-size: clamp(28px, 3.6vw, 40px); font-weight: 900; text-transform: uppercase; }
+  body.aw-doc .page_content h2 { font-size: clamp(22px, 2.6vw, 30px); font-weight: 800; }
+  body.aw-doc .page_content h3 { font-size: 20px; font-weight: 700; }
+  body.aw-doc .page_content h4 { font-size: 17px; font-weight: 700; }
+  body.aw-doc .page_content > :first-child, body.aw-doc .page_content .ql-editor > :first-child { margin-top: 0; }
+  body.aw-doc .page_content p, body.aw-doc .page_content li { color: #cfcfd4; }
+  body.aw-doc .page_content strong { color: #fff; }
+  body.aw-doc .page_content a { color: #ff9da2 !important; text-decoration: underline; text-underline-offset: 3px; }
+  body.aw-doc .page_content ul, body.aw-doc .page_content ol { padding-left: 1.3em; }
+  body.aw-doc .page_content li::marker { color: var(--red-hi); }
+  body.aw-doc .page_content hr { border-color: var(--line); }
+  body.aw-doc .page_content table { width: 100%; border-collapse: collapse; }
+  body.aw-doc .page_content td, body.aw-doc .page_content th { border: 1px solid var(--line); padding: 10px 12px; }
+  body.aw-doc .page_content img { max-width: 100%; height: auto; border-radius: 16px; }
+  body.aw-doc .page_content .section, body.aw-doc .page_content section { background: transparent !important; }
+  body.aw-doc .page_content .card { background: var(--panel); border-color: var(--line); }
+  body.aw-doc .page_content .text-muted, body.aw-doc .page_content .small { color: var(--muted) !important; }
+  /* login (staff only): selectors outrank frappe's login.bundle.css (.for-login .page-card .page-card-body ...) */
+  body.aw-login .page-content-wrapper > main { max-width: 480px; }
+  body.aw-login section[class^="for-"] { animation: aw-fade .7s ease both; }
+  body.aw-login .page-card-head { text-align: center; margin-bottom: 20px; }
+  body.aw-login .page-card-head .app-logo { height: 64px; width: auto; max-width: 220px; object-fit: contain; }
+  body.aw-login .page-card-head h4 { color: #fff; font-family: Archivo, Inter, sans-serif; font-stretch: 112%; font-weight: 800; font-size: 22px; text-transform: uppercase; margin: 16px 0 0; }
+  body.aw-login .login-content.page-card { background: var(--panel) !important; border: 1px solid var(--line) !important; border-radius: 24px !important;
+    box-shadow: 0 30px 80px rgba(0,0,0,.45) !important; max-width: 420px; width: 100%; margin: 0 auto; padding: 32px 28px 26px !important; }
+  body.aw-login .page-card .page-card-body, body.aw-login .page-card .page-card-actions { padding: 0 !important; }
+  body.aw-login .page-card .form-group { margin-bottom: 14px; }
+  body.aw-login .page-card .page-card-body .email-field,
+  body.aw-login .page-card .page-card-body .password-field { position: relative; }
+  body.aw-login .page-card .page-card-body input.form-control { background: #0f1014 !important; color: #fff !important; border: 1px solid var(--line) !important;
+    height: 50px; border-radius: 14px; padding: 0 16px 0 46px !important; font-size: 15px; box-shadow: none !important; }
+  body.aw-login .page-card .page-card-body .password-field input.form-control { padding-right: 70px !important; }
+  body.aw-login .page-card .page-card-body input.form-control::placeholder { color: #6f6f76; }
+  body.aw-login .page-card .page-card-body input.form-control:focus { border-color: var(--red) !important; box-shadow: 0 0 0 4px rgba(200,35,44,.18) !important; }
+  body.aw-login .page-card .page-card-body .field-icon { top: 50% !important; left: 16px !important; transform: translateY(-50%); color: var(--muted); stroke: currentColor; pointer-events: none; }
+  body.aw-login .page-card .page-card-body .toggle-password { top: 50% !important; right: 16px !important; transform: translateY(-50%);
+    color: var(--muted) !important; font-size: 11px !important; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; line-height: 1; }
+  body.aw-login .page-card .page-card-body .toggle-password:hover { color: #fff !important; }
+  body.aw-login .forgot-password-message { text-align: right; margin: 2px 0 0; }
+  body.aw-login .page-card a, body.aw-login .page-card a:hover { text-decoration: none !important; }
+  body.aw-login .forgot-password-message a { color: #ff9da2 !important; font-size: 13px; font-weight: 500; }
+  body.aw-login .forgot-password-message a:hover { color: #fff !important; }
+  body.aw-login .page-card .page-card-actions { margin-top: 18px !important; }
+  body.aw-login .page-card .btn-primary { display: flex; align-items: center; justify-content: center; width: 100%; height: 50px; border-radius: 999px;
+    background: var(--red) !important; border: 0 !important; color: #fff !important; font-weight: 600; font-size: 15px; box-shadow: none !important; transition: background .2s, transform .2s; }
+  body.aw-login .page-card .btn-primary:hover { background: var(--red-hi) !important; transform: translateY(-1px); }
+  body.aw-login .page-card .page-card-body .login-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 !important;
+    color: var(--muted) !important; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+  body.aw-login .page-card .page-card-body .login-divider::before, body.aw-login .page-card .page-card-body .login-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  body.aw-login .page-card .page-card-body .btn-login-option { display: flex; align-items: center; justify-content: center; width: 100%; height: 48px; border-radius: 999px;
+    background: transparent !important; color: #fff !important; border: 1px solid rgba(255,255,255,.22) !important; font-size: 14px; font-weight: 500; transition: border-color .2s, background .2s; }
+  body.aw-login .page-card .page-card-body .btn-login-option:hover { border-color: #fff !important; background: rgba(255,255,255,.05) !important; }
+  body.aw-login .for-login .login-content.page-card::after { content: "Authorised Autowings staff only"; display: block; text-align: center; margin-top: 18px; padding-top: 16px;
+    border-top: 1px solid var(--line); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  body.aw-login .page-card p, body.aw-login .page-card .text-muted, body.aw-login .sign-up-message { color: var(--muted) !important; }
+  body.aw-login .page-card-head .sr-only { position: absolute; }
+  /* login: tighter top, form spans the card */
+  body.aw-login .page-content-wrapper { padding-top: clamp(24px, 4vw, 48px) !important; }
+  body.aw-login .page-content-wrapper > main { margin-top: 0 !important; }
+  body.aw-login .login-content.page-card form, body.aw-login .page-card .page-card-body,
+  body.aw-login .page-card .social-logins, body.aw-login .page-card .social-login-buttons, body.aw-login .page-card .login-button-wrapper { width: 100% !important; max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+  /* text pages whose content brings its own H1: drop our header, the content H1 becomes the title */
+  body.aw-doc .page-content-wrapper:has(.page_content h1) .page-header-wrapper { display: none; }
+  body.aw-doc .page_content h1 { font-size: clamp(32px, 5vw, 56px) !important; line-height: 1.02; margin: 0 0 .6em !important; letter-spacing: -.01em; }
+  @media (max-width: 860px) { .aw-nav-link { display: none; } }
+  @media (max-width: 520px) {
+    .aw-nav img { height: 36px; }
+    .aw-nav-right { gap: 8px; }
+    .aw-nav .aw-admin { padding: 0 13px; font-size: 0; gap: 0; }
+    .aw-nav .aw-admin svg { width: 18px; height: 18px; }
+    .aw-nav .aw-btn { padding: 0 16px; }
+    .aw-grid2 { grid-template-columns: 1fr; gap: 0; }
+  }
+  {% block aw_style %}{% endblock %}
+  @media (prefers-reduced-motion: reduce) {
+    .aw-landing *, .aw-landing *::before, .aw-landing *::after { animation: none !important; transition: none !important; }
+    [data-reveal] { opacity: 1; transform: none; }
+  }
+</style>
+<header class="aw-nav" id="aw-nav">
+  <div class="aw-wrap">
+    <a href="/" aria-label="{{ company.company_name | e }} home">
+      <img src="/assets/autowings_app/images/autowings_logo_light.png" alt="{{ company.company_name | e }}" width="119" height="44">
+    </a>
+    <nav class="aw-nav-right">
+      <a class="aw-nav-link {{ 'is-active' if path in ('', 'landing_page', 'index') }}" href="/">Home</a>
+      <a class="aw-nav-link {{ 'is-active' if path == 'about' }}" href="/about">About</a>
+      <a class="aw-nav-link {{ 'is-active' if path == 'contact' }}" href="/contact">Contact</a>
+      {% if frappe.session.user != "Guest" %}
+      <a class="aw-btn aw-btn-ghost aw-admin" href="/app">Open desk</a>
+      {% else %}
+      <a class="aw-btn aw-btn-ghost aw-admin {{ 'is-active' if path == 'login' }}" href="/login">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        Admin login
+      </a>
+      {% endif %}
+      <a class="aw-btn aw-btn-red" href="/#enquire">Enquire now</a>
+    </nav>
+  </div>
+</header>
+{% endblock %}
+
+{% block footer %}
+<footer class="aw-foot">
+  <div class="aw-wrap">
+    <div class="aw-foot-top" data-reveal>
+      <div style="max-width:340px">
+        <img src="/assets/autowings_app/images/autowings_logo_light.png" alt="{{ company.company_name | e }}" width="141" height="52" loading="lazy">
+        <p>Yamaha motorcycles, scooters, genuine parts and service{% if since %}, since {{ since }}{% endif %}.</p>
+      </div>
+      <div>
+        <h4>Showroom</h4>
+        {% if address.street %}<p>{{ address.street | e }}<br>{{ address.region | e }}</p>{% else %}<p>{{ address.full | e }}</p>{% endif %}
+        {% set phone = contact.phone or address.phone or company.phone_no %}
+        {% set email = contact.email_id or address.email_id or company.email %}
+        {% if phone %}<p><a href="tel:{{ phone | replace(" ", "") | replace("-", "") | e }}">{{ phone | e }}</a></p>{% endif %}
+        {% if email %}<p><a href="mailto:{{ email | e }}">{{ email | e }}</a></p>{% endif %}
+        <p><a href="/contact">Contact us →</a></p>
+      </div>
+      {% if footer_links %}
+      <div>
+        <h4>Company</h4>
+        <ul>{% for l in footer_links %}<li><a href="{{ l.url | e }}">{{ l.label | e }}</a></li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+    </div>
+    <div class="aw-foot-bottom">
+      <span>© {{ (copyright or company.company_name) | e }}</span>
+      <span>{% if company.gstin %}GSTIN {{ company.gstin | e }} · {% endif %}<a href="/login">Staff login</a></span>
+    </div>
+  </div>
+</footer>
+<script>
+window.awSite = (function () {
+  var nav = document.getElementById("aw-nav");
+  var onScroll = function () { nav.classList.toggle("is-solid", window.scrollY > 20); };
+  onScroll(); window.addEventListener("scroll", onScroll, { passive: true });
+
+  var io = "IntersectionObserver" in window && new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll("[data-reveal]").forEach(function (el) { io ? io.observe(el) : el.classList.add("is-in"); });
+
+  /* POST to a whitelisted method; works for guests and logged-in staff (CSRF header) */
+  function post(method, body) {
+    var headers = { "Content-Type": "application/json", "Accept": "application/json" };
+    if (window.frappe && frappe.csrf_token && frappe.csrf_token.indexOf("csrf_token") === -1) headers["X-Frappe-CSRF-Token"] = frappe.csrf_token;
+    return fetch("/api/method/" + method, { method: "POST", headers: headers, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  /* validate, show spinner, swap to the "done" panel on success */
+  function wireForm(form, opts) {
+    var btn = form.querySelector("[type=submit]"), msg = form.querySelector(".aw-msg"), done = document.getElementById(opts.done);
+    var label = btn.innerHTML;
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      msg.textContent = "";
+      if (!form.checkValidity()) {
+        var bad = form.querySelector(":invalid");
+        msg.textContent = bad.type === "email" && bad.value ? "Please enter a valid email address." : opts.missing;
+        bad.focus();
+        return;
+      }
+      btn.disabled = true;
+      btn.innerHTML = '<span class="aw-spin"></span> Sending…';
+      opts.send()
+        .then(function (res) {
+          var err = opts.error(res);
+          if (err) { msg.textContent = err; return; }
+          form.reset();
+          form.style.display = "none";
+          done.classList.add("show");
+        })
+        .catch(function () { msg.textContent = "Couldn't reach the server. Please check your connection and try again."; })
+        .finally(function () { btn.disabled = false; btn.innerHTML = label; });
+    });
+    done.querySelector("[data-again]").addEventListener("click", function () {
+      done.classList.remove("show");
+      form.style.display = "";
+      form.querySelector("input").focus();
+    });
+  }
+
+  var val = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; };
+  return { post: post, wireForm: wireForm, val: val };
+})();
+</script>
+{% block aw_script %}{% endblock %}
+{% endblock %}

@@ -1,305 +1,159 @@
-{% extends "templates/web.html" %}
+{% extends "templates/autowings_base.html" %}
 
-{% block page_content %}
-  {% set landing_page = frappe.get_all("Landing Page", fields=["*"])[0] if frappe.get_all("Landing Page") else None %}
+{% set lp = landing_page %}
+{% set hero_img = lp.hero_image or "/assets/autowings_app/images/twowheeler.png" %}
+{% set lead_img = lp.lead_section_image or "/assets/autowings_app/images/twowheeler.png" %}
 
-  <style>
-    /* Smooth Scrolling */
-    html {
-      scroll-behavior: smooth;
-    }
+{% block aw_style %}
+  /* hero */
+  .aw-hero { position: relative; min-height: calc(100svh - 76px); max-height: 900px; display: flex; align-items: center; overflow: hidden; margin-top: -76px; padding-top: 76px; }
+  .aw-hero-bg { position: absolute; inset: 0; background: url('{{ hero_img | e }}') center 45% / cover no-repeat;
+    animation: aw-zoom 2.6s cubic-bezier(.2,.7,.2,1) both; }
+  .aw-hero-bg::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(12,13,16,.94) 0%, rgba(12,13,16,.55) 48%, rgba(12,13,16,.25) 100%),
+                linear-gradient(0deg, var(--bg) 0%, transparent 35%); }
+  .aw-glow { position: absolute; left: 50%; top: 42%; width: 46vmax; height: 46vmax; translate: -50% -50%; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,214,150,.20), transparent 60%); animation: aw-pulse 4.5s ease-in-out infinite; pointer-events: none; }
+  .aw-hero-content { position: relative; max-width: 860px; padding: 48px 0 64px; }
+  .aw-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; color: #ffd0d2; padding: 8px 14px; border: 1px solid rgba(200,35,44,.5); border-radius: 999px; background: rgba(200,35,44,.12); }
+  .aw-eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--red-hi); box-shadow: 0 0 0 0 rgba(224,51,60,.7); animation: aw-ping 2s infinite; }
+  .aw-hero h1 { font-size: clamp(38px, 7.4vw, 100px); font-weight: 900; line-height: .95; overflow-wrap: anywhere; margin: 22px 0 18px; color: #fff; text-transform: uppercase; }
+  .aw-hero h1 span { display: block; overflow: hidden; }
+  .aw-hero h1 span > b { display: block; font-weight: inherit; animation: aw-rise 1s cubic-bezier(.2,.8,.2,1) both .25s; }
+  .aw-hero h1 em { font-style: normal; color: var(--red-hi); }
+  .aw-hero p { font-size: clamp(16px, 1.6vw, 19px); line-height: 1.6; color: #cfcfd4; max-width: 520px; margin: 0 0 34px; }
+  .aw-actions { display: flex; flex-wrap: wrap; gap: 14px; }
 
-    /* Hero Section */
-    .hero-section {
-      height: 40vh;
-      width: 100%;
-      background: url('{{ landing_page.hero_image if landing_page.hero_image else "/assets/autowings_app/images/default-hero.jpg" }}') no-repeat center center/cover;
-      display: flex;
-      align-items: center;
-      padding-left: 10%;
-      text-align: left;
-      margin-top: -20px;
-    }
-    .hero-content {
-      max-width: 50%;
-      color: white;
-    }
-    .hero-title {
-      font-size: 2.8rem;
-      font-weight: bold;
-      color: white;
-      margin-bottom: 10px;
-    }
-    .hero-subtitle {
-      font-size: 1.4rem;
-      color: #ddd;
-      margin-bottom: 20px;
-    }
+  /* enquiry */
+  .aw-enquire { padding: clamp(64px, 9vw, 120px) 0; }
+  .aw-card { display: grid; grid-template-columns: 1fr 1.1fr; border: 1px solid var(--line); border-radius: 28px; overflow: hidden; background: var(--panel); }
+  .aw-card-media { position: relative; min-height: 520px; background: url('{{ lead_img | e }}') center / cover no-repeat; }
+  .aw-card-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(12,13,16,.92), rgba(12,13,16,.1) 60%); }
+  .aw-card-media div { position: absolute; left: 32px; right: 32px; bottom: 32px; z-index: 1; }
+  .aw-card-media h3 { font-size: 30px; font-weight: 800; line-height: 1.05; margin: 0 0 10px; color: #fff; text-transform: uppercase; }
+  .aw-card-media p { color: #cfcfd4; margin: 0; line-height: 1.55; }
+  .aw-form-box { padding: clamp(28px, 4vw, 56px); }
+  .aw-form-box h2 { font-size: clamp(32px, 4vw, 46px); font-weight: 900; text-transform: uppercase; margin: 0 0 6px; color: #fff; line-height: 1; }
+  .aw-form-box > p { color: var(--muted); margin: 0 0 28px; }
 
-    /* Button Group */
-    .button-group {
-      display: flex;
-      gap: 15px;
-    }
-    .btn-primary, .btn-secondary {
-      padding: 14px 30px;
-      border-radius: 5px;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      font-size: 1.2rem;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-      min-width: 180px;
-      justify-content: center;
-      height: 50px;
-      width: 60px;
-    }
-    .btn-primary {
-      background-color: #112921;
-      color: white;
-    }
-    .btn-secondary {
-      background-color: #6c757d;
-      color: white;
-      margin-top: 16px;
-    }
+  @keyframes aw-zoom { from { transform: scale(1.14); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes aw-pulse { 0%,100% { opacity: .55; scale: 1; } 50% { opacity: 1; scale: 1.08; } }
+  @media (max-width: 860px) { .aw-card { grid-template-columns: 1fr; } .aw-card-media { min-height: 340px; background-position: center 25%; } }
+  @media (max-width: 520px) {
+    .aw-actions .aw-btn { flex: 1 1 100%; }
+    .aw-card-media div { left: 20px; right: 20px; bottom: 20px; }
+    .aw-card-media h3 { font-size: 22px; }
+    .aw-card-media p { font-size: 14px; }
+  }
+{% endblock %}
 
-    /* Lead Form Section */
-    .lead-section {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      /* padding: 60px; */
-      background: #f9f9f9;
-      width: 100%;
-      padding-top: 20px;
-    }
-    .lead-container {
-      display: flex;
-      max-width: 1100px;
-      width: 100%;
-      background: white;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .lead-image {
-      flex: 1;
-      background: url('{{ landing_page.lead_section_image if landing_page.lead_section_image else "/assets/autowings_app/images/default-lead.jpg" }}') no-repeat center center/cover;
-      min-height: 400px;
-    }
-    .lead-form-container {
-      flex: 1;
-      padding: 40px;
-    }
-    .lead-form-container h2 {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 20px;
-    }
-    .lead-form {
-      display: flex;
-      flex-direction: column;
-    }
-    .lead-form input, .lead-form textarea {
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1rem;
-      width: 100%;
-    }
-    .lead-form textarea {
-      height: 100px;
-    }
-
-    /* Lead Form Submit Button */
-    .lead-form button {
-      background: #112921;
-      color: white;
-      padding: 14px 30px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      min-width: 200px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-    .lead-form button:hover {
-      background: #18392e;
-    }
-
-    /* Responsive Layout */
-    @media (max-width: 1024px) {
-      .hero-content {
-        max-width: 70%;
-      }
-    }
-    @media (max-width: 768px) {
-      .hero-section {
-        height: 50vh;
-        padding-left: 5%;
-      }
-      .hero-content {
-        max-width: 100%;
-      }
-      .button-group {
-        flex-direction: column;
-      }
-      .lead-container {
-        flex-direction: column;
-      }
-      .lead-image {
-        min-height: 250px;
-      }
-    }
-
-    .spinner-border {
-      display: inline-block;
-      width: 1rem;
-      height: 1rem;
-      vertical-align: text-bottom;
-      border: 0.15em solid currentColor;
-      border-right-color: transparent;
-      border-radius: 50%;
-      animation: spinner-border .75s linear infinite;
-    }
-
-    @keyframes spinner-border {
-      to { transform: rotate(360deg); }
-    }
-
-  </style>
-
-  <!-- Hero Section -->
-  <div class="hero-section">
-    <div class="hero-content">
-      {% if landing_page.heading %}
-        <h1 class="hero-title">{{ landing_page.heading }}</h1>
-      {% endif %}
-      {% if landing_page.sub_heading %}
-        <p class="hero-subtitle">{{ landing_page.sub_heading }}</p>
-      {% endif %}
-      <div class="button-group">
-        {% if landing_page.primary_button_label %}
-          <a href="#enquiry-section" class="btn-primary">
-            {{ landing_page.primary_button_label }}
+{% block content %}
+<main>
+  <section class="aw-hero">
+    <div class="aw-hero-bg" role="img" aria-label="Motorcycle headlight"></div>
+    <div class="aw-glow"></div>
+    <div class="aw-wrap">
+      <div class="aw-hero-content">
+        <span class="aw-eyebrow aw-in" style="animation-delay:.1s"><i></i>Yamaha · {{ address.city or "Ranchi" }}{% if since %} · Since {{ since }}{% endif %}</span>
+        <h1 class="aw-display">
+          <span><b>{{ (lp.heading or company.company_name) | e }}</b></span>
+          <span><b style="animation-delay:.4s"><em>Ride ahead.</em></b></span>
+        </h1>
+        <p class="aw-in" style="animation-delay:.6s">{{ (lp.sub_heading or "Yamaha motorcycles and scooters, genuine parts and certified service, all under one roof.") | e }}</p>
+        <div class="aw-actions aw-in" style="animation-delay:.75s">
+          {% if lp.primary_button_label %}
+          <a class="aw-btn aw-btn-red" href="{{ '#enquire' if lp.display_enquiry_section else (lp.primary_button_link or '/contact') | e }}">
+            {{ lp.primary_button_label | e }}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
-        {% endif %}
-        {% if landing_page.secondary_button_label %}
-          <a href="{{ landing_page.secondary_button_link }}" class="btn-secondary">
-            {{ landing_page.secondary_button_label }}
-          </a>
-        {% endif %}
+          {% endif %}
+          {% if lp.secondary_button_label %}
+          <a class="aw-btn aw-btn-ghost" href="{{ (lp.secondary_button_link or '/contact') | e }}">{{ lp.secondary_button_label | e }}</a>
+          {% else %}
+          <a class="aw-btn aw-btn-ghost" href="/contact">Visit showroom</a>
+          {% endif %}
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  {% if landing_page.display_enquiry_section %}
-  <div class="lead-section" id="enquiry-section">
-    <div class="lead-container">
-      <div class="lead-image"></div>
-      <div class="lead-form-container">
-        <h2>Enquire Now</h2>
-        <form id="lead-form" class="lead-form">
-          <input type="text" id="full_name" name="full_name" placeholder="Full Name" required>
-          <input type="email" id="email" name="email" placeholder="Email" required>
-          <input type="text" id="phone" name="phone" placeholder="Phone" required>
-          <input type="text" id="area" name="area" placeholder="Area (Optional)">
-          <textarea id="message" name="message" placeholder="Your Message" required></textarea>
-          
-          <!-- Button with Spinner -->
-          <button type="submit" id="submit-button">
-            <span id="submit-text">Submit</span>
-            <span id="submit-spinner" class="spinner-border spinner-border-sm" style="display: none;"></span>
-          </button>
-        </form>
+  {% if lp.display_enquiry_section %}
+  <section class="aw-enquire" id="enquire">
+    <div class="aw-wrap">
+      <div class="aw-card" data-reveal>
+        <div class="aw-card-media">
+          <div>
+            <h3 class="aw-display">Your next ride starts here</h3>
+            <p>Test rides, price quotes, finance or service, tell us what you need and our team will call you back.</p>
+          </div>
+        </div>
+        <div class="aw-form-box">
+          <h2 class="aw-display">Enquire now</h2>
+          <p>We usually reply within one working day.</p>
+
+          <form id="lead-form" novalidate>
+            <div class="aw-field">
+              <input type="text" id="full_name" name="full_name" placeholder=" " autocomplete="name" required>
+              <label for="full_name">Full name</label>
+            </div>
+            <div class="aw-grid2">
+              <div class="aw-field">
+                <input type="email" id="email" name="email" placeholder=" " autocomplete="email" required>
+                <label for="email">Email</label>
+              </div>
+              <div class="aw-field">
+                <input type="tel" id="phone" name="phone" placeholder=" " autocomplete="tel" inputmode="tel" required>
+                <label for="phone">Phone</label>
+              </div>
+            </div>
+            <div class="aw-field">
+              <input type="text" id="area" name="area" placeholder=" ">
+              <label for="area">Area (optional)</label>
+            </div>
+            <div class="aw-field">
+              <textarea id="message" name="message" placeholder=" " required></textarea>
+              <label for="message">Your message</label>
+            </div>
+            <button type="submit" id="submit-button" class="aw-btn aw-btn-red aw-submit">Submit enquiry</button>
+            <div class="aw-msg" role="alert"></div>
+          </form>
+
+          <div class="aw-done" id="lead-done">
+            <svg viewBox="0 0 80 80" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="40" cy="40" r="36"/><path d="M26 41l10 10 19-21"/>
+            </svg>
+            <h3 class="aw-display">Thank you!</h3>
+            <p>We will contact you soon.</p>
+            <button type="button" class="aw-btn aw-btn-ghost" data-again>Send another enquiry</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-{% endif %}
+  </section>
+  {% endif %}
+</main>
+{% endblock %}
 
-
-  <!-- Lead Form Script --><script>
-  document.getElementById("lead-form").addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    let submitButton = document.querySelector("#lead-form button");
-    submitButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Submitting...`; // Show loading spinner
-    submitButton.disabled = true; // Disable button to prevent multiple submissions
-
-    let formData = {
-      full_name: document.getElementById("full_name").value,
-      email: document.getElementById("email").value,
-      phone: document.getElementById("phone").value,
-      message: document.getElementById("message").value,
-      area: document.getElementById("area").value || null,
-    };
-
-    fetch('/api/method/autowings_app.api.submit_lead', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(formData)
-    })
-    .then(response => response.json())  // Convert response to JSON
-    .then(data => {
-      console.log("Response from API:", data); // Log response in console
-
-      // Extract correct message and status
-      let responseData = data.message || {};
-      let status = responseData.status || "error";
-
-      if (status === "success") {
-        frappe.msgprint({
-          title: __('Success'),
-          indicator: 'green',
-          message: "Thank you! We will contact you soon."  // Show custom message
-        });
-
-        // Clear form after 2 seconds
-        setTimeout(() => {
-          document.getElementById("lead-form").reset();
-          frappe.hide_msgprint(); // Hide message popup
-          submitButton.innerHTML = "Submit"; // Restore button text
-          submitButton.disabled = false; // Enable button
-        }, 2000);
-      } else {
-        let errorMessage = responseData.message || "Something went wrong! Please try again.";
-        frappe.msgprint({
-          title: __('Error'),
-          indicator: 'red',
-          message: errorMessage
-        });
-
-        // Restore button state on error
-        submitButton.innerHTML = "Submit";
-        submitButton.disabled = false;
-      }
-    })
-    .catch(error => {
-      console.error("Error:", error);
-      frappe.msgprint({
-        title: __('Error'),
-        indicator: 'red',
-        message: "Something went wrong. Please check the console."
+{% block aw_script %}
+<script>
+(function () {
+  var form = document.getElementById("lead-form");
+  if (!form) return;
+  var v = awSite.val;
+  awSite.wireForm(form, {
+    done: "lead-done",
+    missing: "Please fill in your name, email, phone and message.",
+    send: function () {
+      return awSite.post("autowings_app.api.submit_lead", {
+        full_name: v("full_name"), email: v("email"), phone: v("phone"), message: v("message"), area: v("area") || null
       });
-
-      // Restore button state on error
-      submitButton.innerHTML = "Submit";
-      submitButton.disabled = false;
-    });
+    },
+    error: function (res) {
+      var r = res.data.message || {};
+      return r.status === "success" ? null : (r.message || "Something went wrong. Please try again.");
+    }
   });
+})();
 </script>
-  
-
 {% endblock %}

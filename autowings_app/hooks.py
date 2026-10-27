@@ -438,3 +438,6 @@ scheduler_events = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+
+# Autowings theme (header, footer, dark styles) for About and the published Web Pages
+update_website_context = ["autowings_app.site_context.website_context"]
